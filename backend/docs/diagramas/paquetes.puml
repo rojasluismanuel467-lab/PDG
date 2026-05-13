@@ -1,0 +1,562 @@
+@startuml packages_backend
+set namespaceSeparator none
+package "app" as app {
+}
+package "app.api" as app.api {
+}
+package "app.api.v1" as app.api.v1 {
+}
+package "app.api.v1.endpoints" as app.api.v1.endpoints {
+}
+package "app.api.v1.endpoints.auth" as app.api.v1.endpoints.auth {
+}
+package "app.api.v1.endpoints.brechas" as app.api.v1.endpoints.brechas {
+}
+package "app.api.v1.endpoints.business_glossary" as app.api.v1.endpoints.business_glossary {
+}
+package "app.api.v1.endpoints.conceptual_model" as app.api.v1.endpoints.conceptual_model {
+}
+package "app.api.v1.endpoints.dfd" as app.api.v1.endpoints.dfd {
+}
+package "app.api.v1.endpoints.inventory_matrix" as app.api.v1.endpoints.inventory_matrix {
+}
+package "app.api.v1.endpoints.logical_data_model" as app.api.v1.endpoints.logical_data_model {
+}
+package "app.api.v1.endpoints.maturity_questionnaire" as app.api.v1.endpoints.maturity_questionnaire {
+}
+package "app.api.v1.endpoints.project_memberships" as app.api.v1.endpoints.project_memberships {
+}
+package "app.api.v1.endpoints.projects" as app.api.v1.endpoints.projects {
+}
+package "app.api.v1.endpoints.raci" as app.api.v1.endpoints.raci {
+}
+package "app.api.v1.endpoints.users" as app.api.v1.endpoints.users {
+}
+package "app.api.v1.router" as app.api.v1.router {
+}
+package "app.core" as app.core {
+}
+package "app.core.artifact_catalog" as app.core.artifact_catalog {
+}
+package "app.core.config" as app.core.config {
+}
+package "app.core.database" as app.core.database {
+}
+package "app.core.enums" as app.core.enums {
+}
+package "app.core.maturity_questionnaire_catalog" as app.core.maturity_questionnaire_catalog {
+}
+package "app.core.permissions" as app.core.permissions {
+}
+package "app.core.security" as app.core.security {
+}
+package "app.dependencies" as app.dependencies {
+}
+package "app.dependencies.auth" as app.dependencies.auth {
+}
+package "app.dependencies.db" as app.dependencies.db {
+}
+package "app.dependencies.permissions" as app.dependencies.permissions {
+}
+package "app.exceptions" as app.exceptions {
+}
+package "app.exceptions.domain" as app.exceptions.domain {
+}
+package "app.exceptions.handlers" as app.exceptions.handlers {
+}
+package "app.main" as app.main {
+}
+package "app.models" as app.models {
+}
+package "app.models.audit_log" as app.models.audit_log {
+}
+package "app.models.base" as app.models.base {
+}
+package "app.models.business_glossary" as app.models.business_glossary {
+}
+package "app.models.conceptual_attribute" as app.models.conceptual_attribute {
+}
+package "app.models.conceptual_comment" as app.models.conceptual_comment {
+}
+package "app.models.conceptual_entity" as app.models.conceptual_entity {
+}
+package "app.models.conceptual_model" as app.models.conceptual_model {
+}
+package "app.models.conceptual_relation" as app.models.conceptual_relation {
+}
+package "app.models.dfd_comment" as app.models.dfd_comment {
+}
+package "app.models.dfd_model" as app.models.dfd_model {
+}
+package "app.models.dfd_version" as app.models.dfd_version {
+}
+package "app.models.gap_analysis_report" as app.models.gap_analysis_report {
+}
+package "app.models.gaps_crud_matrix" as app.models.gaps_crud_matrix {
+}
+package "app.models.integration_quality_rules" as app.models.integration_quality_rules {
+}
+package "app.models.inventory_matrix" as app.models.inventory_matrix {
+}
+package "app.models.invitation" as app.models.invitation {
+}
+package "app.models.logical_data_model" as app.models.logical_data_model {
+}
+package "app.models.logical_data_model_comment" as app.models.logical_data_model_comment {
+}
+package "app.models.logical_data_model_version" as app.models.logical_data_model_version {
+}
+package "app.models.maturity_answer" as app.models.maturity_answer {
+}
+package "app.models.maturity_dimension" as app.models.maturity_dimension {
+}
+package "app.models.maturity_question" as app.models.maturity_question {
+}
+package "app.models.maturity_questionnaire" as app.models.maturity_questionnaire {
+}
+package "app.models.maturity_response" as app.models.maturity_response {
+}
+package "app.models.maturity_subdomain" as app.models.maturity_subdomain {
+}
+package "app.models.project" as app.models.project {
+}
+package "app.models.project_artifact" as app.models.project_artifact {
+}
+package "app.models.project_artifact_permission" as app.models.project_artifact_permission {
+}
+package "app.models.project_membership" as app.models.project_membership {
+}
+package "app.models.raci" as app.models.raci {
+}
+package "app.models.refresh_token" as app.models.refresh_token {
+}
+package "app.models.user" as app.models.user {
+}
+package "app.repositories" as app.repositories {
+}
+package "app.repositories.auth_repository" as app.repositories.auth_repository {
+}
+package "app.repositories.brechas_repository" as app.repositories.brechas_repository {
+}
+package "app.repositories.business_glossary_repository" as app.repositories.business_glossary_repository {
+}
+package "app.repositories.conceptual_model_repository" as app.repositories.conceptual_model_repository {
+}
+package "app.repositories.dfd_repository" as app.repositories.dfd_repository {
+}
+package "app.repositories.inventory_matrix_repository" as app.repositories.inventory_matrix_repository {
+}
+package "app.repositories.logical_data_model_repository" as app.repositories.logical_data_model_repository {
+}
+package "app.repositories.maturity_questionnaire_repository" as app.repositories.maturity_questionnaire_repository {
+}
+package "app.repositories.project_membership_repository" as app.repositories.project_membership_repository {
+}
+package "app.repositories.project_repository" as app.repositories.project_repository {
+}
+package "app.repositories.raci_repository" as app.repositories.raci_repository {
+}
+package "app.repositories.user_repository" as app.repositories.user_repository {
+}
+package "app.schemas" as app.schemas {
+}
+package "app.schemas.auth" as app.schemas.auth {
+}
+package "app.schemas.brechas" as app.schemas.brechas {
+}
+package "app.schemas.business_glossary" as app.schemas.business_glossary {
+}
+package "app.schemas.conceptual_model" as app.schemas.conceptual_model {
+}
+package "app.schemas.dfd" as app.schemas.dfd {
+}
+package "app.schemas.inventory_matrix" as app.schemas.inventory_matrix {
+}
+package "app.schemas.logical_data_model" as app.schemas.logical_data_model {
+}
+package "app.schemas.maturity_questionnaire" as app.schemas.maturity_questionnaire {
+}
+package "app.schemas.project" as app.schemas.project {
+}
+package "app.schemas.project_membership" as app.schemas.project_membership {
+}
+package "app.schemas.raci" as app.schemas.raci {
+}
+package "app.schemas.user" as app.schemas.user {
+}
+package "app.services" as app.services {
+}
+package "app.services.auth_service" as app.services.auth_service {
+}
+package "app.services.brechas_service" as app.services.brechas_service {
+}
+package "app.services.business_glossary_service" as app.services.business_glossary_service {
+}
+package "app.services.conceptual_model_service" as app.services.conceptual_model_service {
+}
+package "app.services.dfd_service" as app.services.dfd_service {
+}
+package "app.services.inventory_matrix_service" as app.services.inventory_matrix_service {
+}
+package "app.services.logical_data_model_service" as app.services.logical_data_model_service {
+}
+package "app.services.maturity_questionnaire_service" as app.services.maturity_questionnaire_service {
+}
+package "app.services.project_membership_service" as app.services.project_membership_service {
+}
+package "app.services.project_permission_service" as app.services.project_permission_service {
+}
+package "app.services.project_service" as app.services.project_service {
+}
+package "app.services.raci_service" as app.services.raci_service {
+}
+package "app.services.user_service" as app.services.user_service {
+}
+app.api.v1.endpoints.auth --> app.dependencies.auth
+app.api.v1.endpoints.auth --> app.dependencies.db
+app.api.v1.endpoints.auth --> app.models.user
+app.api.v1.endpoints.auth --> app.schemas.auth
+app.api.v1.endpoints.auth --> app.schemas.user
+app.api.v1.endpoints.auth --> app.services.auth_service
+app.api.v1.endpoints.auth --> app.services.user_service
+app.api.v1.endpoints.brechas --> app.dependencies.auth
+app.api.v1.endpoints.brechas --> app.dependencies.db
+app.api.v1.endpoints.brechas --> app.schemas.brechas
+app.api.v1.endpoints.brechas --> app.services.brechas_service
+app.api.v1.endpoints.business_glossary --> app.dependencies.auth
+app.api.v1.endpoints.business_glossary --> app.dependencies.db
+app.api.v1.endpoints.business_glossary --> app.schemas.business_glossary
+app.api.v1.endpoints.business_glossary --> app.services.business_glossary_service
+app.api.v1.endpoints.conceptual_model --> app.dependencies.auth
+app.api.v1.endpoints.conceptual_model --> app.dependencies.db
+app.api.v1.endpoints.conceptual_model --> app.schemas.conceptual_model
+app.api.v1.endpoints.conceptual_model --> app.services.conceptual_model_service
+app.api.v1.endpoints.dfd --> app.dependencies.auth
+app.api.v1.endpoints.dfd --> app.dependencies.db
+app.api.v1.endpoints.dfd --> app.schemas.dfd
+app.api.v1.endpoints.dfd --> app.services.dfd_service
+app.api.v1.endpoints.inventory_matrix --> app.dependencies.auth
+app.api.v1.endpoints.inventory_matrix --> app.dependencies.db
+app.api.v1.endpoints.inventory_matrix --> app.schemas.inventory_matrix
+app.api.v1.endpoints.inventory_matrix --> app.services.inventory_matrix_service
+app.api.v1.endpoints.logical_data_model --> app.dependencies.auth
+app.api.v1.endpoints.logical_data_model --> app.dependencies.db
+app.api.v1.endpoints.logical_data_model --> app.schemas.logical_data_model
+app.api.v1.endpoints.logical_data_model --> app.services.logical_data_model_service
+app.api.v1.endpoints.maturity_questionnaire --> app.core.enums
+app.api.v1.endpoints.maturity_questionnaire --> app.dependencies.auth
+app.api.v1.endpoints.maturity_questionnaire --> app.dependencies.db
+app.api.v1.endpoints.maturity_questionnaire --> app.schemas.maturity_questionnaire
+app.api.v1.endpoints.maturity_questionnaire --> app.services.maturity_questionnaire_service
+app.api.v1.endpoints.project_memberships --> app.dependencies.auth
+app.api.v1.endpoints.project_memberships --> app.dependencies.db
+app.api.v1.endpoints.project_memberships --> app.schemas.project_membership
+app.api.v1.endpoints.project_memberships --> app.services.project_membership_service
+app.api.v1.endpoints.projects --> app.dependencies.auth
+app.api.v1.endpoints.projects --> app.dependencies.db
+app.api.v1.endpoints.projects --> app.schemas.project
+app.api.v1.endpoints.projects --> app.services.project_service
+app.api.v1.endpoints.raci --> app.core.database
+app.api.v1.endpoints.raci --> app.dependencies.auth
+app.api.v1.endpoints.raci --> app.exceptions.domain
+app.api.v1.endpoints.raci --> app.schemas.raci
+app.api.v1.endpoints.raci --> app.services.raci_service
+app.api.v1.endpoints.users --> app.core.enums
+app.api.v1.endpoints.users --> app.dependencies.auth
+app.api.v1.endpoints.users --> app.dependencies.db
+app.api.v1.endpoints.users --> app.schemas.user
+app.api.v1.endpoints.users --> app.services.user_service
+app.api.v1.router --> app.api.v1.endpoints.auth
+app.api.v1.router --> app.api.v1.endpoints.brechas
+app.api.v1.router --> app.api.v1.endpoints.business_glossary
+app.api.v1.router --> app.api.v1.endpoints.conceptual_model
+app.api.v1.router --> app.api.v1.endpoints.dfd
+app.api.v1.router --> app.api.v1.endpoints.inventory_matrix
+app.api.v1.router --> app.api.v1.endpoints.logical_data_model
+app.api.v1.router --> app.api.v1.endpoints.maturity_questionnaire
+app.api.v1.router --> app.api.v1.endpoints.project_memberships
+app.api.v1.router --> app.api.v1.endpoints.projects
+app.api.v1.router --> app.api.v1.endpoints.raci
+app.api.v1.router --> app.api.v1.endpoints.users
+app.core.artifact_catalog --> app.core.enums
+app.core.database --> app.core.config
+app.core.permissions --> app.core.enums
+app.core.security --> app.core.config
+app.core.security --> app.exceptions.domain
+app.dependencies.auth --> app.core.enums
+app.dependencies.auth --> app.core.security
+app.dependencies.auth --> app.dependencies.db
+app.dependencies.auth --> app.exceptions.domain
+app.dependencies.auth --> app.models.user
+app.dependencies.auth --> app.repositories.auth_repository
+app.dependencies.db --> app.core.database
+app.dependencies.permissions --> app.core.enums
+app.dependencies.permissions --> app.core.permissions
+app.dependencies.permissions --> app.dependencies.auth
+app.dependencies.permissions --> app.dependencies.db
+app.dependencies.permissions --> app.exceptions.domain
+app.dependencies.permissions --> app.repositories.project_membership_repository
+app.exceptions --> app.exceptions.domain
+app.exceptions.handlers --> app.exceptions.domain
+app.main --> app.api.v1.router
+app.main --> app.core.config
+app.main --> app.exceptions.handlers
+app.models --> app.models.audit_log
+app.models --> app.models.base
+app.models --> app.models.conceptual_attribute
+app.models --> app.models.conceptual_comment
+app.models --> app.models.conceptual_entity
+app.models --> app.models.conceptual_model
+app.models --> app.models.conceptual_relation
+app.models --> app.models.dfd_comment
+app.models --> app.models.dfd_model
+app.models --> app.models.dfd_version
+app.models --> app.models.gap_analysis_report
+app.models --> app.models.gaps_crud_matrix
+app.models --> app.models.integration_quality_rules
+app.models --> app.models.invitation
+app.models --> app.models.logical_data_model
+app.models --> app.models.logical_data_model_comment
+app.models --> app.models.logical_data_model_version
+app.models --> app.models.maturity_answer
+app.models --> app.models.maturity_dimension
+app.models --> app.models.maturity_question
+app.models --> app.models.maturity_questionnaire
+app.models --> app.models.maturity_response
+app.models --> app.models.maturity_subdomain
+app.models --> app.models.project
+app.models --> app.models.project_artifact
+app.models --> app.models.project_artifact_permission
+app.models --> app.models.project_membership
+app.models --> app.models.raci
+app.models --> app.models.refresh_token
+app.models --> app.models.user
+app.models.audit_log --> app.core.enums
+app.models.audit_log --> app.models.base
+app.models.business_glossary --> app.models.base
+app.models.conceptual_attribute --> app.models.base
+app.models.conceptual_comment --> app.core.enums
+app.models.conceptual_comment --> app.models.base
+app.models.conceptual_entity --> app.models.base
+app.models.conceptual_model --> app.core.enums
+app.models.conceptual_model --> app.models.base
+app.models.conceptual_relation --> app.models.base
+app.models.dfd_comment --> app.models.base
+app.models.dfd_model --> app.models.base
+app.models.dfd_version --> app.models.base
+app.models.gap_analysis_report --> app.models.base
+app.models.gaps_crud_matrix --> app.models.base
+app.models.integration_quality_rules --> app.models.base
+app.models.inventory_matrix --> app.models.base
+app.models.invitation --> app.core.enums
+app.models.invitation --> app.models.base
+app.models.logical_data_model --> app.models.base
+app.models.logical_data_model_comment --> app.models.base
+app.models.logical_data_model_version --> app.models.base
+app.models.maturity_answer --> app.core.enums
+app.models.maturity_answer --> app.models.base
+app.models.maturity_dimension --> app.models.base
+app.models.maturity_question --> app.models.base
+app.models.maturity_questionnaire --> app.core.enums
+app.models.maturity_questionnaire --> app.models.base
+app.models.maturity_response --> app.core.enums
+app.models.maturity_response --> app.models.base
+app.models.maturity_subdomain --> app.models.base
+app.models.project --> app.core.enums
+app.models.project --> app.models.base
+app.models.project_artifact --> app.core.enums
+app.models.project_artifact --> app.models.base
+app.models.project_artifact_permission --> app.models.base
+app.models.project_membership --> app.models.base
+app.models.raci --> app.core.enums
+app.models.raci --> app.models.base
+app.models.refresh_token --> app.models.base
+app.models.user --> app.core.enums
+app.models.user --> app.models.base
+app.repositories.auth_repository --> app.core.enums
+app.repositories.auth_repository --> app.models.audit_log
+app.repositories.auth_repository --> app.models.invitation
+app.repositories.auth_repository --> app.models.refresh_token
+app.repositories.auth_repository --> app.models.user
+app.repositories.brechas_repository --> app.models.conceptual_entity
+app.repositories.brechas_repository --> app.models.conceptual_model
+app.repositories.brechas_repository --> app.models.dfd_model
+app.repositories.brechas_repository --> app.models.gap_analysis_report
+app.repositories.brechas_repository --> app.models.gaps_crud_matrix
+app.repositories.brechas_repository --> app.models.integration_quality_rules
+app.repositories.brechas_repository --> app.models.logical_data_model
+app.repositories.brechas_repository --> app.models.project
+app.repositories.brechas_repository --> app.models.project_artifact
+app.repositories.brechas_repository --> app.models.user
+app.repositories.business_glossary_repository --> app.models.business_glossary
+app.repositories.business_glossary_repository --> app.models.conceptual_entity
+app.repositories.business_glossary_repository --> app.models.conceptual_model
+app.repositories.business_glossary_repository --> app.models.logical_data_model
+app.repositories.business_glossary_repository --> app.models.project
+app.repositories.business_glossary_repository --> app.models.project_artifact
+app.repositories.business_glossary_repository --> app.models.user
+app.repositories.conceptual_model_repository --> app.models.conceptual_comment
+app.repositories.conceptual_model_repository --> app.models.conceptual_entity
+app.repositories.conceptual_model_repository --> app.models.conceptual_model
+app.repositories.conceptual_model_repository --> app.models.project
+app.repositories.conceptual_model_repository --> app.models.project_artifact
+app.repositories.conceptual_model_repository --> app.models.project_artifact_permission
+app.repositories.conceptual_model_repository --> app.models.project_membership
+app.repositories.conceptual_model_repository --> app.models.user
+app.repositories.dfd_repository --> app.models.dfd_comment
+app.repositories.dfd_repository --> app.models.dfd_model
+app.repositories.dfd_repository --> app.models.dfd_version
+app.repositories.dfd_repository --> app.models.project_artifact
+app.repositories.inventory_matrix_repository --> app.models.inventory_matrix
+app.repositories.inventory_matrix_repository --> app.models.project
+app.repositories.inventory_matrix_repository --> app.models.project_artifact
+app.repositories.inventory_matrix_repository --> app.models.user
+app.repositories.logical_data_model_repository --> app.models.logical_data_model
+app.repositories.logical_data_model_repository --> app.models.logical_data_model_comment
+app.repositories.logical_data_model_repository --> app.models.logical_data_model_version
+app.repositories.logical_data_model_repository --> app.models.project_artifact
+app.repositories.maturity_questionnaire_repository --> app.models.maturity_answer
+app.repositories.maturity_questionnaire_repository --> app.models.maturity_dimension
+app.repositories.maturity_questionnaire_repository --> app.models.maturity_question
+app.repositories.maturity_questionnaire_repository --> app.models.maturity_questionnaire
+app.repositories.maturity_questionnaire_repository --> app.models.maturity_response
+app.repositories.maturity_questionnaire_repository --> app.models.maturity_subdomain
+app.repositories.maturity_questionnaire_repository --> app.models.project
+app.repositories.maturity_questionnaire_repository --> app.models.project_artifact
+app.repositories.maturity_questionnaire_repository --> app.models.project_artifact_permission
+app.repositories.maturity_questionnaire_repository --> app.models.project_membership
+app.repositories.project_membership_repository --> app.core.enums
+app.repositories.project_membership_repository --> app.models.audit_log
+app.repositories.project_membership_repository --> app.models.invitation
+app.repositories.project_membership_repository --> app.models.project
+app.repositories.project_membership_repository --> app.models.project_artifact
+app.repositories.project_membership_repository --> app.models.project_artifact_permission
+app.repositories.project_membership_repository --> app.models.project_membership
+app.repositories.project_membership_repository --> app.models.user
+app.repositories.project_repository --> app.models.audit_log
+app.repositories.project_repository --> app.models.project
+app.repositories.project_repository --> app.models.project_artifact
+app.repositories.project_repository --> app.models.project_artifact_permission
+app.repositories.project_repository --> app.models.project_membership
+app.repositories.raci_repository --> app.core.enums
+app.repositories.raci_repository --> app.models.raci
+app.repositories.user_repository --> app.core.enums
+app.repositories.user_repository --> app.models.user
+app.schemas.auth --> app.core.enums
+app.schemas.conceptual_model --> app.core.enums
+app.schemas.maturity_questionnaire --> app.core.enums
+app.schemas.project --> app.core.enums
+app.schemas.project_membership --> app.core.enums
+app.schemas.raci --> app.core.enums
+app.schemas.user --> app.core.enums
+app.services.auth_service --> app.core.enums
+app.services.auth_service --> app.core.security
+app.services.auth_service --> app.exceptions.domain
+app.services.auth_service --> app.models.user
+app.services.auth_service --> app.repositories.auth_repository
+app.services.auth_service --> app.schemas.auth
+app.services.brechas_service --> app.core.enums
+app.services.brechas_service --> app.exceptions.domain
+app.services.brechas_service --> app.models.gap_analysis_report
+app.services.brechas_service --> app.models.gaps_crud_matrix
+app.services.brechas_service --> app.models.integration_quality_rules
+app.services.brechas_service --> app.models.project_artifact
+app.services.brechas_service --> app.repositories.brechas_repository
+app.services.brechas_service --> app.schemas.brechas
+app.services.brechas_service --> app.services.project_permission_service
+app.services.business_glossary_service --> app.core.enums
+app.services.business_glossary_service --> app.exceptions.domain
+app.services.business_glossary_service --> app.models.business_glossary
+app.services.business_glossary_service --> app.models.project_artifact
+app.services.business_glossary_service --> app.repositories.business_glossary_repository
+app.services.business_glossary_service --> app.schemas.business_glossary
+app.services.business_glossary_service --> app.services.project_permission_service
+app.services.conceptual_model_service --> app.core.enums
+app.services.conceptual_model_service --> app.exceptions.domain
+app.services.conceptual_model_service --> app.models.conceptual_attribute
+app.services.conceptual_model_service --> app.models.conceptual_comment
+app.services.conceptual_model_service --> app.models.conceptual_entity
+app.services.conceptual_model_service --> app.models.conceptual_model
+app.services.conceptual_model_service --> app.models.conceptual_relation
+app.services.conceptual_model_service --> app.models.project_artifact
+app.services.conceptual_model_service --> app.repositories.conceptual_model_repository
+app.services.conceptual_model_service --> app.schemas.conceptual_model
+app.services.dfd_service --> app.core.enums
+app.services.dfd_service --> app.exceptions.domain
+app.services.dfd_service --> app.models.dfd_comment
+app.services.dfd_service --> app.models.dfd_model
+app.services.dfd_service --> app.models.dfd_version
+app.services.dfd_service --> app.repositories.dfd_repository
+app.services.dfd_service --> app.repositories.user_repository
+app.services.dfd_service --> app.schemas.dfd
+app.services.dfd_service --> app.services.project_permission_service
+app.services.inventory_matrix_service --> app.core.enums
+app.services.inventory_matrix_service --> app.exceptions.domain
+app.services.inventory_matrix_service --> app.models.conceptual_entity
+app.services.inventory_matrix_service --> app.models.conceptual_model
+app.services.inventory_matrix_service --> app.models.inventory_matrix
+app.services.inventory_matrix_service --> app.models.project_artifact
+app.services.inventory_matrix_service --> app.repositories.inventory_matrix_repository
+app.services.inventory_matrix_service --> app.schemas.inventory_matrix
+app.services.inventory_matrix_service --> app.services.project_permission_service
+app.services.logical_data_model_service --> app.core.enums
+app.services.logical_data_model_service --> app.exceptions.domain
+app.services.logical_data_model_service --> app.models.logical_data_model
+app.services.logical_data_model_service --> app.models.logical_data_model_comment
+app.services.logical_data_model_service --> app.models.logical_data_model_version
+app.services.logical_data_model_service --> app.repositories.logical_data_model_repository
+app.services.logical_data_model_service --> app.repositories.user_repository
+app.services.logical_data_model_service --> app.schemas.logical_data_model
+app.services.logical_data_model_service --> app.services.project_permission_service
+app.services.maturity_questionnaire_service --> app.core.config
+app.services.maturity_questionnaire_service --> app.core.enums
+app.services.maturity_questionnaire_service --> app.core.maturity_questionnaire_catalog
+app.services.maturity_questionnaire_service --> app.core.permissions
+app.services.maturity_questionnaire_service --> app.exceptions.domain
+app.services.maturity_questionnaire_service --> app.models.maturity_answer
+app.services.maturity_questionnaire_service --> app.models.maturity_question
+app.services.maturity_questionnaire_service --> app.models.maturity_questionnaire
+app.services.maturity_questionnaire_service --> app.models.maturity_response
+app.services.maturity_questionnaire_service --> app.models.project_artifact
+app.services.maturity_questionnaire_service --> app.models.project_membership
+app.services.maturity_questionnaire_service --> app.repositories.maturity_questionnaire_repository
+app.services.maturity_questionnaire_service --> app.schemas.maturity_questionnaire
+app.services.project_membership_service --> app.core.enums
+app.services.project_membership_service --> app.core.permissions
+app.services.project_membership_service --> app.exceptions.domain
+app.services.project_membership_service --> app.models.project_artifact_permission
+app.services.project_membership_service --> app.models.project_membership
+app.services.project_membership_service --> app.models.user
+app.services.project_membership_service --> app.repositories.project_membership_repository
+app.services.project_membership_service --> app.schemas.project_membership
+app.services.project_permission_service --> app.core.enums
+app.services.project_permission_service --> app.core.permissions
+app.services.project_permission_service --> app.exceptions.domain
+app.services.project_permission_service --> app.models.project
+app.services.project_permission_service --> app.models.project_artifact
+app.services.project_permission_service --> app.models.project_membership
+app.services.project_permission_service --> app.repositories.project_repository
+app.services.project_service --> app.core.artifact_catalog
+app.services.project_service --> app.core.enums
+app.services.project_service --> app.exceptions.domain
+app.services.project_service --> app.models.project
+app.services.project_service --> app.models.project_artifact
+app.services.project_service --> app.repositories.auth_repository
+app.services.project_service --> app.repositories.project_membership_repository
+app.services.project_service --> app.repositories.project_repository
+app.services.project_service --> app.schemas.project
+app.services.project_service --> app.services.maturity_questionnaire_service
+app.services.project_service --> app.services.project_permission_service
+app.services.raci_service --> app.core.enums
+app.services.raci_service --> app.exceptions.domain
+app.services.raci_service --> app.models.raci
+app.services.raci_service --> app.repositories.raci_repository
+app.services.raci_service --> app.schemas.raci
+app.services.user_service --> app.core.enums
+app.services.user_service --> app.core.security
+app.services.user_service --> app.exceptions.domain
+app.services.user_service --> app.models.user
+app.services.user_service --> app.repositories.user_repository
+app.services.user_service --> app.schemas.auth
+app.services.user_service --> app.schemas.user
+@enduml

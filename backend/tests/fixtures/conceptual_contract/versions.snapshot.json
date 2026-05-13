@@ -1,0 +1,13 @@
+{
+  "model_id": "11111111-1111-1111-1111-111111111111",
+  "versions": [
+    {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "version_number": 2,
+      "created_at": "2026-04-01T00:00:00Z",
+      "created_by_user_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      "created_by_user_email": "consultant.contract@arqdata.local",
+      "change_summary": "Manual update from conceptual diagram editor."
+    }
+  ]
+}

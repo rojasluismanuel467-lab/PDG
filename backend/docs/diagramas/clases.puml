@@ -1,0 +1,2399 @@
+@startuml
+set namespaceSeparator none
+
+class "ArtifactDefinition" as core.artifact_catalog.ArtifactDefinition {
+  code: str
+  name: str
+  description: str
+  block: ProjectBlock
+  block_order: int
+  order_index: int
+}
+
+class "Settings" as core.config.Settings {
+  PROJECT_NAME: str
+  VERSION: str
+  API_V1_STR: str
+  ALLOWED_ORIGINS: list[str]
+  DATABASE_URL: str
+  ADMIN_SEED_EMAIL: str
+  ADMIN_SEED_NAME: str
+  JWT_SECRET_KEY: str
+  JWT_ALGORITHM: str
+  JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
+  JWT_REFRESH_TOKEN_EXPIRE_MINUTES: int
+  BACKEND_BASE_URL: str
+  MEDIA_ROOT: str
+  assemble_cors_origins()
+}
+
+core.config.Settings --|> BaseSettings
+class "UserType" as core.enums.UserType {
+}
+
+core.enums.UserType --|> StrEnum
+class "UserStatus" as core.enums.UserStatus {
+}
+
+core.enums.UserStatus --|> StrEnum
+class "ProjectStatus" as core.enums.ProjectStatus {
+}
+
+core.enums.ProjectStatus --|> StrEnum
+class "ProjectBlock" as core.enums.ProjectBlock {
+}
+
+core.enums.ProjectBlock --|> StrEnum
+class "ProjectArtifactStatus" as core.enums.ProjectArtifactStatus {
+}
+
+core.enums.ProjectArtifactStatus --|> StrEnum
+class "MaturityResponseStatus" as core.enums.MaturityResponseStatus {
+}
+
+core.enums.MaturityResponseStatus --|> StrEnum
+class "MaturityValidationStatus" as core.enums.MaturityValidationStatus {
+}
+
+core.enums.MaturityValidationStatus --|> StrEnum
+class "InvitationStatus" as core.enums.InvitationStatus {
+}
+
+core.enums.InvitationStatus --|> StrEnum
+class "PermissionLevel" as core.enums.PermissionLevel {
+}
+
+core.enums.PermissionLevel --|> IntEnum
+class "RaciAssignmentType" as core.enums.RaciAssignmentType {
+}
+
+core.enums.RaciAssignmentType --|> StrEnum
+class "RaciCommentReferenceType" as core.enums.RaciCommentReferenceType {
+}
+
+core.enums.RaciCommentReferenceType --|> StrEnum
+class "RaciStatus" as core.enums.RaciStatus {
+}
+
+core.enums.RaciStatus --|> StrEnum
+class "TokenPayload" as core.security.TokenPayload {
+  sub: str
+  exp: datetime
+  token_type: str
+  jti: str | None
+}
+
+class "CurrentUser" as dependencies.auth.CurrentUser {
+  id: uuid.UUID
+  tipo_usuario: UserType
+  email: str
+  estado: UserStatus
+}
+
+class "DomainError" as exceptions.domain.DomainError {
+  to_dict()
+}
+
+exceptions.domain.DomainError --|> Exception
+class "ValidationDomainError" as exceptions.domain.ValidationDomainError {
+}
+
+exceptions.domain.ValidationDomainError --|> DomainError
+class "ForbiddenDomainError" as exceptions.domain.ForbiddenDomainError {
+}
+
+exceptions.domain.ForbiddenDomainError --|> DomainError
+class "UnauthorizedDomainError" as exceptions.domain.UnauthorizedDomainError {
+}
+
+exceptions.domain.UnauthorizedDomainError --|> DomainError
+class "NotFoundDomainError" as exceptions.domain.NotFoundDomainError {
+}
+
+exceptions.domain.NotFoundDomainError --|> DomainError
+class "ConflictDomainError" as exceptions.domain.ConflictDomainError {
+}
+
+exceptions.domain.ConflictDomainError --|> DomainError
+class "AuditLog" as models.audit_log.AuditLog {
+  id: Mapped[uuid.UUID]
+  timestamp: Mapped[datetime]
+  user_id: Mapped[uuid.UUID | None]
+  perfil_usuario: Mapped[UserType | None]
+  project_id: Mapped[uuid.UUID | None]
+  tipo_accion: Mapped[str]
+  descripcion: Mapped[str]
+  resource_id: Mapped[uuid.UUID | None]
+  datos_adicionales: Mapped[dict]
+}
+
+models.audit_log.AuditLog --|> Base
+class "Base" as models.base.Base {
+}
+
+models.base.Base --|> DeclarativeBase
+class "TimestampedUUIDModel" as models.base.TimestampedUUIDModel {
+  id: Mapped[uuid.UUID]
+  created_at: Mapped[datetime]
+  updated_at: Mapped[datetime]
+}
+
+models.base.TimestampedUUIDModel --|> Base
+class "BusinessGlossary" as models.business_glossary.BusinessGlossary {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  name: Mapped[str]
+  description: Mapped[str]
+  terms: Mapped[list[dict]]
+  comments: Mapped[list[dict]]
+  current_version_number: Mapped[int]
+  created_by_user_id: Mapped[uuid.UUID]
+  updated_by_user_id: Mapped[uuid.UUID | None]
+  last_saved_at: Mapped[datetime]
+  versions: Mapped[list[BusinessGlossaryVersion]]
+}
+
+models.business_glossary.BusinessGlossary --|> TimestampedUUIDModel
+class "BusinessGlossaryVersion" as models.business_glossary.BusinessGlossaryVersion {
+  glossary_id: Mapped[uuid.UUID]
+  version_number: Mapped[int]
+  snapshot: Mapped[dict]
+  change_summary: Mapped[str | None]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  created_by_user_email: Mapped[str]
+  glossary: Mapped[BusinessGlossary]
+}
+
+models.business_glossary.BusinessGlossaryVersion --|> TimestampedUUIDModel
+class "ConceptualAttribute" as models.conceptual_attribute.ConceptualAttribute {
+  entity_id: Mapped[uuid.UUID]
+  client_id: Mapped[str]
+  name: Mapped[str]
+  data_type: Mapped[str]
+  is_pk: Mapped[bool]
+  is_fk: Mapped[bool]
+  is_nullable: Mapped[bool]
+  description: Mapped[str | None]
+  fk_entity_client_id: Mapped[str | None]
+  fk_attribute_ref: Mapped[str | None]
+  order_index: Mapped[int]
+  entity: Mapped[ConceptualEntity]
+}
+
+models.conceptual_attribute.ConceptualAttribute --|> TimestampedUUIDModel
+class "ConceptualComment" as models.conceptual_comment.ConceptualComment {
+  model_id: Mapped[uuid.UUID]
+  target_type: Mapped[str]
+  target_client_id: Mapped[str | None]
+  content: Mapped[str]
+  status: Mapped[str]
+  created_in_version_number: Mapped[int]
+  outdated_at: Mapped[datetime | None]
+  created_by_user_id: Mapped[uuid.UUID]
+  created_by_user_email: Mapped[str]
+  created_by_user_name: Mapped[str]
+  created_by_user_type: Mapped[UserType]
+  model: Mapped[ConceptualModel]
+}
+
+models.conceptual_comment.ConceptualComment --|> TimestampedUUIDModel
+class "ConceptualEntity" as models.conceptual_entity.ConceptualEntity {
+  model_id: Mapped[uuid.UUID]
+  client_id: Mapped[str]
+  name: Mapped[str]
+  description: Mapped[str]
+  position_x: Mapped[float]
+  position_y: Mapped[float]
+  color: Mapped[str | None]
+  order_index: Mapped[int]
+  model: Mapped[ConceptualModel]
+  attributes: Mapped[list[ConceptualAttribute]]
+}
+
+models.conceptual_entity.ConceptualEntity --|> TimestampedUUIDModel
+class "ConceptualModel" as models.conceptual_model.ConceptualModel {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  phase: Mapped[ProjectBlock]
+  name: Mapped[str]
+  description: Mapped[str]
+  current_version: Mapped[int]
+  created_by_user_id: Mapped[uuid.UUID]
+  updated_by_user_id: Mapped[uuid.UUID | None]
+  last_saved_at: Mapped[datetime | None]
+  entities: Mapped[list[ConceptualEntity]]
+  relations: Mapped[list[ConceptualRelation]]
+  versions: Mapped[list[ConceptualModelVersion]]
+  comments: Mapped[list[ConceptualComment]]
+}
+
+models.conceptual_model.ConceptualModel --|> TimestampedUUIDModel
+class "ConceptualModelVersion" as models.conceptual_model.ConceptualModelVersion {
+  model_id: Mapped[uuid.UUID]
+  version_number: Mapped[int]
+  snapshot_json: Mapped[dict[str, object]]
+  change_summary: Mapped[str | None]
+  created_by_user_id: Mapped[uuid.UUID]
+  created_by_user_email: Mapped[str]
+  model: Mapped[ConceptualModel]
+}
+
+models.conceptual_model.ConceptualModelVersion --|> TimestampedUUIDModel
+class "ConceptualRelation" as models.conceptual_relation.ConceptualRelation {
+  model_id: Mapped[uuid.UUID]
+  client_id: Mapped[str]
+  name: Mapped[str]
+  source_entity_client_id: Mapped[str]
+  target_entity_client_id: Mapped[str]
+  cardinality: Mapped[str]
+  description: Mapped[str | None]
+  fk_attribute_client_id: Mapped[str | None]
+  order_index: Mapped[int]
+  model: Mapped[ConceptualModel]
+}
+
+models.conceptual_relation.ConceptualRelation --|> TimestampedUUIDModel
+class "DFDComment" as models.dfd_comment.DFDComment {
+  id: Mapped[uuid.UUID]
+  model_id: Mapped[uuid.UUID]
+  target_type: Mapped[str]
+  target_client_id: Mapped[str | None]
+  content: Mapped[str]
+  status: Mapped[str]
+  created_by_user_id: Mapped[uuid.UUID]
+  created_by_user_email: Mapped[str]
+  created_by_user_name: Mapped[str | None]
+  created_by_user_type: Mapped[str]
+  created_in_version_number: Mapped[int]
+  created_at: Mapped[datetime]
+  updated_at: Mapped[datetime]
+  model: Mapped[DFDModel]
+}
+
+models.dfd_comment.DFDComment --|> Base
+class "DFDModel" as models.dfd_model.DFDModel {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  phase: Mapped[str]
+  name: Mapped[str]
+  description: Mapped[str]
+  level: Mapped[int]
+  nodes: Mapped[list[dict]]
+  flows: Mapped[list[dict]]
+  current_version_number: Mapped[int]
+  created_by_user_id: Mapped[uuid.UUID]
+  updated_by_user_id: Mapped[uuid.UUID | None]
+  last_saved_at: Mapped[datetime]
+  versions: Mapped[list[DFDVersion]]
+  comments: Mapped[list[DFDComment]]
+}
+
+models.dfd_model.DFDModel --|> TimestampedUUIDModel
+class "DFDVersion" as models.dfd_version.DFDVersion {
+  id: Mapped[uuid.UUID]
+  model_id: Mapped[uuid.UUID]
+  version_number: Mapped[int]
+  snapshot: Mapped[dict]
+  change_summary: Mapped[str | None]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  created_by_user_email: Mapped[str]
+  created_at: Mapped[datetime]
+  model: Mapped[DFDModel]
+}
+
+models.dfd_version.DFDVersion --|> Base
+class "GapAnalysisReport" as models.gap_analysis_report.GapAnalysisReport {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  name: Mapped[str]
+  description: Mapped[str]
+  executive_summary: Mapped[str]
+  gaps: Mapped[list[dict]]
+  total_gaps: Mapped[int]
+  critical_gaps: Mapped[int]
+  priority_recommendations: Mapped[list[str]]
+  target_formats: Mapped[list[str]]
+  current_version_number: Mapped[int]
+  created_by_user_id: Mapped[uuid.UUID]
+  updated_by_user_id: Mapped[uuid.UUID | None]
+  last_saved_at: Mapped[datetime]
+  versions: Mapped[list[GapAnalysisReportVersion]]
+}
+
+models.gap_analysis_report.GapAnalysisReport --|> TimestampedUUIDModel
+class "GapAnalysisReportVersion" as models.gap_analysis_report.GapAnalysisReportVersion {
+  report_id: Mapped[uuid.UUID]
+  version_number: Mapped[int]
+  snapshot: Mapped[dict]
+  change_summary: Mapped[str | None]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  created_by_user_email: Mapped[str]
+  report: Mapped[GapAnalysisReport]
+}
+
+models.gap_analysis_report.GapAnalysisReportVersion --|> TimestampedUUIDModel
+class "GapsCRUDMatrix" as models.gaps_crud_matrix.GapsCRUDMatrix {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  name: Mapped[str]
+  description: Mapped[str]
+  comparisons: Mapped[list[dict]]
+  current_version_number: Mapped[int]
+  created_by_user_id: Mapped[uuid.UUID]
+  updated_by_user_id: Mapped[uuid.UUID | None]
+  last_saved_at: Mapped[datetime]
+  versions: Mapped[list[GapsCRUDMatrixVersion]]
+}
+
+models.gaps_crud_matrix.GapsCRUDMatrix --|> TimestampedUUIDModel
+class "GapsCRUDMatrixVersion" as models.gaps_crud_matrix.GapsCRUDMatrixVersion {
+  matrix_id: Mapped[uuid.UUID]
+  version_number: Mapped[int]
+  snapshot: Mapped[dict]
+  change_summary: Mapped[str | None]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  created_by_user_email: Mapped[str]
+  matrix: Mapped[GapsCRUDMatrix]
+}
+
+models.gaps_crud_matrix.GapsCRUDMatrixVersion --|> TimestampedUUIDModel
+class "IntegrationQualityRules" as models.integration_quality_rules.IntegrationQualityRules {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  name: Mapped[str]
+  description: Mapped[str]
+  technical_summary: Mapped[str]
+  rules: Mapped[list[dict]]
+  acceptance_criteria: Mapped[list[str]]
+  target_formats: Mapped[list[str]]
+  current_version_number: Mapped[int]
+  created_by_user_id: Mapped[uuid.UUID]
+  updated_by_user_id: Mapped[uuid.UUID | None]
+  last_saved_at: Mapped[datetime]
+  versions: Mapped[list[IntegrationQualityRulesVersion]]
+}
+
+models.integration_quality_rules.IntegrationQualityRules --|> TimestampedUUIDModel
+class "IntegrationQualityRulesVersion" as models.integration_quality_rules.IntegrationQualityRulesVersion {
+  document_id: Mapped[uuid.UUID]
+  version_number: Mapped[int]
+  snapshot: Mapped[dict]
+  change_summary: Mapped[str | None]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  created_by_user_email: Mapped[str]
+  document: Mapped[IntegrationQualityRules]
+}
+
+models.integration_quality_rules.IntegrationQualityRulesVersion --|> TimestampedUUIDModel
+class "InventoryMatrix" as models.inventory_matrix.InventoryMatrix {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  name: Mapped[str]
+  description: Mapped[str]
+  systems: Mapped[list[dict]]
+  comments: Mapped[list[dict]]
+  current_version_number: Mapped[int]
+  created_by_user_id: Mapped[uuid.UUID]
+  updated_by_user_id: Mapped[uuid.UUID | None]
+  last_saved_at: Mapped[datetime]
+  versions: Mapped[list[InventoryMatrixVersion]]
+}
+
+models.inventory_matrix.InventoryMatrix --|> TimestampedUUIDModel
+class "InventoryMatrixVersion" as models.inventory_matrix.InventoryMatrixVersion {
+  matrix_id: Mapped[uuid.UUID]
+  version_number: Mapped[int]
+  snapshot: Mapped[dict]
+  change_summary: Mapped[str | None]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  created_by_user_email: Mapped[str]
+  matrix: Mapped[InventoryMatrix]
+}
+
+models.inventory_matrix.InventoryMatrixVersion --|> TimestampedUUIDModel
+class "Invitation" as models.invitation.Invitation {
+  token: Mapped[str]
+  email: Mapped[str]
+  invited_user_type: Mapped[UserType]
+  status: Mapped[InvitationStatus]
+  project_id: Mapped[uuid.UUID | None]
+  invited_by_user_id: Mapped[uuid.UUID]
+  target_user_id: Mapped[uuid.UUID | None]
+  expires_at: Mapped[datetime]
+  accepted_at: Mapped[datetime | None]
+}
+
+models.invitation.Invitation --|> TimestampedUUIDModel
+class "LogicalDataModel" as models.logical_data_model.LogicalDataModel {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  phase: Mapped[str]
+  name: Mapped[str]
+  description: Mapped[str]
+  tables: Mapped[list[dict]]
+  sql_ddl: Mapped[str]
+  notes_markdown: Mapped[str]
+  comments: Mapped[list[dict]]
+  versions: Mapped[list[dict]]
+  current_version: Mapped[str]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  updated_by_user_id: Mapped[uuid.UUID | None]
+  last_saved_at: Mapped[datetime]
+}
+
+models.logical_data_model.LogicalDataModel --|> TimestampedUUIDModel
+class "LogicalDataModelComment" as models.logical_data_model_comment.LogicalDataModelComment {
+  model_id: Mapped[uuid.UUID]
+  target_type: Mapped[str]
+  target_client_id: Mapped[str]
+  content: Mapped[str]
+  status: Mapped[str]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  created_by_user_email: Mapped[str]
+  created_by_user_name: Mapped[str | None]
+  created_by_user_type: Mapped[str]
+  created_in_version_number: Mapped[int]
+}
+
+models.logical_data_model_comment.LogicalDataModelComment --|> TimestampedUUIDModel
+class "LogicalDataModelVersion" as models.logical_data_model_version.LogicalDataModelVersion {
+  model_id: Mapped[uuid.UUID]
+  version_number: Mapped[int]
+  snapshot: Mapped[dict]
+  change_summary: Mapped[str | None]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  created_by_user_email: Mapped[str]
+}
+
+models.logical_data_model_version.LogicalDataModelVersion --|> TimestampedUUIDModel
+class "MaturityAnswer" as models.maturity_answer.MaturityAnswer {
+  response_id: Mapped[uuid.UUID]
+  question_id: Mapped[uuid.UUID]
+  respondent_score: Mapped[int]
+  validated_score: Mapped[int | None]
+  estado_validacion: Mapped[MaturityValidationStatus]
+  validation_comments: Mapped[str | None]
+  evidence_url: Mapped[str | None]
+  evidence_name: Mapped[str | None]
+  evidence_type: Mapped[str | None]
+  evidence_size: Mapped[int | None]
+  response: Mapped[MaturityResponse]
+  question: Mapped[MaturityQuestion]
+}
+
+models.maturity_answer.MaturityAnswer --|> TimestampedUUIDModel
+class "MaturityDimension" as models.maturity_dimension.MaturityDimension {
+  id: Mapped[int]
+  name: Mapped[str]
+  description: Mapped[str]
+  weight: Mapped[float]
+  display_order: Mapped[int]
+  subdomains: Mapped[list[MaturitySubdomain]]
+}
+
+models.maturity_dimension.MaturityDimension --|> Base
+class "MaturityQuestion" as models.maturity_question.MaturityQuestion {
+  questionnaire_id: Mapped[uuid.UUID]
+  dimension_id: Mapped[int]
+  subdomain_id: Mapped[int]
+  text: Mapped[str]
+  applicable_roles: Mapped[list[str]]
+  score_criteria_override: Mapped[list[dict[str, int | str]]]
+  weight: Mapped[float]
+  is_active: Mapped[bool]
+  questionnaire: Mapped[MaturityQuestionnaire]
+  answers: Mapped[list[MaturityAnswer]]
+}
+
+models.maturity_question.MaturityQuestion --|> TimestampedUUIDModel
+class "MaturityQuestionnaire" as models.maturity_questionnaire.MaturityQuestionnaire {
+  project_id: Mapped[uuid.UUID]
+  phase: Mapped[ProjectBlock]
+  is_closed: Mapped[bool]
+  access_code: Mapped[str]
+  dimension_weights_override: Mapped[dict[str, float]]
+  custom_roles_override: Mapped[list[dict[str, str]]]
+  score_criteria_override: Mapped[list[dict[str, int | str]]]
+  access_expires_at: Mapped[datetime | None]
+  created_by_user_id: Mapped[uuid.UUID]
+  closed_by_user_id: Mapped[uuid.UUID | None]
+  closed_at: Mapped[datetime | None]
+  questions: Mapped[list[MaturityQuestion]]
+  responses: Mapped[list[MaturityResponse]]
+}
+
+models.maturity_questionnaire.MaturityQuestionnaire --|> TimestampedUUIDModel
+class "MaturityResponse" as models.maturity_response.MaturityResponse {
+  questionnaire_id: Mapped[uuid.UUID]
+  respondent_name: Mapped[str]
+  respondent_email: Mapped[str]
+  role: Mapped[str]
+  status: Mapped[MaturityResponseStatus]
+  estado_validacion: Mapped[MaturityValidationStatus]
+  anulation_reason: Mapped[str | None]
+  anulated_at: Mapped[datetime | None]
+  anulated_by_user_id: Mapped[uuid.UUID | None]
+  validated_by_user_id: Mapped[uuid.UUID | None]
+  validated_at: Mapped[datetime | None]
+  validation_comments: Mapped[str | None]
+  submitted_at: Mapped[datetime]
+  questionnaire: Mapped[MaturityQuestionnaire]
+  answers: Mapped[list[MaturityAnswer]]
+}
+
+models.maturity_response.MaturityResponse --|> TimestampedUUIDModel
+class "MaturitySubdomain" as models.maturity_subdomain.MaturitySubdomain {
+  id: Mapped[int]
+  dimension_id: Mapped[int]
+  name: Mapped[str]
+  description: Mapped[str]
+  weight: Mapped[float]
+  display_order: Mapped[int]
+  dimension: Mapped[MaturityDimension]
+}
+
+models.maturity_subdomain.MaturitySubdomain --|> Base
+class "Project" as models.project.Project {
+  nombre: Mapped[str]
+  descripcion: Mapped[str | None]
+  client_company_name: Mapped[str]
+  client_company_email: Mapped[str]
+  estimated_end_date: Mapped[date]
+  estado: Mapped[ProjectStatus]
+  manager_user_id: Mapped[uuid.UUID]
+  manager_user: Mapped['User']
+  memberships: Mapped[list['ProjectMembership']]
+  artifacts: Mapped[list['ProjectArtifact']]
+}
+
+models.project.Project --|> TimestampedUUIDModel
+class "ProjectArtifact" as models.project_artifact.ProjectArtifact {
+  project_id: Mapped[uuid.UUID]
+  code: Mapped[str]
+  name: Mapped[str]
+  description: Mapped[str]
+  block: Mapped[ProjectBlock]
+  order_index: Mapped[int]
+  block_order: Mapped[int]
+  status: Mapped[ProjectArtifactStatus]
+  is_applicable: Mapped[bool]
+  consultant_approved: Mapped[bool]
+  company_approved: Mapped[bool]
+  consultant_approved_at: Mapped[datetime | None]
+  company_approved_at: Mapped[datetime | None]
+  approved_at: Mapped[datetime | None]
+  approved_by_user_id: Mapped[uuid.UUID | None]
+  review_cycles: Mapped[int]
+  last_rejection_reason: Mapped[str | None]
+  project: Mapped[Project]
+  permissions: Mapped[list[ProjectArtifactPermission]]
+}
+
+models.project_artifact.ProjectArtifact --|> TimestampedUUIDModel
+class "ProjectArtifactPermission" as models.project_artifact_permission.ProjectArtifactPermission {
+  project_id: Mapped[uuid.UUID]
+  artifact_id: Mapped[uuid.UUID]
+  user_id: Mapped[uuid.UUID]
+  permission_level: Mapped[int]
+  assigned_by_user_id: Mapped[uuid.UUID | None]
+  artifact: Mapped[ProjectArtifact]
+}
+
+models.project_artifact_permission.ProjectArtifactPermission --|> TimestampedUUIDModel
+class "ProjectMembership" as models.project_membership.ProjectMembership {
+  project_id: Mapped[uuid.UUID]
+  user_id: Mapped[uuid.UUID]
+  is_manager: Mapped[bool]
+  project_permission_level: Mapped[int | None]
+  nivel_asis: Mapped[int | None]
+  nivel_tobe: Mapped[int | None]
+  nivel_brechas: Mapped[int | None]
+  nivel_roadmap: Mapped[int | None]
+  assigned_by_user_id: Mapped[uuid.UUID | None]
+  project: Mapped['Project']
+  user: Mapped['User']
+}
+
+models.project_membership.ProjectMembership --|> TimestampedUUIDModel
+class "RaciMatrix" as models.raci.RaciMatrix {
+  project_id: Mapped[uuid.UUID]
+  entregable_id: Mapped[uuid.UUID | None]
+  name: Mapped[str]
+  description: Mapped[str | None]
+  status: Mapped[RaciStatus]
+  version_actual: Mapped[str]
+  roles: Mapped[list['RaciRole']]
+  activities: Mapped[list['RaciActivity']]
+  comments: Mapped[list['RaciComment']]
+  history: Mapped[list['RaciVersionHistory']]
+}
+
+models.raci.RaciMatrix --|> TimestampedUUIDModel
+class "RaciRole" as models.raci.RaciRole {
+  matrix_id: Mapped[uuid.UUID]
+  name: Mapped[str]
+  area: Mapped[str | None]
+  description: Mapped[str | None]
+  order_index: Mapped[int]
+  matrix: Mapped['RaciMatrix']
+  assignments: Mapped[list['RaciAssignment']]
+}
+
+models.raci.RaciRole --|> TimestampedUUIDModel
+class "RaciActivity" as models.raci.RaciActivity {
+  matrix_id: Mapped[uuid.UUID]
+  name: Mapped[str]
+  description: Mapped[str | None]
+  category: Mapped[str]
+  order_index: Mapped[int]
+  notas: Mapped[str | None]
+  matrix: Mapped['RaciMatrix']
+  assignments: Mapped[list['RaciAssignment']]
+}
+
+models.raci.RaciActivity --|> TimestampedUUIDModel
+class "RaciAssignment" as models.raci.RaciAssignment {
+  matrix_id: Mapped[uuid.UUID]
+  activity_id: Mapped[uuid.UUID]
+  role_id: Mapped[uuid.UUID]
+  assignment_type: Mapped[RaciAssignmentType]
+  activity: Mapped['RaciActivity']
+  role: Mapped['RaciRole']
+}
+
+models.raci.RaciAssignment --|> TimestampedUUIDModel
+class "RaciComment" as models.raci.RaciComment {
+  matrix_id: Mapped[uuid.UUID]
+  reference_id: Mapped[uuid.UUID | None]
+  reference_type: Mapped[RaciCommentReferenceType]
+  author_id: Mapped[uuid.UUID]
+  author_nombre: Mapped[str]
+  author_perfil: Mapped[str]
+  contenido: Mapped[str]
+  estado: Mapped[str]
+  matrix: Mapped['RaciMatrix']
+  author: Mapped['User']
+}
+
+models.raci.RaciComment --|> TimestampedUUIDModel
+class "RaciVersionHistory" as models.raci.RaciVersionHistory {
+  matrix_id: Mapped[uuid.UUID]
+  version: Mapped[str]
+  autor: Mapped[str]
+  descripcion_cambio: Mapped[str]
+  total_actividades: Mapped[int]
+  total_roles: Mapped[int]
+  matrix: Mapped['RaciMatrix']
+}
+
+models.raci.RaciVersionHistory --|> TimestampedUUIDModel
+class "RefreshToken" as models.refresh_token.RefreshToken {
+  user_id: Mapped[uuid.UUID]
+  token_hash: Mapped[str]
+  expires_at: Mapped[datetime]
+  revoked_at: Mapped[datetime | None]
+}
+
+models.refresh_token.RefreshToken --|> TimestampedUUIDModel
+class "User" as models.user.User {
+  nombre: Mapped[str]
+  email: Mapped[str]
+  password_hash: Mapped[str | None]
+  tipo_usuario: Mapped[UserType]
+  estado: Mapped[UserStatus]
+  created_by_user_id: Mapped[uuid.UUID | None]
+  deactivated_at: Mapped[datetime | None]
+  created_by: Mapped['User | None']
+  managed_projects: Mapped[list['Project']]
+  memberships: Mapped[list['ProjectMembership']]
+}
+
+models.user.User --|> TimestampedUUIDModel
+class "AuthRepository" as repositories.auth_repository.AuthRepository {
+  get_user_by_email()
+  get_user_by_id()
+  get_invitation_by_token()
+  get_refresh_token()
+  save_refresh_token()
+  revoke_refresh_token()
+  revoke_all_refresh_tokens_for_user()
+  add_audit_log()
+}
+
+class "BrechasRepository" as repositories.brechas_repository.BrechasRepository {
+  get_project()
+  get_artifact()
+  list_project_artifacts()
+  get_conceptual_model_by_artifact()
+  get_logical_model_by_artifact()
+  get_dfd_model_by_artifact()
+  get_user_email()
+  get_crud_matrix()
+  create_crud_matrix()
+  create_crud_matrix_version()
+  get_gap_report()
+  create_gap_report()
+  create_gap_report_version()
+  get_integration_rules()
+  create_integration_rules()
+  create_integration_rules_version()
+}
+
+class "BusinessGlossaryRepository" as repositories.business_glossary_repository.BusinessGlossaryRepository {
+  get_project()
+  get_artifact()
+  get_user()
+  get_artifact_by_code()
+  get_conceptual_model_by_artifact()
+  get_logical_model_by_artifact()
+  get_glossary()
+  create_glossary()
+  create_version()
+}
+
+class "ConceptualModelRepository" as repositories.conceptual_model_repository.ConceptualModelRepository {
+  get_project_by_id()
+  get_membership()
+  get_artifact_by_id()
+  get_artifact_permission()
+  get_model_by_artifact()
+  get_user_by_id()
+  create_model()
+  list_versions()
+  get_version_by_number()
+  replace_entities()
+  replace_relations()
+  create_version()
+  list_comments()
+  create_comment()
+  get_comment_by_id()
+  delete_comment()
+}
+
+class "DFDRepository" as repositories.dfd_repository.DFDRepository {
+  get_artifact()
+  get_model()
+  create_model()
+  create_version()
+  get_version()
+  list_versions()
+  create_comment()
+  list_comments()
+}
+
+class "InventoryMatrixRepository" as repositories.inventory_matrix_repository.InventoryMatrixRepository {
+  get_project()
+  get_artifact()
+  get_user()
+  get_matrix()
+  create_matrix()
+  create_version()
+}
+
+class "LogicalDataModelRepository" as repositories.logical_data_model_repository.LogicalDataModelRepository {
+  get_artifact()
+  get_model()
+  create_model()
+  list_versions()
+  get_version()
+  create_version()
+  list_comments()
+  create_comment()
+}
+
+class "MaturityQuestionnaireRepository" as repositories.maturity_questionnaire_repository.MaturityQuestionnaireRepository {
+  get_project_by_id()
+  get_membership()
+  get_artifact_by_code()
+  get_artifact_permission()
+  list_dimensions()
+  get_dimension_map()
+  get_subdomain_map()
+  get_questionnaire()
+  get_questionnaire_by_code()
+  create_questionnaire()
+  replace_questions()
+  count_access_code()
+  create_response()
+  create_answers()
+  get_response()
+}
+
+class "ProjectMembershipRepository" as repositories.project_membership_repository.ProjectMembershipRepository {
+  get_project_by_id()
+  get_user_by_id()
+  get_user_by_email()
+  create_user()
+  get_membership()
+  list_memberships()
+  create_membership()
+  get_artifact_by_id()
+  get_artifact_permission()
+  upsert_artifact_permission()
+  delete_membership()
+  create_invitation()
+  add_audit_log()
+}
+
+class "ProjectRepository" as repositories.project_repository.ProjectRepository {
+  create_project()
+  get_project_by_id()
+  list_projects_for_user()
+  create_manager_membership()
+  create_artifacts()
+  get_artifact_by_id()
+  list_artifacts_by_project()
+  get_membership()
+  get_artifact_permission()
+  add_audit_log()
+}
+
+class "RaciRepository" as repositories.raci_repository.RaciRepository {
+  create_matrix()
+  get_matrix()
+  get_matrix_with_relations()
+  list_matrices_by_project()
+  get_role()
+  create_role()
+  delete_role()
+  get_activity()
+  get_activity_with_assignments()
+  create_activity()
+  delete_activity()
+  insert_assignment()
+  delete_assignment_for_activity_and_role()
+  get_assignment()
+  create_comment()
+}
+
+class "UserRepository" as repositories.user_repository.UserRepository {
+  get_by_id()
+  get_by_email()
+  create()
+  list_users()
+}
+
+class "AuthLoginRequest" as schemas.auth.AuthLoginRequest {
+  email: str
+  password: str
+}
+
+schemas.auth.AuthLoginRequest --|> BaseModel
+class "UserRegisterRequest" as schemas.auth.UserRegisterRequest {
+  nombre: str
+  email: EmailStr
+  password: str
+  tipo_usuario: UserType
+}
+
+schemas.auth.UserRegisterRequest --|> BaseModel
+class "AuthRefreshRequest" as schemas.auth.AuthRefreshRequest {
+  refresh_token: str
+}
+
+schemas.auth.AuthRefreshRequest --|> BaseModel
+class "AuthLogoutRequest" as schemas.auth.AuthLogoutRequest {
+  refresh_token: str | None
+}
+
+schemas.auth.AuthLogoutRequest --|> BaseModel
+class "ActivateInvitationRequest" as schemas.auth.ActivateInvitationRequest {
+  token: str
+  password: str
+  nombre: str | None
+}
+
+schemas.auth.ActivateInvitationRequest --|> BaseModel
+class "AuthUserResponse" as schemas.auth.AuthUserResponse {
+  id: UUID
+  nombre: str
+  email: str
+  tipo_usuario: UserType
+  estado: UserStatus
+}
+
+schemas.auth.AuthUserResponse --|> BaseModel
+class "TokenPairResponse" as schemas.auth.TokenPairResponse {
+  access_token: str
+  refresh_token: str
+  token_type: str
+  access_token_expires_at: datetime
+  refresh_token_expires_at: datetime
+}
+
+schemas.auth.TokenPairResponse --|> BaseModel
+class "AuthLoginResponse" as schemas.auth.AuthLoginResponse {
+  user: AuthUserResponse
+  tokens: TokenPairResponse
+}
+
+schemas.auth.AuthLoginResponse --|> BaseModel
+class "AuthRefreshResponse" as schemas.auth.AuthRefreshResponse {
+  tokens: TokenPairResponse
+}
+
+schemas.auth.AuthRefreshResponse --|> BaseModel
+class "AuthMessageResponse" as schemas.auth.AuthMessageResponse {
+  message: str
+}
+
+schemas.auth.AuthMessageResponse --|> BaseModel
+class "AuthLogoutResponse" as schemas.auth.AuthLogoutResponse {
+  message: str
+  revoked_tokens: int
+}
+
+schemas.auth.AuthLogoutResponse --|> BaseModel
+class "BrechaImpacto" as schemas.brechas.BrechaImpacto {
+}
+
+schemas.brechas.BrechaImpacto --|> StrEnum
+class "BrechaPrioridad" as schemas.brechas.BrechaPrioridad {
+}
+
+schemas.brechas.BrechaPrioridad --|> StrEnum
+class "IntegrationRuleType" as schemas.brechas.IntegrationRuleType {
+}
+
+schemas.brechas.IntegrationRuleType --|> StrEnum
+class "IntegrationRulePriority" as schemas.brechas.IntegrationRulePriority {
+}
+
+schemas.brechas.IntegrationRulePriority --|> StrEnum
+class "ExportFormat" as schemas.brechas.ExportFormat {
+}
+
+schemas.brechas.ExportFormat --|> StrEnum
+class "CRUDComparisonSchema" as schemas.brechas.CRUDComparisonSchema {
+  id: str
+  entidad: str
+  asis_create: bool
+  asis_read: bool
+  asis_update: bool
+  asis_delete: bool
+  tobe_create: bool
+  tobe_read: bool
+  tobe_update: bool
+  tobe_delete: bool
+  brecha: str
+  impacto: BrechaImpacto
+}
+
+schemas.brechas.CRUDComparisonSchema --|> BaseModel
+class "BrechasVersionResponse" as schemas.brechas.BrechasVersionResponse {
+  version: str
+  fecha: datetime
+  autor: str
+  descripcion_cambio: str | None
+}
+
+schemas.brechas.BrechasVersionResponse --|> BaseModel
+class "CRUDMatrixSnapshotRequest" as schemas.brechas.CRUDMatrixSnapshotRequest {
+  nombre: str
+  descripcion: str
+  comparaciones: list[CRUDComparisonSchema]
+  change_summary: str | None
+}
+
+schemas.brechas.CRUDMatrixSnapshotRequest --|> BaseModel
+class "CRUDMatrixResponse" as schemas.brechas.CRUDMatrixResponse {
+  id: UUID
+  proyecto_id: UUID
+  entregable_id: UUID
+  nombre: str
+  descripcion: str
+  comparaciones: list[CRUDComparisonSchema]
+  version_actual: str
+  historial_versiones: list[BrechasVersionResponse]
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.brechas.CRUDMatrixResponse --|> BaseModel
+class "GapSchema" as schemas.brechas.GapSchema {
+  id: str
+  area: str
+  brecha: str
+  impacto: BrechaImpacto
+  prioridad: BrechaPrioridad
+  recomendacion: str
+}
+
+schemas.brechas.GapSchema --|> BaseModel
+class "GapAnalysisReportSnapshotRequest" as schemas.brechas.GapAnalysisReportSnapshotRequest {
+  nombre: str
+  descripcion: str
+  resumen_ejecutivo: str
+  brechas: list[GapSchema]
+  total_brechas: int
+  brechas_criticas: int
+  recomendaciones_prioritarias: list[str]
+  formato_objetivo: list[str]
+  change_summary: str | None
+  validate_counts()
+}
+
+schemas.brechas.GapAnalysisReportSnapshotRequest --|> BaseModel
+class "GapAnalysisReportResponse" as schemas.brechas.GapAnalysisReportResponse {
+  id: UUID
+  proyecto_id: UUID
+  entregable_id: UUID
+  nombre: str
+  descripcion: str
+  resumen_ejecutivo: str
+  brechas: list[GapSchema]
+  total_brechas: int
+  brechas_criticas: int
+  recomendaciones_prioritarias: list[str]
+  formato_objetivo: list[str]
+  version_actual: str
+  historial_versiones: list[BrechasVersionResponse]
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.brechas.GapAnalysisReportResponse --|> BaseModel
+class "IntegrationRuleSchema" as schemas.brechas.IntegrationRuleSchema {
+  id: str
+  nombre: str
+  descripcion: str
+  tipo: IntegrationRuleType
+  prioridad: IntegrationRulePriority
+  condicion: str
+  accion: str
+}
+
+schemas.brechas.IntegrationRuleSchema --|> BaseModel
+class "IntegrationQualityRulesSnapshotRequest" as schemas.brechas.IntegrationQualityRulesSnapshotRequest {
+  nombre: str
+  descripcion: str
+  resumen_tecnico: str
+  reglas: list[IntegrationRuleSchema]
+  criterios_aceptacion: list[str]
+  formato_objetivo: list[str]
+  change_summary: str | None
+}
+
+schemas.brechas.IntegrationQualityRulesSnapshotRequest --|> BaseModel
+class "IntegrationQualityRulesResponse" as schemas.brechas.IntegrationQualityRulesResponse {
+  id: UUID
+  proyecto_id: UUID
+  entregable_id: UUID
+  nombre: str
+  descripcion: str
+  resumen_tecnico: str
+  reglas: list[IntegrationRuleSchema]
+  criterios_aceptacion: list[str]
+  formato_objetivo: list[str]
+  version_actual: str
+  historial_versiones: list[BrechasVersionResponse]
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.brechas.IntegrationQualityRulesResponse --|> BaseModel
+class "ExportDocumentRequest" as schemas.brechas.ExportDocumentRequest {
+  formato: ExportFormat
+}
+
+schemas.brechas.ExportDocumentRequest --|> BaseModel
+class "TerminoGlosarioSchema" as schemas.business_glossary.TerminoGlosarioSchema {
+  id: str
+  termino: str
+  definicion: str
+  propietario: str
+  entidades_relacionadas: list[str]
+  sinonimos: list[str]
+  notas: str
+}
+
+schemas.business_glossary.TerminoGlosarioSchema --|> BaseModel
+class "ComentarioGlosarioResponse" as schemas.business_glossary.ComentarioGlosarioResponse {
+  id: str
+  referencia_id: str | None
+  referencia_tipo: str
+  autor_id: str
+  autor_nombre: str
+  autor_perfil: str
+  contenido: str
+  estado: str
+  created_at: str
+}
+
+schemas.business_glossary.ComentarioGlosarioResponse --|> BaseModel
+class "VersionGlosarioResponse" as schemas.business_glossary.VersionGlosarioResponse {
+  version: str
+  fecha: datetime
+  autor: str
+  descripcion_cambio: str | None
+  total_terminos: int
+}
+
+schemas.business_glossary.VersionGlosarioResponse --|> BaseModel
+class "BusinessGlossarySnapshotRequest" as schemas.business_glossary.BusinessGlossarySnapshotRequest {
+  nombre: str
+  descripcion: str
+  terminos: list[TerminoGlosarioSchema]
+  change_summary: str | None
+}
+
+schemas.business_glossary.BusinessGlossarySnapshotRequest --|> BaseModel
+class "AddGlossaryCommentRequest" as schemas.business_glossary.AddGlossaryCommentRequest {
+  referencia_id: str | None
+  referencia_tipo: Literal['termino', 'general']
+  contenido: str
+}
+
+schemas.business_glossary.AddGlossaryCommentRequest --|> BaseModel
+class "BusinessGlossaryResponse" as schemas.business_glossary.BusinessGlossaryResponse {
+  id: UUID
+  proyecto_id: UUID
+  entregable_id: UUID
+  nombre: str
+  descripcion: str
+  terminos: list[TerminoGlosarioSchema]
+  comentarios: list[ComentarioGlosarioResponse]
+  version_actual: str
+  historial_versiones: list[VersionGlosarioResponse]
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.business_glossary.BusinessGlossaryResponse --|> BaseModel
+class "ConceptualAttributePayload" as schemas.conceptual_model.ConceptualAttributePayload {
+  id: str
+  name: str
+  data_type: str
+  is_pk: bool
+  is_fk: bool
+  is_nullable: bool
+  description: str | None
+  fk_entity_ref: str | None
+  fk_attribute_ref: str | None
+}
+
+schemas.conceptual_model.ConceptualAttributePayload --|> BaseModel
+class "ConceptualEntityPayload" as schemas.conceptual_model.ConceptualEntityPayload {
+  id: str
+  name: str
+  description: str
+  position_x: float
+  position_y: float
+  color: str | None
+  attributes: list[ConceptualAttributePayload]
+}
+
+schemas.conceptual_model.ConceptualEntityPayload --|> BaseModel
+class "ConceptualRelationPayload" as schemas.conceptual_model.ConceptualRelationPayload {
+  id: str
+  name: str
+  source_entity_id: str
+  target_entity_id: str
+  cardinality: str
+  description: str | None
+  fk_attribute_id: str | None
+}
+
+schemas.conceptual_model.ConceptualRelationPayload --|> BaseModel
+class "ConceptualModelUpsertRequest" as schemas.conceptual_model.ConceptualModelUpsertRequest {
+  name: str
+  description: str
+  entities: list[ConceptualEntityPayload]
+  relations: list[ConceptualRelationPayload]
+  change_summary: str | None
+}
+
+schemas.conceptual_model.ConceptualModelUpsertRequest --|> BaseModel
+class "ConceptualModelRestoreVersionRequest" as schemas.conceptual_model.ConceptualModelRestoreVersionRequest {
+  source_version_number: int
+  change_summary: str | None
+}
+
+schemas.conceptual_model.ConceptualModelRestoreVersionRequest --|> BaseModel
+class "ConceptualCommentCreateRequest" as schemas.conceptual_model.ConceptualCommentCreateRequest {
+  target_type: str
+  target_client_id: str | None
+  content: str
+}
+
+schemas.conceptual_model.ConceptualCommentCreateRequest --|> BaseModel
+class "ConceptualCommentUpdateRequest" as schemas.conceptual_model.ConceptualCommentUpdateRequest {
+  content: str | None
+  status: str | None
+}
+
+schemas.conceptual_model.ConceptualCommentUpdateRequest --|> BaseModel
+class "ConceptualCommentResponse" as schemas.conceptual_model.ConceptualCommentResponse {
+  id: UUID
+  model_id: UUID
+  target_type: str
+  target_client_id: str | None
+  content: str
+  status: str
+  created_in_version_number: int | None
+  outdated_at: datetime | None
+  is_outdated: bool
+  created_by_user_id: UUID
+  created_by_user_email: str
+  created_by_user_name: str
+  created_by_user_type: str
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.conceptual_model.ConceptualCommentResponse --|> BaseModel
+class "ConceptualAttributeResponse" as schemas.conceptual_model.ConceptualAttributeResponse {
+  id: str
+  name: str
+  data_type: str
+  is_pk: bool
+  is_fk: bool
+  is_nullable: bool
+  description: str | None
+  fk_entity_ref: str | None
+  fk_attribute_ref: str | None
+}
+
+schemas.conceptual_model.ConceptualAttributeResponse --|> BaseModel
+class "ConceptualEntityResponse" as schemas.conceptual_model.ConceptualEntityResponse {
+  id: str
+  name: str
+  description: str
+  position_x: float
+  position_y: float
+  color: str | None
+  attributes: list[ConceptualAttributeResponse]
+}
+
+schemas.conceptual_model.ConceptualEntityResponse --|> BaseModel
+class "ConceptualRelationResponse" as schemas.conceptual_model.ConceptualRelationResponse {
+  id: str
+  name: str
+  source_entity_id: str
+  target_entity_id: str
+  cardinality: str
+  description: str | None
+  fk_attribute_id: str | None
+}
+
+schemas.conceptual_model.ConceptualRelationResponse --|> BaseModel
+class "ConceptualModelResponse" as schemas.conceptual_model.ConceptualModelResponse {
+  id: UUID
+  project_id: UUID
+  artifact_id: UUID
+  phase: ProjectBlock
+  name: str
+  description: str
+  entities: list[ConceptualEntityResponse]
+  relations: list[ConceptualRelationResponse]
+  comments: list[ConceptualCommentResponse]
+  current_version_number: int
+  created_at: datetime
+  updated_at: datetime
+  last_saved_at: datetime | None
+}
+
+schemas.conceptual_model.ConceptualModelResponse --|> BaseModel
+class "ConceptualModelVersionItem" as schemas.conceptual_model.ConceptualModelVersionItem {
+  id: UUID
+  version_number: int
+  created_at: datetime
+  created_by_user_id: UUID
+  created_by_user_email: str
+  change_summary: str | None
+}
+
+schemas.conceptual_model.ConceptualModelVersionItem --|> BaseModel
+class "ConceptualModelVersionsResponse" as schemas.conceptual_model.ConceptualModelVersionsResponse {
+  model_id: UUID
+  versions: list[ConceptualModelVersionItem]
+}
+
+schemas.conceptual_model.ConceptualModelVersionsResponse --|> BaseModel
+class "ConceptualVersionPreviewResponse" as schemas.conceptual_model.ConceptualVersionPreviewResponse {
+  model_id: UUID
+  source_version_number: int
+  snapshot: ConceptualModelUpsertRequest
+}
+
+schemas.conceptual_model.ConceptualVersionPreviewResponse --|> BaseModel
+class "ConceptualModelCommentsResponse" as schemas.conceptual_model.ConceptualModelCommentsResponse {
+  model_id: UUID
+  comments: list[ConceptualCommentResponse]
+}
+
+schemas.conceptual_model.ConceptualModelCommentsResponse --|> BaseModel
+class "DFDNodeSchema" as schemas.dfd.DFDNodeSchema {
+  id: str
+  tipo: str
+  nombre: str
+  descripcion: str
+  numero_proceso: str | None
+  prefijo_almacen: str | None
+  posicion_x: float
+  posicion_y: float
+  width: float | None
+  height: float | None
+  color: str | None
+  fase: str | None
+  categoria: str | None
+  etiquetas: list[str]
+}
+
+schemas.dfd.DFDNodeSchema --|> BaseModel
+class "DFDFlowSchema" as schemas.dfd.DFDFlowSchema {
+  id: str
+  origen_id: str
+  destino_id: str
+  etiqueta: str
+  datos_descripcion: str | None
+  datos_campos: list[str]
+  fase: str | None
+  tipo_flujo: str | None
+}
+
+schemas.dfd.DFDFlowSchema --|> BaseModel
+class "DFDCommentResponse" as schemas.dfd.DFDCommentResponse {
+  id: UUID
+  model_id: UUID
+  target_type: str
+  target_client_id: str | None
+  content: str
+  status: str
+  created_by_user_id: UUID | None
+  created_by_user_email: str
+  created_by_user_name: str | None
+  created_by_user_type: str
+  created_in_version_number: int
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.dfd.DFDCommentResponse --|> BaseModel
+class "DFDCommentCreateRequest" as schemas.dfd.DFDCommentCreateRequest {
+  target_type: str
+  target_client_id: str | None
+  content: str
+}
+
+schemas.dfd.DFDCommentCreateRequest --|> BaseModel
+class "DFDVersionResponse" as schemas.dfd.DFDVersionResponse {
+  id: UUID
+  version_number: int
+  created_at: datetime
+  created_by_user_id: UUID | None
+  created_by_user_email: str
+  change_summary: str | None
+}
+
+schemas.dfd.DFDVersionResponse --|> BaseModel
+class "DFDVersionsResponse" as schemas.dfd.DFDVersionsResponse {
+  model_id: UUID
+  versions: list[DFDVersionResponse]
+}
+
+schemas.dfd.DFDVersionsResponse --|> BaseModel
+class "DFDModelSnapshotRequest" as schemas.dfd.DFDModelSnapshotRequest {
+  name: str
+  description: str
+  level: int
+  nodos: list[DFDNodeSchema]
+  flujos: list[DFDFlowSchema]
+  change_summary: str | None
+}
+
+schemas.dfd.DFDModelSnapshotRequest --|> BaseModel
+class "DFDModelResponse" as schemas.dfd.DFDModelResponse {
+  id: UUID
+  project_id: UUID
+  artifact_id: UUID
+  phase: str
+  name: str
+  description: str
+  level: int
+  nodos: list[DFDNodeSchema]
+  flujos: list[DFDFlowSchema]
+  comentarios: list[DFDCommentResponse]
+  version_actual: str
+  current_version_number: int
+  historial_versiones: list[DFDVersionResponse]
+  created_at: datetime
+  updated_at: datetime
+  last_saved_at: datetime
+}
+
+schemas.dfd.DFDModelResponse --|> BaseModel
+class "DFDVersionPreviewResponse" as schemas.dfd.DFDVersionPreviewResponse {
+  model_id: UUID
+  source_version_number: int
+  snapshot: DFDModelSnapshotRequest
+}
+
+schemas.dfd.DFDVersionPreviewResponse --|> BaseModel
+class "DFDRestoreVersionRequest" as schemas.dfd.DFDRestoreVersionRequest {
+  source_version_number: int
+  change_summary: str | None
+}
+
+schemas.dfd.DFDRestoreVersionRequest --|> BaseModel
+class "TipoSistema" as schemas.inventory_matrix.TipoSistema {
+}
+
+schemas.inventory_matrix.TipoSistema --|> StrEnum
+class "EstadoSistema" as schemas.inventory_matrix.EstadoSistema {
+}
+
+schemas.inventory_matrix.EstadoSistema --|> StrEnum
+class "NivelCriticidad" as schemas.inventory_matrix.NivelCriticidad {
+}
+
+schemas.inventory_matrix.NivelCriticidad --|> StrEnum
+class "SistemaInventarioSchema" as schemas.inventory_matrix.SistemaInventarioSchema {
+  id: str
+  nombre: str
+  tipo: TipoSistema
+  descripcion: str
+  tecnologia: str | None
+  version: str | None
+  proveedor: str | None
+  propietario_negocio: str | None
+  propietario_tecnico: str | None
+  criticidad: NivelCriticidad | None
+  estado: EstadoSistema | None
+  ambientes: list[str]
+  datos_que_maneja: list[str]
+  areas_estrategicas: list[str] | None
+  notas: str | None
+}
+
+schemas.inventory_matrix.SistemaInventarioSchema --|> BaseModel
+class "ComentarioInventarioResponse" as schemas.inventory_matrix.ComentarioInventarioResponse {
+  id: str
+  referencia_id: str | None
+  referencia_tipo: str
+  autor_id: str
+  autor_nombre: str
+  autor_perfil: str
+  contenido: str
+  estado: str
+  created_at: str
+}
+
+schemas.inventory_matrix.ComentarioInventarioResponse --|> BaseModel
+class "VersionInventarioResponse" as schemas.inventory_matrix.VersionInventarioResponse {
+  version: str
+  fecha: datetime
+  autor: str
+  descripcion_cambio: str | None
+  total_sistemas: int
+}
+
+schemas.inventory_matrix.VersionInventarioResponse --|> BaseModel
+class "InventoryMatrixSnapshotRequest" as schemas.inventory_matrix.InventoryMatrixSnapshotRequest {
+  nombre: str
+  descripcion: str
+  sistemas: list[SistemaInventarioSchema]
+  change_summary: str | None
+}
+
+schemas.inventory_matrix.InventoryMatrixSnapshotRequest --|> BaseModel
+class "AddInventoryCommentRequest" as schemas.inventory_matrix.AddInventoryCommentRequest {
+  referencia_id: str | None
+  referencia_tipo: Literal['sistema', 'general']
+  contenido: str
+}
+
+schemas.inventory_matrix.AddInventoryCommentRequest --|> BaseModel
+class "InventoryMatrixResponse" as schemas.inventory_matrix.InventoryMatrixResponse {
+  id: UUID
+  proyecto_id: UUID
+  entregable_id: UUID
+  nombre: str
+  descripcion: str
+  sistemas: list[SistemaInventarioSchema]
+  comentarios: list[ComentarioInventarioResponse]
+  version_actual: str
+  historial_versiones: list[VersionInventarioResponse]
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.inventory_matrix.InventoryMatrixResponse --|> BaseModel
+class "LogicalColumnSchema" as schemas.logical_data_model.LogicalColumnSchema {
+  id: str
+  nombre: str
+  tipo_dato: str
+  descripcion: str
+  es_pk: bool
+  es_fk: bool
+  es_nullable: bool
+  es_unique: bool
+  orden: int
+}
+
+schemas.logical_data_model.LogicalColumnSchema --|> BaseModel
+class "LogicalTableSchema" as schemas.logical_data_model.LogicalTableSchema {
+  id: str
+  nombre: str
+  esquema: str
+  descripcion: str
+  columnas: list[LogicalColumnSchema]
+  indices: list[dict]
+  constraints: list[dict]
+}
+
+schemas.logical_data_model.LogicalTableSchema --|> BaseModel
+class "LogicalVersionResponse" as schemas.logical_data_model.LogicalVersionResponse {
+  id: UUID
+  version_number: int
+  created_at: datetime
+  created_by_user_id: UUID | None
+  created_by_user_email: str
+  change_summary: str | None
+}
+
+schemas.logical_data_model.LogicalVersionResponse --|> BaseModel
+class "LogicalVersionsResponse" as schemas.logical_data_model.LogicalVersionsResponse {
+  model_id: UUID
+  versions: list[LogicalVersionResponse]
+}
+
+schemas.logical_data_model.LogicalVersionsResponse --|> BaseModel
+class "LogicalModelSnapshotRequest" as schemas.logical_data_model.LogicalModelSnapshotRequest {
+  nombre: str
+  descripcion: str
+  tablas: list[LogicalTableSchema]
+  sql_ddl: str
+  notas_markdown: str
+  change_summary: str | None
+}
+
+schemas.logical_data_model.LogicalModelSnapshotRequest --|> BaseModel
+class "LogicalDataModelUpsertRequest" as schemas.logical_data_model.LogicalDataModelUpsertRequest {
+}
+
+schemas.logical_data_model.LogicalDataModelUpsertRequest --|> LogicalModelSnapshotRequest
+class "LogicalVersionPreviewResponse" as schemas.logical_data_model.LogicalVersionPreviewResponse {
+  model_id: UUID
+  source_version_number: int
+  snapshot: LogicalModelSnapshotRequest
+}
+
+schemas.logical_data_model.LogicalVersionPreviewResponse --|> BaseModel
+class "LogicalRestoreVersionRequest" as schemas.logical_data_model.LogicalRestoreVersionRequest {
+  source_version_number: int
+  change_summary: str | None
+}
+
+schemas.logical_data_model.LogicalRestoreVersionRequest --|> BaseModel
+class "LogicalCommentResponse" as schemas.logical_data_model.LogicalCommentResponse {
+  id: UUID
+  model_id: UUID
+  target_type: str
+  target_client_id: str
+  content: str
+  status: str
+  created_by_user_id: UUID | None
+  created_by_user_email: str
+  created_by_user_name: str | None
+  created_by_user_type: str
+  created_in_version_number: int
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.logical_data_model.LogicalCommentResponse --|> BaseModel
+class "LogicalCommentCreateRequest" as schemas.logical_data_model.LogicalCommentCreateRequest {
+  target_type: str
+  target_client_id: str
+  content: str
+}
+
+schemas.logical_data_model.LogicalCommentCreateRequest --|> BaseModel
+class "LogicalDataModelResponse" as schemas.logical_data_model.LogicalDataModelResponse {
+  id: UUID
+  proyecto_id: UUID
+  entregable_id: UUID
+  fase: str
+  nombre: str
+  descripcion: str
+  tablas: list[LogicalTableSchema]
+  sql_ddl: str
+  notas_markdown: str
+  comentarios: list[LogicalCommentResponse]
+  version_actual: str
+  versiones: list[dict]
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.logical_data_model.LogicalDataModelResponse --|> BaseModel
+class "SubdomainResponse" as schemas.maturity_questionnaire.SubdomainResponse {
+  id: int
+  name: str
+  description: str
+  weight: float
+}
+
+schemas.maturity_questionnaire.SubdomainResponse --|> BaseModel
+class "RoleCatalogResponse" as schemas.maturity_questionnaire.RoleCatalogResponse {
+  id: str
+  name: str
+  description: str
+  is_system: bool
+}
+
+schemas.maturity_questionnaire.RoleCatalogResponse --|> BaseModel
+class "RoleCatalogUpsertRequest" as schemas.maturity_questionnaire.RoleCatalogUpsertRequest {
+  id: str
+  name: str
+  description: str
+}
+
+schemas.maturity_questionnaire.RoleCatalogUpsertRequest --|> BaseModel
+class "ScoreCriteriaItem" as schemas.maturity_questionnaire.ScoreCriteriaItem {
+  score: int
+  name: str
+  description: str
+}
+
+schemas.maturity_questionnaire.ScoreCriteriaItem --|> BaseModel
+class "DimensionWithSubdomainsResponse" as schemas.maturity_questionnaire.DimensionWithSubdomainsResponse {
+  id: int
+  name: str
+  description: str
+  weight: float
+  subdomains: list[SubdomainResponse]
+}
+
+schemas.maturity_questionnaire.DimensionWithSubdomainsResponse --|> BaseModel
+class "QuestionConfigRequest" as schemas.maturity_questionnaire.QuestionConfigRequest {
+  dimension_id: int
+  subdomain_id: int
+  text: str
+  applicable_roles: list[str]
+  weight: float
+  score_criteria: list[ScoreCriteriaItem]
+}
+
+schemas.maturity_questionnaire.QuestionConfigRequest --|> BaseModel
+class "QuestionnaireConfigUpsertRequest" as schemas.maturity_questionnaire.QuestionnaireConfigUpsertRequest {
+  phase: ProjectBlock
+  questions: list[QuestionConfigRequest]
+  dimension_weights: dict[int, float]
+  roles: list[RoleCatalogUpsertRequest]
+  score_criteria: list[ScoreCriteriaItem]
+  ensure_phase_is_as_is()
+}
+
+schemas.maturity_questionnaire.QuestionnaireConfigUpsertRequest --|> BaseModel
+class "QuestionResponse" as schemas.maturity_questionnaire.QuestionResponse {
+  id: UUID
+  dimension_id: int
+  subdomain_id: int
+  text: str
+  applicable_roles: list[str]
+  weight: float
+  score_criteria: list[ScoreCriteriaItem]
+}
+
+schemas.maturity_questionnaire.QuestionResponse --|> BaseModel
+class "QuestionnaireConfigResponse" as schemas.maturity_questionnaire.QuestionnaireConfigResponse {
+  project_id: UUID
+  phase: ProjectBlock
+  roles: list[RoleCatalogResponse]
+  score_criteria: list[ScoreCriteriaItem]
+  dimensions: list[DimensionWithSubdomainsResponse]
+  template_questions: list[QuestionResponse]
+  questions: list[QuestionResponse]
+  is_closed: bool
+  access_code: str | None
+  access_expires_at: datetime | None
+  created_at: datetime | None
+  updated_at: datetime | None
+}
+
+schemas.maturity_questionnaire.QuestionnaireConfigResponse --|> BaseModel
+class "SubmitAnswerRequest" as schemas.maturity_questionnaire.SubmitAnswerRequest {
+  question_id: UUID
+  score: int
+  evidencia_url: str | None
+  evidencia_nombre: str | None
+  evidencia_tipo: str | None
+  evidencia_size: int | None
+}
+
+schemas.maturity_questionnaire.SubmitAnswerRequest --|> BaseModel
+class "SubmitResponseRequest" as schemas.maturity_questionnaire.SubmitResponseRequest {
+  respondent_name: str
+  respondent_email: str
+  role: str
+  answers: list[SubmitAnswerRequest]
+}
+
+schemas.maturity_questionnaire.SubmitResponseRequest --|> BaseModel
+class "ValidateAnswerRequest" as schemas.maturity_questionnaire.ValidateAnswerRequest {
+  validated_score: int
+  validacion_comentarios: str | None
+}
+
+schemas.maturity_questionnaire.ValidateAnswerRequest --|> BaseModel
+class "FinalizeEvaluationRequest" as schemas.maturity_questionnaire.FinalizeEvaluationRequest {
+  confirmation: bool
+}
+
+schemas.maturity_questionnaire.FinalizeEvaluationRequest --|> BaseModel
+class "AnularResponseRequest" as schemas.maturity_questionnaire.AnularResponseRequest {
+  reason: str
+}
+
+schemas.maturity_questionnaire.AnularResponseRequest --|> BaseModel
+class "UpdateQuestionnaireStatusRequest" as schemas.maturity_questionnaire.UpdateQuestionnaireStatusRequest {
+  is_closed: bool
+}
+
+schemas.maturity_questionnaire.UpdateQuestionnaireStatusRequest --|> BaseModel
+class "AnswerResponse" as schemas.maturity_questionnaire.AnswerResponse {
+  id: UUID
+  question_id: UUID
+  question_text: str | None
+  score: int
+  respondent_score: int
+  validated_score: int | None
+  evidencia_url: str | None
+  evidencia_nombre: str | None
+  evidencia_tipo: str | None
+  evidencia_size: int | None
+  estado_validacion: MaturityValidationStatus
+  validacion_comentarios: str | None
+}
+
+schemas.maturity_questionnaire.AnswerResponse --|> BaseModel
+class "ResponseDTO" as schemas.maturity_questionnaire.ResponseDTO {
+  id: UUID
+  respondent_name: str
+  respondent_email: str
+  role: str
+  answers: list[AnswerResponse]
+  status: MaturityResponseStatus
+  anulation_reason: str | None
+  anulated_at: datetime | None
+  anulated_by: UUID | None
+  submitted_at: datetime
+  estado_validacion: MaturityValidationStatus
+  validado_por: UUID | None
+  validado_en: datetime | None
+  validacion_comentarios: str | None
+}
+
+schemas.maturity_questionnaire.ResponseDTO --|> BaseModel
+class "ResponseListResponse" as schemas.maturity_questionnaire.ResponseListResponse {
+  responses: list[ResponseDTO]
+  total: int
+  active: int
+  anuladas: int
+  pendientes_validacion: int
+  validadas: int
+}
+
+schemas.maturity_questionnaire.ResponseListResponse --|> BaseModel
+class "SubmitResponseSuccess" as schemas.maturity_questionnaire.SubmitResponseSuccess {
+  id: UUID
+  message: str
+  submitted_at: datetime
+}
+
+schemas.maturity_questionnaire.SubmitResponseSuccess --|> BaseModel
+class "EvidenceUploadResponse" as schemas.maturity_questionnaire.EvidenceUploadResponse {
+  evidencia_url: str
+  evidencia_nombre: str
+  evidencia_tipo: str
+  evidencia_size: int
+}
+
+schemas.maturity_questionnaire.EvidenceUploadResponse --|> BaseModel
+class "QuestionnaireStatusResponse" as schemas.maturity_questionnaire.QuestionnaireStatusResponse {
+  project_id: UUID
+  is_closed: bool
+  updated_at: datetime
+}
+
+schemas.maturity_questionnaire.QuestionnaireStatusResponse --|> BaseModel
+class "SubdomainResultResponse" as schemas.maturity_questionnaire.SubdomainResultResponse {
+  subdomain_id: int
+  subdomain_name: str
+  score: float
+  percent: float
+  question_count: int
+  validated_question_count: int
+}
+
+schemas.maturity_questionnaire.SubdomainResultResponse --|> BaseModel
+class "DimensionResultResponse" as schemas.maturity_questionnaire.DimensionResultResponse {
+  dimension_id: int
+  dimension_name: str
+  score: float
+  percent: float
+  weight: float
+  maturity_level: str
+  question_count: int
+  validated_question_count: int
+  subdomains: list[SubdomainResultResponse]
+}
+
+schemas.maturity_questionnaire.DimensionResultResponse --|> BaseModel
+class "QuestionnaireResultsResponse" as schemas.maturity_questionnaire.QuestionnaireResultsResponse {
+  overall_score: float
+  overall_percent: float
+  maturity_level: str
+  dimensions: list[DimensionResultResponse]
+  respondent_count: int
+  validated_response_count: int
+  calculated_at: datetime
+}
+
+schemas.maturity_questionnaire.QuestionnaireResultsResponse --|> BaseModel
+class "PublicQuestionnaireValidationResponse" as schemas.maturity_questionnaire.PublicQuestionnaireValidationResponse {
+  valid: bool
+  questionnaire_id: UUID | None
+  project_id: UUID | None
+  project_name: str | None
+  is_closed: bool | None
+  expires_at: datetime | None
+  error: str | None
+}
+
+schemas.maturity_questionnaire.PublicQuestionnaireValidationResponse --|> BaseModel
+class "ProjectArtifactSummary" as schemas.project.ProjectArtifactSummary {
+  total: int
+  approved: int
+  not_applicable: int
+}
+
+schemas.project.ProjectArtifactSummary --|> BaseModel
+class "ProjectArtifactResponse" as schemas.project.ProjectArtifactResponse {
+  id: UUID
+  code: str
+  name: str
+  description: str
+  block: ProjectBlock
+  order_index: int
+  block_order: int
+  status: ProjectArtifactStatus
+  is_applicable: bool
+  consultant_approved: bool
+  company_approved: bool
+  consultant_approved_at: datetime | None
+  company_approved_at: datetime | None
+  approved_at: datetime | None
+  approved_by_user_id: UUID | None
+  review_cycles: int
+  last_rejection_reason: str | None
+  effective_permission_level: int
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.project.ProjectArtifactResponse --|> BaseModel
+class "ProjectCompanyResponse" as schemas.project.ProjectCompanyResponse {
+  name: str
+  email: EmailStr
+}
+
+schemas.project.ProjectCompanyResponse --|> BaseModel
+class "ProjectManagerResponse" as schemas.project.ProjectManagerResponse {
+  id: UUID
+  name: str
+}
+
+schemas.project.ProjectManagerResponse --|> BaseModel
+class "ProjectResponse" as schemas.project.ProjectResponse {
+  id: UUID
+  name: str
+  description: str | None
+  client_company: ProjectCompanyResponse
+  estimated_end_date: date
+  status: ProjectStatus
+  manager: ProjectManagerResponse
+  progress: int
+  artifacts: ProjectArtifactSummary
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.project.ProjectResponse --|> BaseModel
+class "ProjectListResponse" as schemas.project.ProjectListResponse {
+  total: int
+  items: list[ProjectResponse]
+}
+
+schemas.project.ProjectListResponse --|> BaseModel
+class "ProjectDetailResponse" as schemas.project.ProjectDetailResponse {
+  artifact_items: list[ProjectArtifactResponse]
+}
+
+schemas.project.ProjectDetailResponse --|> ProjectResponse
+class "CreateProjectRequest" as schemas.project.CreateProjectRequest {
+  name: str
+  description: str | None
+  client_company_name: str
+  client_company_email: EmailStr
+  estimated_end_date: date
+}
+
+schemas.project.CreateProjectRequest --|> BaseModel
+class "UpdateProjectRequest" as schemas.project.UpdateProjectRequest {
+  name: str | None
+  description: str | None
+  client_company_name: str | None
+  client_company_email: EmailStr | None
+  estimated_end_date: date | None
+  status: ProjectStatus | None
+  ensure_at_least_one_field()
+}
+
+schemas.project.UpdateProjectRequest --|> BaseModel
+class "UpdateArtifactRequest" as schemas.project.UpdateArtifactRequest {
+  status: ProjectArtifactStatus | None
+  is_applicable: bool | None
+  consultant_approved: bool | None
+  company_approved: bool | None
+  last_rejection_reason: str | None
+  ensure_at_least_one_field()
+}
+
+schemas.project.UpdateArtifactRequest --|> BaseModel
+class "ProjectArtifactsListResponse" as schemas.project.ProjectArtifactsListResponse {
+  total: int
+  items: list[ProjectArtifactResponse]
+}
+
+schemas.project.ProjectArtifactsListResponse --|> BaseModel
+class "ArtifactReviewRequest" as schemas.project.ArtifactReviewRequest {
+  approved: bool
+  reason: str | None
+  validate_reason()
+}
+
+schemas.project.ArtifactReviewRequest --|> BaseModel
+class "ProjectPermissionLevels" as schemas.project_membership.ProjectPermissionLevels {
+  project_permission_level: int | None
+  nivel_asis: int | None
+  nivel_tobe: int | None
+  nivel_brechas: int | None
+  nivel_roadmap: int | None
+}
+
+schemas.project_membership.ProjectPermissionLevels --|> BaseModel
+class "InviteProjectMemberRequest" as schemas.project_membership.InviteProjectMemberRequest {
+  email: EmailStr
+  tipo_usuario: UserType
+  nombre: str | None
+  project_permission_level: int | None
+  nivel_asis: int | None
+  nivel_tobe: int | None
+  nivel_brechas: int | None
+  nivel_roadmap: int | None
+}
+
+schemas.project_membership.InviteProjectMemberRequest --|> BaseModel
+class "UpdateProjectMemberPermissionsRequest" as schemas.project_membership.UpdateProjectMemberPermissionsRequest {
+  project_permission_level: int | None
+  nivel_asis: int | None
+  nivel_tobe: int | None
+  nivel_brechas: int | None
+  nivel_roadmap: int | None
+  ensure_at_least_one_field()
+}
+
+schemas.project_membership.UpdateProjectMemberPermissionsRequest --|> BaseModel
+class "UpdateArtifactPermissionRequest" as schemas.project_membership.UpdateArtifactPermissionRequest {
+  permission_level: int
+}
+
+schemas.project_membership.UpdateArtifactPermissionRequest --|> BaseModel
+class "ArtifactPermissionResponse" as schemas.project_membership.ArtifactPermissionResponse {
+  artifact_id: UUID
+  project_id: UUID
+  user_id: UUID
+  permission_level: int
+  assigned_by_user_id: UUID | None
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.project_membership.ArtifactPermissionResponse --|> BaseModel
+class "ProjectMemberResponse" as schemas.project_membership.ProjectMemberResponse {
+  membership_id: UUID
+  project_id: UUID
+  user_id: UUID
+  nombre: str
+  email: EmailStr
+  tipo_usuario: UserType
+  estado_usuario: UserStatus
+  is_manager: bool
+  assigned_by_user_id: UUID | None
+  permisos: ProjectPermissionLevels
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.project_membership.ProjectMemberResponse --|> BaseModel
+class "ProjectMembersListResponse" as schemas.project_membership.ProjectMembersListResponse {
+  total: int
+  items: list[ProjectMemberResponse]
+}
+
+schemas.project_membership.ProjectMembersListResponse --|> BaseModel
+class "InviteProjectMemberResponse" as schemas.project_membership.InviteProjectMemberResponse {
+  message: str
+  member: ProjectMemberResponse
+  invitation_token: str | None
+  invitation_expires_at: datetime | None
+}
+
+schemas.project_membership.InviteProjectMemberResponse --|> BaseModel
+class "RemoveProjectMemberResponse" as schemas.project_membership.RemoveProjectMemberResponse {
+  message: str
+}
+
+schemas.project_membership.RemoveProjectMemberResponse --|> BaseModel
+class "RaciVersionHistoryResponse" as schemas.raci.RaciVersionHistoryResponse {
+  version: str
+  fecha: datetime
+  autor: str
+  descripcion_cambio: str
+  total_actividades: int
+  total_roles: int
+}
+
+schemas.raci.RaciVersionHistoryResponse --|> BaseModel
+class "RaciCommentCreate" as schemas.raci.RaciCommentCreate {
+  referencia_id: UUID | None
+  referencia_tipo: RaciCommentReferenceType
+  contenido: str
+}
+
+schemas.raci.RaciCommentCreate --|> BaseModel
+class "RaciCommentResponse" as schemas.raci.RaciCommentResponse {
+  id: UUID
+  referencia_id: UUID | None
+  referencia_tipo: RaciCommentReferenceType
+  autor_id: UUID
+  autor_nombre: str
+  autor_perfil: str
+  contenido: str
+  estado: str
+  created_at: datetime
+}
+
+schemas.raci.RaciCommentResponse --|> BaseModel
+class "RaciBulkActivity" as schemas.raci.RaciBulkActivity {
+  id: UUID
+  name: str
+  description: str | None
+  category: str
+  notas: str | None
+  asignaciones: dict[str, str]
+}
+
+schemas.raci.RaciBulkActivity --|> BaseModel
+class "RaciBulkRole" as schemas.raci.RaciBulkRole {
+  id: UUID
+  name: str
+  area: str | None
+  description: str | None
+}
+
+schemas.raci.RaciBulkRole --|> BaseModel
+class "RaciBulkUpdate" as schemas.raci.RaciBulkUpdate {
+  nombre: str
+  descripcion: str | None
+  roles: list[RaciBulkRole]
+  actividades: list[RaciBulkActivity]
+}
+
+schemas.raci.RaciBulkUpdate --|> BaseModel
+class "RaciRoleCreate" as schemas.raci.RaciRoleCreate {
+  name: str
+  area: str | None
+  description: str | None
+}
+
+schemas.raci.RaciRoleCreate --|> BaseModel
+class "RaciRoleUpdate" as schemas.raci.RaciRoleUpdate {
+  name: str | None
+  area: str | None
+  description: str | None
+  order_index: int | None
+}
+
+schemas.raci.RaciRoleUpdate --|> BaseModel
+class "RaciRoleResponse" as schemas.raci.RaciRoleResponse {
+  id: UUID
+  nombre: str
+  area: str | None
+  descripcion: str | None
+}
+
+schemas.raci.RaciRoleResponse --|> BaseModel
+class "RaciAssignmentUpdate" as schemas.raci.RaciAssignmentUpdate {
+  role_id: UUID
+  assignment_type: RaciAssignmentType | None
+}
+
+schemas.raci.RaciAssignmentUpdate --|> BaseModel
+class "RaciActivityCreate" as schemas.raci.RaciActivityCreate {
+  name: str
+  description: str | None
+  category: str
+  notas: str | None
+}
+
+schemas.raci.RaciActivityCreate --|> BaseModel
+class "RaciActivityUpdate" as schemas.raci.RaciActivityUpdate {
+  name: str | None
+  description: str | None
+  category: str | None
+  notas: str | None
+  order_index: int | None
+}
+
+schemas.raci.RaciActivityUpdate --|> BaseModel
+class "RaciActivityResponse" as schemas.raci.RaciActivityResponse {
+  id: UUID
+  nombre: str
+  descripcion: str | None
+  categoria: str
+  notas: str | None
+  asignaciones: dict[str, str]
+}
+
+schemas.raci.RaciActivityResponse --|> BaseModel
+class "RaciMatrixCreate" as schemas.raci.RaciMatrixCreate {
+  project_id: UUID
+  entregable_id: UUID | None
+  name: str
+  description: str | None
+}
+
+schemas.raci.RaciMatrixCreate --|> BaseModel
+class "RaciMatrixUpdate" as schemas.raci.RaciMatrixUpdate {
+  name: str | None
+  description: str | None
+  status: RaciStatus | None
+}
+
+schemas.raci.RaciMatrixUpdate --|> BaseModel
+class "RaciMatrixResponse" as schemas.raci.RaciMatrixResponse {
+  id: UUID
+  proyecto_id: UUID
+  entregable_id: UUID | None
+  nombre: str
+  descripcion: str | None
+  version_actual: str
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.raci.RaciMatrixResponse --|> BaseModel
+class "RaciGridResponse" as schemas.raci.RaciGridResponse {
+  roles: list[RaciRoleResponse]
+  actividades: list[RaciActivityResponse]
+  comentarios: list[RaciCommentResponse]
+  historial_versiones: list[RaciVersionHistoryResponse]
+}
+
+schemas.raci.RaciGridResponse --|> RaciMatrixResponse
+class "UserCreate" as schemas.user.UserCreate {
+  nombre: str
+  email: str
+  tipo_usuario: UserType
+  password: str | None
+  estado: UserStatus
+}
+
+schemas.user.UserCreate --|> BaseModel
+class "UserUpdate" as schemas.user.UserUpdate {
+  nombre: str | None
+  estado: UserStatus | None
+}
+
+schemas.user.UserUpdate --|> BaseModel
+class "UserResponse" as schemas.user.UserResponse {
+  id: UUID
+  nombre: str
+  email: str
+  tipo_usuario: UserType
+  estado: UserStatus
+  created_by_user_id: UUID | None
+  deactivated_at: datetime | None
+  created_at: datetime
+  updated_at: datetime
+}
+
+schemas.user.UserResponse --|> BaseModel
+class "UserListResponse" as schemas.user.UserListResponse {
+  total: int
+  items: list[UserResponse]
+}
+
+schemas.user.UserListResponse --|> BaseModel
+class "AuthService" as services.auth_service.AuthService {
+  get_current_user_profile()
+  login()
+  refresh()
+  logout()
+  activate_invitation()
+}
+
+class "_EntitySnapshot" as services.brechas_service._EntitySnapshot {
+  nombre: str
+  atributos: int
+  fks: int
+}
+
+class "BrechasService" as services.brechas_service.BrechasService {
+  get_crud_matrix()
+  upsert_crud_matrix()
+  generate_crud_matrix()
+  get_gap_report()
+  upsert_gap_report()
+  generate_gap_report()
+  get_integration_rules()
+  upsert_integration_rules()
+  generate_integration_rules()
+  export_gap_report()
+  export_integration_rules()
+}
+
+class "BusinessGlossaryService" as services.business_glossary_service.BusinessGlossaryService {
+  get_glossary()
+  upsert_glossary()
+  generate_glossary()
+  add_comment()
+}
+
+class "ConceptualModelService" as services.conceptual_model_service.ConceptualModelService {
+  get_model()
+  upsert_model()
+  list_comments()
+  create_comment()
+  update_comment()
+  delete_comment()
+  list_versions()
+  preview_version()
+  restore_version()
+}
+
+class "DFDService" as services.dfd_service.DFDService {
+  get_model()
+  upsert_model()
+  list_versions()
+  preview_version()
+  restore_version()
+  list_comments()
+  create_comment()
+}
+
+class "InventoryMatrixService" as services.inventory_matrix_service.InventoryMatrixService {
+  get_matrix()
+  upsert_matrix()
+  generate_matrix()
+  add_comment()
+}
+
+class "LogicalDataModelService" as services.logical_data_model_service.LogicalDataModelService {
+  get_model()
+  upsert_model()
+  list_versions()
+  preview_version()
+  restore_version()
+  list_comments()
+  create_comment()
+}
+
+class "MaturityQuestionnaireService" as services.maturity_questionnaire_service.MaturityQuestionnaireService {
+  initialize_default_questionnaire()
+  get_config()
+  upsert_config()
+  update_status()
+  validate_public_access()
+  get_public_config()
+  submit_response()
+  list_responses()
+  anular_response()
+  reactivar_response()
+  validate_answer()
+  finalize_response_evaluation()
+  get_results()
+}
+
+class "_ProjectAccessContext" as services.project_membership_service._ProjectAccessContext {
+  is_manager: bool
+  actor_membership: ProjectMembership | None
+}
+
+class "ProjectMembershipService" as services.project_membership_service.ProjectMembershipService {
+  invite_member()
+  list_members()
+  update_member_permissions()
+  update_artifact_permission()
+  remove_member()
+}
+
+class "ProjectPermissionService" as services.project_permission_service.ProjectPermissionService {
+  get_project_or_raise()
+  get_membership_or_raise()
+  resolve_effective_level()
+  resolve_project_level()
+  resolve_artifact_level()
+}
+
+class "ProjectService" as services.project_service.ProjectService {
+  create_project()
+  list_projects()
+  get_project()
+  update_project()
+  list_project_artifacts()
+  update_project_artifact()
+  review_project_artifact_consultant()
+  review_project_artifact_company()
+}
+
+class "RaciService" as services.raci_service.RaciService {
+  create_matrix()
+  list_matrices()
+  get_grid()
+  add_role()
+  add_activity()
+  update_assignments()
+  sync_bulk()
+  add_comment()
+}
+
+class "NotFoundDomainError" as services.raci_service.NotFoundDomainError {
+}
+
+services.raci_service.NotFoundDomainError --|> Exception
+class "ConflictDomainError" as services.raci_service.ConflictDomainError {
+}
+
+services.raci_service.ConflictDomainError --|> Exception
+class "UserService" as services.user_service.UserService {
+  create_user()
+  list_users()
+  update_user()
+  deactivate_user()
+  register_user()
+}
+
+class "NotFoundDomainError" as api.v1.endpoints.raci.NotFoundDomainError {
+}
+
+api.v1.endpoints.raci.NotFoundDomainError --|> Exception
+class "ConflictDomainError" as api.v1.endpoints.raci.ConflictDomainError {
+}
+
+api.v1.endpoints.raci.ConflictDomainError --|> Exception
+@enduml

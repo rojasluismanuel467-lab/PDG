@@ -1,0 +1,66 @@
+from __future__ import annotations
+
+
+def test_openapi_includes_user_module_endpoints(client) -> None:
+    response = client.get("/api/v1/openapi.json")
+    assert response.status_code == 200
+    payload = response.json()
+
+    required_paths = [
+        "/api/v1/auth/login",
+        "/api/v1/auth/refresh",
+        "/api/v1/auth/logout",
+        "/api/v1/auth/me",
+        "/api/v1/auth/activate-invitation",
+        "/api/v1/users",
+        "/api/v1/users/{user_id}",
+        "/api/v1/users/{user_id}/deactivate",
+        "/api/v1/projects",
+        "/api/v1/projects/{project_id}",
+        "/api/v1/projects/{project_id}/artifacts",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/review/consultant",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/review/company",
+        "/api/v1/projects/{project_id}/members/invite",
+        "/api/v1/projects/{project_id}/members",
+        "/api/v1/projects/{project_id}/members/{user_id}/permissions",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/permissions/{user_id}",
+        "/api/v1/projects/{project_id}/members/{user_id}",
+        "/api/v1/projects/{project_id}/questionnaire/config",
+        "/api/v1/projects/{project_id}/questionnaire/status",
+        "/api/v1/projects/{project_id}/questionnaire/responses",
+        "/api/v1/projects/{project_id}/questionnaire/evidence-upload",
+        "/api/v1/projects/{project_id}/questionnaire/results",
+        "/api/v1/questionnaire/validate/{access_code}",
+        "/api/v1/questionnaire/config/{access_code}",
+        "/api/v1/questionnaire/responses/{response_id}/anular",
+        "/api/v1/questionnaire/responses/{response_id}/reactivar",
+        "/api/v1/questionnaire/responses/{response_id}/answers/{answer_id}/validate",
+        "/api/v1/questionnaire/responses/{response_id}/finalize-evaluation",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model/versions",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model/comments",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model/comments/{comment_id}",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/dfd",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/dfd/versions",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/dfd/comments",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/logical-data-model",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/logical-data-model/versions",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/logical-data-model/comments",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/crud-matrix",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/crud-matrix/generate",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/gap-analysis-report",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/gap-analysis-report/generate",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/gap-analysis-report/export",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/integration-quality-rules",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/integration-quality-rules/generate",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/integration-quality-rules/export",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/inventory-matrix",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/inventory-matrix/generate",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/inventory-matrix/comments",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/business-glossary",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/business-glossary/generate",
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/business-glossary/comments",
+    ]
+    for path in required_paths:
+        assert path in payload["paths"]

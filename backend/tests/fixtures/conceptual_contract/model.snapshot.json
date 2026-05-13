@@ -1,0 +1,57 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "project_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "artifact_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "phase": "AS_IS",
+  "name": "AS-IS Conceptual Diagram",
+  "description": "Contract test model",
+  "entities": [
+    {
+      "id": "ent-customer",
+      "name": "Customer",
+      "description": "Customer master entity",
+      "position_x": 100,
+      "position_y": 120,
+      "color": "#3B82F6",
+      "attributes": [
+        {
+          "id": "attr-customer-id",
+          "name": "customer_id",
+          "data_type": "UUID",
+          "is_pk": true,
+          "is_fk": false,
+          "is_nullable": false
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel-customer-order",
+      "name": "customer_orders",
+      "source_entity_id": "ent-customer",
+      "target_entity_id": "ent-order",
+      "cardinality": "1:N"
+    }
+  ],
+  "comments": [
+    {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "model_id": "11111111-1111-1111-1111-111111111111",
+      "target_type": "general",
+      "target_client_id": null,
+      "content": "Looks good",
+      "status": "open",
+      "created_by_user_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      "created_by_user_email": "consultant.contract@arqdata.local",
+      "created_by_user_name": "Consultant User",
+      "created_by_user_type": "CONSULTOR",
+      "created_at": "2026-04-01T00:00:00Z",
+      "updated_at": "2026-04-01T00:00:00Z"
+    }
+  ],
+  "current_version_number": 3,
+  "created_at": "2026-04-01T00:00:00Z",
+  "updated_at": "2026-04-01T00:00:00Z",
+  "last_saved_at": "2026-04-01T00:00:00Z"
+}

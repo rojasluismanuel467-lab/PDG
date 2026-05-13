@@ -1,0 +1,23 @@
+{
+  "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model": [
+    "get",
+    "put"
+  ],
+  "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model/comments": [
+    "get",
+    "post"
+  ],
+  "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model/comments/{comment_id}": [
+    "delete",
+    "patch"
+  ],
+  "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model/restore-version": [
+    "post"
+  ],
+  "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model/versions": [
+    "get"
+  ],
+  "/api/v1/projects/{project_id}/artifacts/{artifact_id}/conceptual-model/versions/{version_number}/preview": [
+    "get"
+  ]
+}
