@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: pdg-api
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.lock
+    preDeployCommand: ./scripts/predeploy.sh
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pdg-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+
+  - type: web
+    name: pdg-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: /api/v1
+      - key: API_PROXY_TARGET
+        fromService:
+          type: web
+          name: pdg-api
+          property: hostport
+      - key: NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS
+        value: "true"
+      - key: NEXT_PUBLIC_DEMO_CREDENTIALS
+        value: admin@arqdata.local:Admin12345!,consultor@example.com:Consultor123!,empresa@example.com:Empresa123!
+
+databases:
+  - name: pdg-db
+    plan: free
+    region: oregon

@@ -31,5 +31,19 @@ class Settings(BaseSettings):
     BACKEND_BASE_URL: str = "http://127.0.0.1:8000"
     MEDIA_ROOT: str = "uploads"
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def normalize_database_url(cls, v: str) -> str:
+        if not isinstance(v, str):
+            raise ValueError(v)
+
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+psycopg://", 1)
+
+        if v.startswith("postgresql://") and "+psycopg" not in v:
+            return v.replace("postgresql://", "postgresql+psycopg://", 1)
+
+        return v
+
 
 settings = Settings()

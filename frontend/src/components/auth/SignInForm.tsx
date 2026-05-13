@@ -9,7 +9,10 @@ import { useSearchParams } from "next/navigation";
 import React, { useState, Suspense } from "react";
 
 const MAX_INTENTOS = 5;
-const IS_DEV = process.env.NODE_ENV === "development";
+const SHOW_DEMO_CREDENTIALS = process.env.NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS !== "false";
+const DEMO_CREDENTIALS =
+  process.env.NEXT_PUBLIC_DEMO_CREDENTIALS ||
+  "admin@arqdata.local:Admin12345!,consultor@example.com:Consultor123!,empresa@example.com:Empresa123!";
 
 function SignInFormInner() {
   const [showPassword, setShowPassword] = useState(false);
@@ -95,16 +98,12 @@ function SignInFormInner() {
           <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
             Iniciar sesión
           </h1>
-          {IS_DEV && (
+          {SHOW_DEMO_CREDENTIALS && (
             <div className="mt-2 space-y-0.5">
               <p className="text-xs text-gray-400 dark:text-gray-500">
-                credenciales admin :{" "}
+                Credenciales demo:{" "}
                 <span className="font-mono text-gray-600 dark:text-gray-300">
-                  admin@arqdata.local
-                </span>{" "}
-                /{" "}
-                <span className="font-mono text-gray-600 dark:text-gray-300">
-                  Admin12345!
+                  {DEMO_CREDENTIALS}
                 </span>
               </p>
             </div>
