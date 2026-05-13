@@ -1,0 +1,16 @@
+#!/bin/sh
+echo "Running ruff format check..."
+uv run ruff format --check .
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "ERROR: Hay problemas de formato. Ejecuta 'uv run ruff format .' para corregirlos."
+  exit 1
+fi
+
+echo "Running ruff lint..."
+uv run ruff check .
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "ERROR: Hay errores de linting. Ejecuta 'uv run ruff check --fix .' para corregirlos."
+  exit 1
+fi

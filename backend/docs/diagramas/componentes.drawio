@@ -1,0 +1,985 @@
+<mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="1350" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MAIN APPLICATION CONTAINER
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="app" parent="1"
+      style="shape=folder;fontStyle=1;tabWidth=220;tabHeight=30;tabPosition=left;html=1;boundedLbl=1;labelInHeader=1;container=1;collapsible=0;whiteSpace=wrap;"
+      value="&lt;font style=&quot;font-size: 9px;&quot;&gt;FastAPIBackendApplication&lt;/font&gt;"
+      vertex="1">
+      <mxGeometry x="60" y="60" width="1380" height="1230" as="geometry" />
+    </mxCell>
+    <mxCell id="app-bg" parent="app"
+      style="html=1;strokeColor=none;fillColor=none;part=1;connectable=0;allowArrows=0;deletable=0;whiteSpace=wrap;"
+      value="" vertex="1">
+      <mxGeometry height="1230" relative="1" width="1380" as="geometry">
+        <mxPoint y="30" as="offset" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SUB-CONTAINERS (visual only — components are siblings)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="cnt-ctrl" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Controllers&lt;/b&gt;&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="20" y="65" width="290" height="1120" as="geometry" />
+    </mxCell>
+    <mxCell id="cnt-ctrl-icon" parent="cnt-ctrl"
+      style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry">
+        <mxPoint x="-24" y="4" as="offset" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="cnt-svc" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Services&lt;/b&gt;&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="390" y="65" width="300" height="1120" as="geometry" />
+    </mxCell>
+    <mxCell id="cnt-svc-icon" parent="cnt-svc"
+      style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry">
+        <mxPoint x="-24" y="4" as="offset" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="cnt-repo" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Repositories&lt;/b&gt;&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="770" y="65" width="590" height="1120" as="geometry" />
+    </mxCell>
+    <mxCell id="cnt-repo-icon" parent="cnt-repo"
+      style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry">
+        <mxPoint x="-24" y="4" as="offset" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 1 — AUTH  (y=105)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-auth" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;AuthController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;auth.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="105" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-auth-i" parent="c-auth" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-auth" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;AuthService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;auth_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="105" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-auth-i" parent="s-auth" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-auth" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;AuthRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;auth_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="105" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-auth-i" parent="r-auth" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <!-- C→S IAuthService (y_center=134) -->
+    <mxCell id="d-cs-auth" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="129" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-auth-req" parent="app" edge="1" source="c-auth" target="d-cs-auth"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-auth-prov" parent="app" edge="1" target="d-cs-auth"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="134" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-auth" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IAuthService" vertex="1">
+      <mxGeometry x="295" y="108" width="115" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- S→R IAuthRepository (y_center=134) -->
+    <mxCell id="d-sr-auth" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="129" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-auth-req" parent="app" edge="1" target="d-sr-auth"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="134" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-auth-prov" parent="app" edge="1" target="d-sr-auth"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="134" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-auth" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IAuthRepository" vertex="1">
+      <mxGeometry x="682" y="108" width="130" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 2 — PROJECT  (y=185)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-proj" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ProjectController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;projects.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="185" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-proj-i" parent="c-proj" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-proj" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ProjectService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;project_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="185" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-proj-i" parent="s-proj" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-proj" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ProjectRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;project_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="185" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-proj-i" parent="r-proj" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <!-- C→S IProjectService (y_center=214) -->
+    <mxCell id="d-cs-proj" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="209" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-proj-req" parent="app" edge="1" source="c-proj" target="d-cs-proj"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-proj-prov" parent="app" edge="1" target="d-cs-proj"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="214" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-proj" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IProjectService" vertex="1">
+      <mxGeometry x="295" y="188" width="115" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- S→R IProjectRepository (y_center=214) -->
+    <mxCell id="d-sr-proj" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="209" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-proj-req" parent="app" edge="1" target="d-sr-proj"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="214" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-proj-prov" parent="app" edge="1" target="d-sr-proj"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="214" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-proj" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IProjectRepository" vertex="1">
+      <mxGeometry x="682" y="188" width="130" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 3 — USER  (y=265)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-user" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;UserController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;users.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="265" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-user-i" parent="c-user" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-user" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;UserService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;user_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="265" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-user-i" parent="s-user" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-user" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;UserRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;user_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="265" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-user-i" parent="r-user" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <!-- C→S IUserService (y_center=294) -->
+    <mxCell id="d-cs-user" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="289" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-user-req" parent="app" edge="1" source="c-user" target="d-cs-user"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-user-prov" parent="app" edge="1" target="d-cs-user"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="294" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-user" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IUserService" vertex="1">
+      <mxGeometry x="295" y="268" width="115" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- S→R IUserRepository (y_center=294) -->
+    <mxCell id="d-sr-user" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="289" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-user-req" parent="app" edge="1" target="d-sr-user"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="294" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-user-prov" parent="app" edge="1" target="d-sr-user"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="294" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-user" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IUserRepository" vertex="1">
+      <mxGeometry x="682" y="268" width="130" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 4 — MATURITY QUESTIONNAIRE  (y=345)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-mq" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;MaturityQuestionnaireController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;maturity_questionnaire.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="345" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-mq-i" parent="c-mq" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-mq" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;MaturityQuestionnaireService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;maturity_questionnaire_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="345" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-mq-i" parent="s-mq" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-mq" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;MaturityQuestionnaireRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;maturity_questionnaire_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="345" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-mq-i" parent="r-mq" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-mq" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="369" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-mq-req" parent="app" edge="1" source="c-mq" target="d-cs-mq"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-mq-prov" parent="app" edge="1" target="d-cs-mq"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="374" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-mq" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IMaturityQuestionnaireService" vertex="1">
+      <mxGeometry x="268" y="348" width="145" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-mq" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="369" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-mq-req" parent="app" edge="1" target="d-sr-mq"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="374" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-mq-prov" parent="app" edge="1" target="d-sr-mq"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="374" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-mq" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IMaturityQuestionnaireRepository" vertex="1">
+      <mxGeometry x="666" y="348" width="150" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 5 — BUSINESS GLOSSARY  (y=425)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-bg" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;BusinessGlossaryController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;business_glossary.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="425" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-bg-i" parent="c-bg" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-bg" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;BusinessGlossaryService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;business_glossary_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="425" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-bg-i" parent="s-bg" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-bg" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;BusinessGlossaryRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;business_glossary_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="425" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-bg-i" parent="r-bg" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-bg" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="449" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-bg-req" parent="app" edge="1" source="c-bg" target="d-cs-bg"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-bg-prov" parent="app" edge="1" target="d-cs-bg"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="454" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-bg" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IBusinessGlossaryService" vertex="1">
+      <mxGeometry x="280" y="428" width="135" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-bg" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="449" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-bg-req" parent="app" edge="1" target="d-sr-bg"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="454" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-bg-prov" parent="app" edge="1" target="d-sr-bg"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="454" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-bg" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IBusinessGlossaryRepository" vertex="1">
+      <mxGeometry x="672" y="428" width="140" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 6 — CONCEPTUAL MODEL  (y=505)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-cm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ConceptualModelController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;conceptual_model.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="505" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-cm-i" parent="c-cm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-cm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ConceptualModelService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;conceptual_model_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="505" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-cm-i" parent="s-cm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-cm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ConceptualModelRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;conceptual_model_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="505" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-cm-i" parent="r-cm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-cm" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="529" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-cm-req" parent="app" edge="1" source="c-cm" target="d-cs-cm"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-cm-prov" parent="app" edge="1" target="d-cs-cm"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="534" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-cm" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IConceptualModelService" vertex="1">
+      <mxGeometry x="278" y="508" width="137" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-cm" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="529" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-cm-req" parent="app" edge="1" target="d-sr-cm"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="534" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-cm-prov" parent="app" edge="1" target="d-sr-cm"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="534" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-cm" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IConceptualModelRepository" vertex="1">
+      <mxGeometry x="671" y="508" width="142" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 7 — DFD  (y=585)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-dfd" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;DFDController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;dfd.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="585" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-dfd-i" parent="c-dfd" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-dfd" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;DFDService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;dfd_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="585" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-dfd-i" parent="s-dfd" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-dfd" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;DFDRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;dfd_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="585" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-dfd-i" parent="r-dfd" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-dfd" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="609" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-dfd-req" parent="app" edge="1" source="c-dfd" target="d-cs-dfd"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-dfd-prov" parent="app" edge="1" target="d-cs-dfd"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="614" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-dfd" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IDFDService" vertex="1">
+      <mxGeometry x="295" y="588" width="115" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-dfd" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="609" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-dfd-req" parent="app" edge="1" target="d-sr-dfd"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="614" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-dfd-prov" parent="app" edge="1" target="d-sr-dfd"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="614" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-dfd" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IDFDRepository" vertex="1">
+      <mxGeometry x="682" y="588" width="130" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 8 — INVENTORY MATRIX  (y=665)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-im" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;InventoryMatrixController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;inventory_matrix.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="665" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-im-i" parent="c-im" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-im" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;InventoryMatrixService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;inventory_matrix_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="665" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-im-i" parent="s-im" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-im" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;InventoryMatrixRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;inventory_matrix_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="665" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-im-i" parent="r-im" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-im" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="689" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-im-req" parent="app" edge="1" source="c-im" target="d-cs-im"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-im-prov" parent="app" edge="1" target="d-cs-im"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="694" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-im" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IInventoryMatrixService" vertex="1">
+      <mxGeometry x="280" y="668" width="135" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-im" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="689" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-im-req" parent="app" edge="1" target="d-sr-im"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="694" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-im-prov" parent="app" edge="1" target="d-sr-im"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="694" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-im" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IInventoryMatrixRepository" vertex="1">
+      <mxGeometry x="671" y="668" width="142" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 9 — LOGICAL DATA MODEL  (y=745)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-ldm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;LogicalDataModelController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;logical_data_model.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="745" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-ldm-i" parent="c-ldm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-ldm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;LogicalDataModelService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;logical_data_model_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="745" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-ldm-i" parent="s-ldm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-ldm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;LogicalDataModelRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;logical_data_model_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="745" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-ldm-i" parent="r-ldm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-ldm" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="769" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-ldm-req" parent="app" edge="1" source="c-ldm" target="d-cs-ldm"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-ldm-prov" parent="app" edge="1" target="d-cs-ldm"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="774" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-ldm" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="ILogicalDataModelService" vertex="1">
+      <mxGeometry x="276" y="748" width="140" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-ldm" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="769" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-ldm-req" parent="app" edge="1" target="d-sr-ldm"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="774" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-ldm-prov" parent="app" edge="1" target="d-sr-ldm"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="774" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-ldm" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="ILogicalDataModelRepository" vertex="1">
+      <mxGeometry x="668" y="748" width="146" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 10 — PROJECT MEMBERSHIP  (y=825)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-pm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ProjectMembershipController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;project_memberships.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="825" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-pm-i" parent="c-pm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-pm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ProjectMembershipService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;project_membership_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="825" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-pm-i" parent="s-pm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-pm" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ProjectMembershipRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;project_membership_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="825" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-pm-i" parent="r-pm" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-pm" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="849" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-pm-req" parent="app" edge="1" source="c-pm" target="d-cs-pm"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-pm-prov" parent="app" edge="1" target="d-cs-pm"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="854" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-pm" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IProjectMembershipService" vertex="1">
+      <mxGeometry x="271" y="828" width="145" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-pm" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="849" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-pm-req" parent="app" edge="1" target="d-sr-pm"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="854" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-pm-prov" parent="app" edge="1" target="d-sr-pm"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="854" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-pm" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IProjectMembershipRepository" vertex="1">
+      <mxGeometry x="665" y="828" width="150" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 11 — PROJECT PERMISSION  (y=905) — service only
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="s-pp" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;ProjectPermissionService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;project_permission_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="905" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-pp-i" parent="s-pp" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+    <!-- IProjectPermissionService — provided only, no controller -->
+    <mxCell id="d-cs-pp" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="929" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-pp-prov" parent="app" edge="1" target="d-cs-pp"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="934" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-pp" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IProjectPermissionService" vertex="1">
+      <mxGeometry x="270" y="908" width="148" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 12 — RACI  (y=985)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-raci" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;RACIController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;raci.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="985" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-raci-i" parent="c-raci" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-raci" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;RaciService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;raci_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="985" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-raci-i" parent="s-raci" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-raci" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;RaciRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;raci_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="985" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-raci-i" parent="r-raci" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-raci" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="1009" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-raci-req" parent="app" edge="1" source="c-raci" target="d-cs-raci"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-raci-prov" parent="app" edge="1" target="d-cs-raci"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="1014" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-raci" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IRaciService" vertex="1">
+      <mxGeometry x="295" y="988" width="115" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-raci" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="1009" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-raci-req" parent="app" edge="1" target="d-sr-raci"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="1014" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-raci-prov" parent="app" edge="1" target="d-sr-raci"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="1014" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-raci" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IRaciRepository" vertex="1">
+      <mxGeometry x="682" y="988" width="130" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 13 — BRECHAS  (y=1065)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="c-brec" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;BrechasController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;brechas.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="30" y="1065" width="260" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="c-brec-i" parent="c-brec" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s-brec" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;BrechasService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;brechas_service.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="400" y="1065" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="s-brec-i" parent="s-brec" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="r-brec" parent="app"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;BrechasRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;brechas_repository.py&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="780" y="1065" width="270" height="58" as="geometry" />
+    </mxCell>
+    <mxCell id="r-brec-i" parent="r-brec" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="d-cs-brec" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="357" y="1089" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-brec-req" parent="app" edge="1" source="c-brec" target="d-cs-brec"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e-cs-brec-prov" parent="app" edge="1" target="d-cs-brec"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="1094" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-cs-brec" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IBrechasService" vertex="1">
+      <mxGeometry x="295" y="1068" width="115" height="18" as="geometry" />
+    </mxCell>
+
+    <mxCell id="d-sr-brec" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="747" y="1089" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-sr-brec-req" parent="app" edge="1" target="d-sr-brec"
+      style="rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="670" y="1094" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e-sr-brec-prov" parent="app" edge="1" target="d-sr-brec"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;" value="">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="780" y="1094" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l-sr-brec" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IBrechasRepository" vertex="1">
+      <mxGeometry x="682" y="1068" width="130" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CROSS-DEPENDENCIES (dashed «use» arrows)
+         Verified from source code imports
+         ═══════════════════════════════════════════════════════════ -->
+
+    <!-- auth.py also uses UserService -->
+    <mxCell id="x-auth-usersvc" parent="app" edge="1" source="c-auth" target="s-user"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=8;dashed=1;strokeColor=#666666;fontSize=8;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" value="&lt;&lt;use&gt;&gt;">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="320" y="149" />
+          <mxPoint x="320" y="290" />
+          <mxPoint x="380" y="290" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ProjectService also uses AuthRepository -->
+    <mxCell id="x-projsvc-authrep" parent="app" edge="1" source="s-proj" target="r-auth"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=8;dashed=1;strokeColor=#666666;fontSize=8;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" value="&lt;&lt;use&gt;&gt;">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1080" y="199" />
+          <mxPoint x="1080" y="149" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ProjectService also uses ProjectMembershipRepository -->
+    <mxCell id="x-projsvc-pmrep" parent="app" edge="1" source="s-proj" target="r-pm"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=8;dashed=1;strokeColor=#666666;fontSize=8;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" value="&lt;&lt;use&gt;&gt;">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1100" y="229" />
+          <mxPoint x="1100" y="839" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ProjectPermissionService uses ProjectRepository -->
+    <mxCell id="x-ppsvc-projrep" parent="app" edge="1" source="s-pp" target="r-proj"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=8;dashed=1;strokeColor=#666666;fontSize=8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" value="&lt;&lt;use&gt;&gt;">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1120" y="934" />
+          <mxPoint x="1120" y="229" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- DFDService also uses UserRepository -->
+    <mxCell id="x-dfdsvc-userrep" parent="app" edge="1" source="s-dfd" target="r-user"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=8;dashed=1;strokeColor=#666666;fontSize=8;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" value="&lt;&lt;use&gt;&gt;">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1090" y="629" />
+          <mxPoint x="1090" y="309" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- LogicalDataModelService also uses UserRepository -->
+    <mxCell id="x-ldmsvc-userrep" parent="app" edge="1" source="s-ldm" target="r-user"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endSize=8;dashed=1;strokeColor=#666666;fontSize=8;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" value="&lt;&lt;use&gt;&gt;">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1110" y="789" />
+          <mxPoint x="1110" y="294" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         REST API INTERFACE (Client → Controllers)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="d-rest" parent="app" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;strokeColor=none;resizable=0;perimeter=centerPerimeter;rotatable=0;allowArrows=0;outlineConnect=1;" value="" vertex="1">
+      <mxGeometry x="-25" y="609" width="10" height="10" as="geometry" />
+    </mxCell>
+    <mxCell id="e-rest-prov" parent="app" edge="1" target="d-rest"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=halfCircle;endFill=0;endSize=6;strokeWidth=1;" value="">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="-85" y="614" as="sourcePoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="e-rest-prov2" parent="app" edge="1" source="cnt-ctrl" target="d-rest"
+      style="rounded=0;html=1;endArrow=oval;endFill=0;endSize=10;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" value="">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="l-rest" parent="app" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;" value="IRestApi" vertex="1">
+      <mxGeometry x="-75" y="568" width="80" height="18" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         DATABASE ADAPTER (outside main container)
+         ═══════════════════════════════════════════════════════════ -->
+    <mxCell id="db-adapter" parent="1"
+      style="shape=folder;fontStyle=1;tabWidth=140;tabHeight=30;tabPosition=left;html=1;boundedLbl=1;labelInHeader=1;container=1;collapsible=0;whiteSpace=wrap;"
+      value="DataBase Adapter" vertex="1">
+      <mxGeometry x="1530" y="560" width="290" height="310" as="geometry" />
+    </mxCell>
+    <mxCell id="db-adapter-bg" parent="db-adapter"
+      style="html=1;strokeColor=none;fillColor=none;part=1;connectable=0;allowArrows=0;deletable=0;whiteSpace=wrap;" value="" vertex="1">
+      <mxGeometry height="310" relative="1" width="290" as="geometry"><mxPoint y="30" as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="db-pg" parent="db-adapter"
+      style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;"
+      value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;Database&lt;/p&gt;"
+      vertex="1">
+      <mxGeometry x="55" y="60" width="180" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="db-pg-i" parent="db-pg" style="shape=component;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+      <mxGeometry height="20" relative="1" width="20" x="1" as="geometry"><mxPoint x="-24" y="4" as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="db-artifact" parent="db-adapter"
+      style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;"
+      value="&amp;lt;Artifact&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Exordio_DB&lt;/b&gt;" vertex="1">
+      <mxGeometry x="55" y="210" width="180" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="db-use" parent="db-adapter" edge="1" source="db-pg" target="db-artifact"
+      style="endArrow=open;endSize=10;dashed=1;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="Use">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Repositories → DB Adapter (single representative arrow) -->
+    <mxCell id="e-repo-db" parent="1" edge="1"
+      style="endArrow=open;endSize=10;dashed=1;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="Use">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1500" y="714" as="sourcePoint" />
+        <mxPoint x="1530" y="714" as="targetPoint" />
+        <Array as="points" />
+      </mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

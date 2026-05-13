@@ -1,0 +1,30 @@
+{
+  "overall_score": 4.0,
+  "overall_percent": 80.0,
+  "maturity_level": "Gestionado",
+  "dimensions": [
+    {
+      "dimension_id": 1,
+      "dimension_name": "Gobernanza de Datos",
+      "score": 4.0,
+      "percent": 80.0,
+      "weight": 1.0,
+      "maturity_level": "Gestionado",
+      "question_count": 1,
+      "validated_question_count": 1,
+      "subdomains": [
+        {
+          "subdomain_id": 101,
+          "subdomain_name": "Politicas",
+          "score": 4.0,
+          "percent": 80.0,
+          "question_count": 1,
+          "validated_question_count": 1
+        }
+      ]
+    }
+  ],
+  "respondent_count": 1,
+  "validated_response_count": 1,
+  "calculated_at": "2026-03-31T11:30:00Z"
+}

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramas UML - Proyecto Backend</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .diagram-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .diagram-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .diagram-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+        
+        .diagram-card h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .diagram-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .format-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .format-links a {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .format-links a.svg {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .format-links a.svg:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .format-links a.png {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .format-links a.png:hover {
+            background: #0b7dda;
+            transform: scale(1.05);
+        }
+        
+        .format-links a.source {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .format-links a.source:hover {
+            background: #e68900;
+            transform: scale(1.05);
+        }
+        
+        .stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .stats h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .icon {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Diagramas UML del Proyecto</h1>
+        <p class="subtitle">Visualización completa de la arquitectura y estructura del backend</p>
+        
+        <div class="diagram-grid">
+            <div class="diagram-card">
+                <h2>🏗️ Diagrama de Clases</h2>
+                <p>Muestra todas las clases del proyecto (243 clases) con sus atributos, métodos y relaciones de herencia.</p>
+                <div class="format-links">
+                    <a href="svg/clases.svg" class="svg" target="_blank">
+                        <span class="icon">📄</span> Ver SVG
+                    </a>
+                    <a href="png/clases.png" class="png" target="_blank">
+                        <span class="icon">🖼️</span> Ver PNG
+                    </a>
+                    <a href="clases.puml" class="source" target="_blank">
+                        <span class="icon">📝</span> Código PUML
+                    </a>
+                </div>
+            </div>
+            
+            <div class="diagram-card">
+                <h2>🧩 Diagrama de Componentes</h2>
+                <p>Estructura detallada de componentes generada con pyreverse. Analiza 106 módulos con 347 imports.</p>
+                <div class="format-links">
+                    <a href="svg/componentes.svg" class="svg" target="_blank">
+                        <span class="icon">📄</span> Ver SVG
+                    </a>
+                    <a href="png/componentes.png" class="png" target="_blank">
+                        <span class="icon">🖼️</span> Ver PNG
+                    </a>
+                    <a href="componentes.puml" class="source" target="_blank">
+                        <span class="icon">📝</span> Código PUML
+                    </a>
+                </div>
+            </div>
+            
+            <div class="diagram-card">
+                <h2>📦 Diagrama de Paquetes</h2>
+                <p>Organización de paquetes y módulos del proyecto, mostrando la estructura de alto nivel.</p>
+                <div class="format-links">
+                    <a href="svg/paquetes.svg" class="svg" target="_blank">
+                        <span class="icon">📄</span> Ver SVG
+                    </a>
+                    <a href="png/paquetes.png" class="png" target="_blank">
+                        <span class="icon">🖼️</span> Ver PNG
+                    </a>
+                    <a href="paquetes.puml" class="source" target="_blank">
+                        <span class="icon">📝</span> Código PUML
+                    </a>
+                </div>
+            </div>
+            
+            <div class="diagram-card">
+                <h2>🎨 Diagrama de Clases (Mermaid)</h2>
+                <p>Diagrama de clases en formato Mermaid generado con pymermaider. Vista alternativa y moderna.</p>
+                <div class="format-links">
+                    <a href="svg/clases_mermaid.svg" class="svg" target="_blank">
+                        <span class="icon">📄</span> Ver SVG
+                    </a>
+                    <a href="png/clases_mermaid.png" class="png" target="_blank">
+                        <span class="icon">🖼️</span> Ver PNG
+                    </a>
+                    <a href="clases_mermaid.md" class="source" target="_blank">
+                        <span class="icon">📝</span> Código MD
+                    </a>
+                </div>
+            </div>
+            
+            <div class="diagram-card">
+                <h2>🔗 Diagrama Relacional</h2>
+                <p>Relaciones entre los 138 modelos Pydantic del proyecto, mostrando dependencias y cardinalidades.</p>
+                <div class="format-links">
+                    <a href="svg/relacional.svg" class="svg" target="_blank">
+                        <span class="icon">📄</span> Ver SVG
+                    </a>
+                    <a href="png/relacional.png" class="png" target="_blank">
+                        <span class="icon">🖼️</span> Ver PNG
+                    </a>
+                    <a href="relacional.md" class="source" target="_blank">
+                        <span class="icon">📝</span> Código MD
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <h3>📈 Estadísticas del Proyecto</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">5</span>
+                    <div class="stat-label">Diagramas Generados</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">243</span>
+                    <div class="stat-label">Clases Totales</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">138</span>
+                    <div class="stat-label">Modelos Pydantic</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">106</span>
+                    <div class="stat-label">Módulos Analizados</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">347</span>
+                    <div class="stat-label">Imports</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">9809</span>
+                    <div class="stat-label">Líneas de Diagramas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
