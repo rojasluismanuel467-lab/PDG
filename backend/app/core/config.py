@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     DB_FALLBACK_ENABLED: bool = True
     ADMIN_SEED_EMAIL: str = "admin@arqdata.local"
     ADMIN_SEED_NAME: str = "Administrador Inicial"
+    RESET_DB_ON_STARTUP: bool = False
     JWT_SECRET_KEY: str = "change-this-secret-in-production"
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30

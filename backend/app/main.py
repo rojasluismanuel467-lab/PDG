@@ -16,6 +16,8 @@ from app.models import Base
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if settings.RESET_DB_ON_STARTUP:
+        Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = next(get_db())
     try:

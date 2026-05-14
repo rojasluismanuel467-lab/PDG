@@ -1,6 +1,5 @@
 from datetime import date
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.artifact_catalog import ARTIFACT_CATALOG
@@ -15,67 +14,41 @@ from app.repositories.project_membership_repository import ProjectMembershipRepo
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.user_repository import UserRepository
 
-
-def _ensure_demo_project_artifacts(db: Session) -> None:
-    consultant = UserRepository.get_by_email(db, email="consultor@test.com")
-    if consultant is None:
-        return
-    project = db.execute(
-        select(Project).where(Project.nombre == "Proyecto Demo")
-    ).scalar_one_or_none()
-    if project is None or project.artifacts:
-        return
-    artifacts = [
-        ProjectArtifact(
-            project_id=project.id,
-            code=definition.code,
-            name=definition.name,
-            description=definition.description,
-            block=definition.block,
-            order_index=definition.order_index,
-            block_order=definition.block_order,
-            status=ProjectArtifactStatus.PENDING,
-            is_applicable=True,
-        )
-        for definition in ARTIFACT_CATALOG
-    ]
-    ProjectRepository.create_artifacts(db, artifacts=artifacts)
-    db.commit()
+DEMO_ADMIN_EMAIL = "admin@arqdata.local"
+DEMO_CONSULTANT_EMAIL = "consultor@demo.com"
+DEMO_EMPRESA_EMAIL = "empresa@demo.com"
 
 
 def initialize_seed_data(db: Session) -> None:
-    _ensure_demo_project_artifacts(db)
-
-    existing_consultant = UserRepository.get_by_email(db, email="consultor@test.com")
-    if existing_consultant is not None:
+    # Idempotency guard: skip if demo data is already present
+    if UserRepository.get_by_email(db, email=DEMO_CONSULTANT_EMAIL) is not None:
         return
 
-    admin = UserRepository.get_by_email(db, email="admin@arqdata.local")
+    # Admin (may already exist if someone created it manually)
+    admin = UserRepository.get_by_email(db, email=DEMO_ADMIN_EMAIL)
     if admin is None:
         admin = User(
             nombre="Administrador Inicial",
-            email="admin@arqdata.local",
+            email=DEMO_ADMIN_EMAIL,
             tipo_usuario=UserType.ADMINISTRADOR,
             estado=UserStatus.ACTIVO,
             password_hash=hash_password("Admin12345!"),
         )
         admin = UserRepository.create(db, user=admin)
 
-    created_by = admin.id
-
     consultant = User(
         nombre="Consultor Demo",
-        email="consultor@test.com",
+        email=DEMO_CONSULTANT_EMAIL,
         tipo_usuario=UserType.CONSULTOR,
         estado=UserStatus.ACTIVO,
-        password_hash=hash_password("consultor123"),
-        created_by_user_id=created_by,
+        password_hash=hash_password("Consultor12345!"),
+        created_by_user_id=admin.id,
     )
     consultant = UserRepository.create(db, user=consultant)
 
     demo_company = Company(
-        name="Empresa Demo",
-        contact_email="empresa@test.com",
+        name="Empresa Demo S.A.S.",
+        contact_email=DEMO_EMPRESA_EMAIL,
     )
     db.add(demo_company)
     db.flush()
@@ -83,18 +56,18 @@ def initialize_seed_data(db: Session) -> None:
 
     enterprise = User(
         nombre="Empresa Demo",
-        email="empresa@test.com",
+        email=DEMO_EMPRESA_EMAIL,
         tipo_usuario=UserType.EMPRESA,
         estado=UserStatus.ACTIVO,
-        password_hash=hash_password("empresa123"),
+        password_hash=hash_password("Empresa12345!"),
         created_by_user_id=consultant.id,
         company_id=demo_company.id,
     )
     enterprise = UserRepository.create(db, user=enterprise)
 
     project = Project(
-        nombre="Proyecto Demo",
-        descripcion="Proyecto inicial de demostracion",
+        nombre="Proyecto Demo ArqData",
+        descripcion="Proyecto de demostración para explorar todas las funcionalidades de la plataforma.",
         client_company_name=demo_company.name,
         client_company_email=demo_company.contact_email,
         company_id=demo_company.id,
@@ -147,10 +120,10 @@ if __name__ == "__main__":
     db = SessionLocal()
     try:
         initialize_seed_data(db)
-        print("Seed data created successfully")
-        print("- Consultant: consultor@test.com / consultor123")
-        print("- Enterprise: empresa@test.com / empresa123")
-        print("- Company: Empresa Demo")
-        print("- Project: Proyecto Demo (managed by Consultant)")
+        print("Seed data initialized successfully")
+        print(f"  Admin:     {DEMO_ADMIN_EMAIL} / Admin12345!")
+        print(f"  Consultor: {DEMO_CONSULTANT_EMAIL} / Consultor12345!")
+        print(f"  Empresa:   {DEMO_EMPRESA_EMAIL} / Empresa12345!")
+        print("  Project:   Proyecto Demo ArqData")
     finally:
         db.close()
