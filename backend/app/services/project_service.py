@@ -288,22 +288,25 @@ class ProjectService:
         *,
         project_id: uuid.UUID,
         actor_user_id: uuid.UUID,
+        actor_user_type: UserType | None = None,
     ) -> ProjectDetailResponse:
-        project, membership, _ = ProjectPermissionService.resolve_project_level(
-            db,
-            project_id=project_id,
-            actor_user_id=actor_user_id,
-            minimum_level=PermissionLevel.LECTURA,
-        )
+        is_admin = actor_user_type == UserType.ADMINISTRADOR
+
+        if is_admin:
+            project = ProjectPermissionService.get_project_or_raise(db, project_id=project_id)
+            effective_level = int(PermissionLevel.DELEGAR)
+        else:
+            project, _, effective_level = ProjectPermissionService.resolve_project_level(
+                db,
+                project_id=project_id,
+                actor_user_id=actor_user_id,
+                minimum_level=PermissionLevel.LECTURA,
+            )
+
         artifact_items = [
             cls._artifact_response(
                 artifact=artifact,
-                effective_permission_level=ProjectPermissionService.resolve_artifact_level(
-                    db,
-                    project_id=project_id,
-                    actor_user_id=actor_user_id,
-                    artifact=artifact,
-                )[2],
+                effective_permission_level=effective_level,
             )
             for artifact in sorted(project.artifacts, key=lambda item: item.order_index)
         ]

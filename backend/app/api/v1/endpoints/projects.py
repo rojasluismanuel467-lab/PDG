@@ -56,6 +56,7 @@ def get_project(
         db,
         project_id=project_id,
         actor_user_id=current_user.id,
+        actor_user_type=current_user.tipo_usuario,
     )
 
 

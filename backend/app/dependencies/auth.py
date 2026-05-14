@@ -19,6 +19,7 @@ class CurrentUser:
     tipo_usuario: UserType
     email: str
     estado: UserStatus
+    nombre: str = ""
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
@@ -30,6 +31,7 @@ def _map_current_user(user: User) -> CurrentUser:
         tipo_usuario=user.tipo_usuario,
         email=user.email,
         estado=user.estado,
+        nombre=user.nombre,
     )
 
 
