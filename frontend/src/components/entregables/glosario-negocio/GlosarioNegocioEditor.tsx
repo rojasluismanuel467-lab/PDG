@@ -1,16 +1,156 @@
 "use client";
-import React, { useState, useCallback, useEffect } from "react";
+import React, {
+  useState, useCallback, useEffect, useRef, useMemo,
+} from "react";
+import {
+  Pencil, Copy, Trash2, MessageSquare, ClipboardCopy,
+  ChevronUp, ChevronDown, ChevronsUpDown,
+  Rows3, ListOrdered, Columns3, BookOpen,
+} from "lucide-react";
 import type {
   GlosarioNegocio,
   TerminoGlosario,
   ComentarioGlosario,
+  CategoriaTermino,
+  EstadoTermino,
 } from "@/lib/types/glosario-negocio.types";
 import PanelTermino from "./PanelTermino";
 
-// ============================================================================
-// GlosarioNegocioEditor — Editor principal del Glosario de Negocio TO-BE
-// Formato: Tabla editable con panel lateral de detalle por término
-// ============================================================================
+// ── Constants ──────────────────────────────────────────────────────────────
+
+export const CATEGORIA_CONFIG: Record<CategoriaTermino, { label: string; color: string }> = {
+  entidad:       { label: "Entidad",        color: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400" },
+  atributo:      { label: "Atributo",       color: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400" },
+  proceso:       { label: "Proceso",        color: "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400" },
+  regla_negocio: { label: "Regla",          color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400" },
+  kpi:           { label: "KPI",            color: "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-400" },
+  otro:          { label: "Otro",           color: "bg-gray-100 text-gray-600 dark:bg-white/[0.06] dark:text-white/40" },
+};
+
+export const ESTADO_CONFIG: Record<EstadoTermino, {
+  label: string; badge: string; dot: string; border: string;
+}> = {
+  borrador:    { label: "Borrador",     badge: "bg-gray-100 text-gray-600 dark:bg-white/[0.06] dark:text-white/40",          dot: "bg-gray-400 dark:bg-white/30",    border: "border-l-gray-300 dark:border-l-white/20" },
+  en_revision: { label: "En revisión", badge: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",          dot: "bg-amber-400",                   border: "border-l-amber-400" },
+  aprobado:    { label: "Aprobado",    badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400",   dot: "bg-emerald-400",                 border: "border-l-emerald-400" },
+  obsoleto:    { label: "Obsoleto",    badge: "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400",                  dot: "bg-red-400",                     border: "border-l-red-400" },
+};
+
+type ColId = "categoria" | "definicion" | "propietario" | "estado" | "entidades" | "sinonimos" | "comentarios";
+type SortKey = "termino" | "propietario" | "estado" | "categoria";
+type SortConfig = { key: SortKey; dir: "asc" | "desc" } | null;
+type Density = "compact" | "comfortable";
+type Agrupacion = "flat" | "alfabetico";
+type TabActiva = "tabla" | "comentarios" | "versiones";
+type ContextMenuState = { x: number; y: number; terminoId: string } | null;
+
+const ALL_COLUMNS: { id: ColId; label: string }[] = [
+  { id: "categoria",   label: "Categoría" },
+  { id: "definicion",  label: "Definición" },
+  { id: "propietario", label: "Propietario" },
+  { id: "estado",      label: "Estado" },
+  { id: "entidades",   label: "Entidades" },
+  { id: "sinonimos",   label: "Sinónimos" },
+  { id: "comentarios", label: "Comentarios" },
+];
+
+const ROW_PY: Record<Density, string> = {
+  compact:     "py-2",
+  comfortable: "py-3",
+};
+
+// ── Context menu ──────────────────────────────────────────────────────────
+
+interface CtxMenuProps {
+  x: number; y: number;
+  readOnly: boolean;
+  onClose: () => void;
+  onEditar: () => void;
+  onDuplicar: () => void;
+  onCopiarNombre: () => void;
+  onAgregarComentario: () => void;
+  onEliminar: () => void;
+}
+
+function ContextMenuGlosario({
+  x, y, readOnly, onClose,
+  onEditar, onDuplicar, onCopiarNombre, onAgregarComentario, onEliminar,
+}: CtxMenuProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ x, y });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({
+      x: x + rect.width > window.innerWidth  ? window.innerWidth  - rect.width  - 8 : x,
+      y: y + rect.height > window.innerHeight ? window.innerHeight - rect.height - 8 : y,
+    });
+  }, [x, y]);
+
+  useEffect(() => {
+    const down = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("mousedown", down);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("mousedown", down);
+      document.removeEventListener("keydown", key);
+    };
+  }, [onClose]);
+
+  const item = (
+    icon: React.ReactNode,
+    label: string,
+    action: () => void,
+    danger = false,
+    disabled = false,
+  ) => (
+    <button
+      disabled={disabled}
+      onClick={() => { action(); onClose(); }}
+      className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-xs text-left rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+        danger
+          ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+          : "text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+
+  return (
+    <div
+      ref={ref}
+      style={{ position: "fixed", top: pos.y, left: pos.x, zIndex: 9999 }}
+      className="w-52 py-1.5 px-1.5 bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-200 dark:border-white/[0.1] shadow-2xl shadow-black/10 dark:shadow-black/40"
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {item(<Pencil className="w-3.5 h-3.5" />, "Editar", onEditar)}
+      {item(<Copy className="w-3.5 h-3.5" />, "Duplicar", onDuplicar, false, readOnly)}
+      {item(<ClipboardCopy className="w-3.5 h-3.5" />, "Copiar nombre", onCopiarNombre)}
+      {item(<MessageSquare className="w-3.5 h-3.5" />, "Agregar comentario", onAgregarComentario)}
+      <div className="my-1 mx-1 border-t border-gray-100 dark:border-white/[0.06]" />
+      {item(<Trash2 className="w-3.5 h-3.5" />, "Eliminar", onEliminar, true, readOnly)}
+    </div>
+  );
+}
+
+// ── Sort icon ─────────────────────────────────────────────────────────────
+
+function SortIcon({ colKey, sortConfig }: { colKey: SortKey; sortConfig: SortConfig }) {
+  if (!sortConfig || sortConfig.key !== colKey)
+    return <ChevronsUpDown className="w-3 h-3 ml-1 text-gray-300 dark:text-white/20 shrink-0" />;
+  return sortConfig.dir === "asc"
+    ? <ChevronUp   className="w-3 h-3 ml-1 text-[#28b8d5] shrink-0" />
+    : <ChevronDown className="w-3 h-3 ml-1 text-[#28b8d5] shrink-0" />;
+}
+
+// ── Main component ────────────────────────────────────────────────────────
 
 interface GlosarioNegocioEditorProps {
   glosario: GlosarioNegocio;
@@ -25,8 +165,6 @@ interface GlosarioNegocioEditorProps {
   isGenerating: boolean;
   readOnly?: boolean;
 }
-
-type TabActiva = "tabla" | "comentarios" | "versiones";
 
 export default function GlosarioNegocioEditor({
   glosario: glosarioInicial,
@@ -44,99 +182,199 @@ export default function GlosarioNegocioEditor({
   const [busqueda, setBusqueda] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
 
-  // ── Columnas dinámicas ─────────────────────────────────────────────────
+  // View options
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+  const [agrupacion, setAgrupacion] = useState<Agrupacion>("flat");
+  const [density, setDensity] = useState<Density>("comfortable");
+  const [columnasOcultas, setColumnasOcultas] = useState<Set<ColId>>(new Set());
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
+
+  // Context menu
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
+  const [focusComentario, setFocusComentario] = useState(false);
+
+  // Dynamic columns (persisted locally)
   const storageKey = `glosario-columnas-${glosarioInicial.id || "default"}`;
   const [columnasDinamicas, setColumnasDinamicas] = useState<{ id: string; label: string }[]>([]);
   const [showAddCol, setShowAddCol] = useState(false);
   const [nuevaColLabel, setNuevaColLabel] = useState("");
 
+  const columnMenuRef = useRef<HTMLDivElement>(null);
+  const addColRef     = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        setColumnasDinamicas(JSON.parse(saved));
-      } catch (e) {}
-    }
+    if (saved) { try { setColumnasDinamicas(JSON.parse(saved)); } catch (_) {} }
   }, [storageKey]);
 
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(columnasDinamicas));
   }, [columnasDinamicas, storageKey]);
 
-  const handleAddColumn = () => {
-    const label = nuevaColLabel.trim();
-    if (!label) return;
-    const id = `col_${label.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
-    if (!columnasDinamicas.some((c) => c.id === id)) {
-      setColumnasDinamicas((prev) => [...prev, { id, label }]);
-    }
-    setNuevaColLabel("");
-    setShowAddCol(false);
-  };
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const down = (e: MouseEvent) => {
+      if (columnMenuRef.current && !columnMenuRef.current.contains(e.target as Node))
+        setShowColumnMenu(false);
+      if (addColRef.current && !addColRef.current.contains(e.target as Node))
+        setShowAddCol(false);
+    };
+    document.addEventListener("mousedown", down);
+    return () => document.removeEventListener("mousedown", down);
+  }, []);
 
-  // ── Término seleccionado ─────────────────────────────────────────────────
+  // Keyboard: Esc closes panel
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setTerminoSeleccionadoId(null); setContextMenu(null); }
+    };
+    document.addEventListener("keydown", key);
+    return () => document.removeEventListener("keydown", key);
+  }, []);
+
+  // ── Derived ──────────────────────────────────────────────────────────────
+
   const terminoSeleccionado = terminoSeleccionadoId
     ? glosario.terminos.find((t) => t.id === terminoSeleccionadoId)
     : undefined;
 
-  // ── Filtro de búsqueda ───────────────────────────────────────────────────
-  const terminosFiltrados = glosario.terminos.filter((t) => {
-    if (!busqueda.trim()) return true;
+  const terminosFiltrados = useMemo(() => {
+    if (!busqueda.trim()) return glosario.terminos;
     const q = busqueda.toLowerCase();
-    return (
-      t.termino.toLowerCase().includes(q) ||
-      t.definicion.toLowerCase().includes(q) ||
-      t.propietario.toLowerCase().includes(q) ||
-      t.sinonimos.some((s) => s.toLowerCase().includes(q)) ||
-      t.entidades_relacionadas.some((e) => e.toLowerCase().includes(q))
+    return glosario.terminos.filter(
+      (t) =>
+        t.termino.toLowerCase().includes(q) ||
+        t.definicion.toLowerCase().includes(q) ||
+        t.propietario.toLowerCase().includes(q) ||
+        t.sinonimos.some((s) => s.toLowerCase().includes(q)) ||
+        t.entidades_relacionadas.some((e) => e.toLowerCase().includes(q))
     );
-  });
+  }, [glosario.terminos, busqueda]);
 
-  // ── CRUD Términos ────────────────────────────────────────────────────────
+  const terminosOrdenados = useMemo(() => {
+    const base = [...terminosFiltrados];
+    if (!sortConfig) return base.sort((a, b) => a.termino.localeCompare(b.termino));
+    return base.sort((a, b) => {
+      const av = (a[sortConfig.key] ?? "") as string;
+      const bv = (b[sortConfig.key] ?? "") as string;
+      return sortConfig.dir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+  }, [terminosFiltrados, sortConfig]);
+
+  const terminosAgrupados = useMemo(() => {
+    if (agrupacion !== "alfabetico") return null;
+    const map: Record<string, TerminoGlosario[]> = {};
+    for (const t of terminosOrdenados) {
+      const letter = t.termino[0]?.toUpperCase() ?? "#";
+      if (!map[letter]) map[letter] = [];
+      map[letter].push(t);
+    }
+    return map;
+  }, [terminosOrdenados, agrupacion]);
+
+  const comentariosGenerales = glosario.comentarios.filter((c) => c.referencia_tipo === "general");
+
+  // ── CRUD ─────────────────────────────────────────────────────────────────
+
+  const mutateGlosario = useCallback((updater: (prev: GlosarioNegocio) => GlosarioNegocio) => {
+    setGlosario(updater);
+    setHasChanges(true);
+  }, []);
+
   const handleAddTermino = useCallback(() => {
-    const conteo = glosario.terminos.length;
     const nuevo: TerminoGlosario = {
       id: `ter-${Date.now()}`,
-      termino: `Nuevo Término ${conteo + 1}`,
+      termino: `Nuevo Término ${glosario.terminos.length + 1}`,
       definicion: "",
       propietario: "",
       entidades_relacionadas: [],
       sinonimos: [],
       notas: "",
+      estado: "borrador",
     };
-    setGlosario((prev) => ({
-      ...prev,
-      terminos: [...prev.terminos, nuevo],
-    }));
+    mutateGlosario((prev) => ({ ...prev, terminos: [...prev.terminos, nuevo] }));
     setTerminoSeleccionadoId(nuevo.id);
-    setHasChanges(true);
-  }, [glosario.terminos.length]);
+  }, [glosario.terminos.length, mutateGlosario]);
 
   const handleUpdateTermino = useCallback((updated: TerminoGlosario) => {
-    setGlosario((prev) => ({
+    mutateGlosario((prev) => ({
       ...prev,
       terminos: prev.terminos.map((t) => (t.id === updated.id ? updated : t)),
     }));
-    setHasChanges(true);
-  }, []);
+  }, [mutateGlosario]);
 
   const handleDeleteTermino = useCallback((id: string) => {
-    setGlosario((prev) => ({
-      ...prev,
-      terminos: prev.terminos.filter((t) => t.id !== id),
-    }));
-    setTerminoSeleccionadoId(null);
-    setHasChanges(true);
+    mutateGlosario((prev) => ({ ...prev, terminos: prev.terminos.filter((t) => t.id !== id) }));
+    setTerminoSeleccionadoId((prev) => (prev === id ? null : prev));
+  }, [mutateGlosario]);
+
+  const handleDuplicar = useCallback((id: string) => {
+    const original = glosario.terminos.find((t) => t.id === id);
+    if (!original) return;
+    const copia: TerminoGlosario = {
+      ...original,
+      id: `ter-${Date.now()}`,
+      termino: `${original.termino} (copia)`,
+      estado: "borrador",
+    };
+    mutateGlosario((prev) => {
+      const idx = prev.terminos.findIndex((t) => t.id === id);
+      const next = [...prev.terminos];
+      next.splice(idx + 1, 0, copia);
+      return { ...prev, terminos: next };
+    });
+    setTerminoSeleccionadoId(copia.id);
+  }, [glosario.terminos, mutateGlosario]);
+
+  const handleCopiarNombre = useCallback((id: string) => {
+    const t = glosario.terminos.find((x) => x.id === id);
+    if (t) navigator.clipboard.writeText(t.termino).catch(() => {});
+  }, [glosario.terminos]);
+
+  // ── Sort + columns ────────────────────────────────────────────────────────
+
+  const handleSort = (key: SortKey) => {
+    setSortConfig((prev) => {
+      if (!prev || prev.key !== key) return { key, dir: "asc" };
+      if (prev.dir === "asc") return { key, dir: "desc" };
+      return null;
+    });
+  };
+
+  const toggleColumna = (id: ColId) => {
+    setColumnasOcultas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  // ── Dynamic columns ────────────────────────────────────────────────────
+
+  const handleAddColumn = () => {
+    const label = nuevaColLabel.trim();
+    if (!label) return;
+    const id = `col_${label.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
+    if (!columnasDinamicas.some((c) => c.id === id))
+      setColumnasDinamicas((prev) => [...prev, { id, label }]);
+    setNuevaColLabel("");
+    setShowAddCol(false);
+  };
+
+  // ── Context menu ──────────────────────────────────────────────────────────
+
+  const handleContextMenu = useCallback((e: React.MouseEvent, terminoId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, terminoId });
+    setTerminoSeleccionadoId(terminoId);
   }, []);
 
-  // ── Comentarios ──────────────────────────────────────────────────────────
+  // ── Comments ──────────────────────────────────────────────────────────────
+
   const handleAddCommentLocal = useCallback(
-    async (
-      referenciaId: string | null,
-      referenciaTipo: "termino" | "general",
-      contenido: string
-    ) => {
-      const nuevoComentario: ComentarioGlosario = {
+    async (referenciaId: string | null, referenciaTipo: "termino" | "general", contenido: string) => {
+      const nuevo: ComentarioGlosario = {
         id: `com-glos-${Date.now()}`,
         referencia_id: referenciaId,
         referencia_tipo: referenciaTipo,
@@ -147,10 +385,7 @@ export default function GlosarioNegocioEditor({
         estado: "abierto",
         created_at: new Date().toISOString(),
       };
-      setGlosario((prev) => ({
-        ...prev,
-        comentarios: [...prev.comentarios, nuevoComentario],
-      }));
+      setGlosario((prev) => ({ ...prev, comentarios: [...prev.comentarios, nuevo] }));
       await onAddComment(referenciaId, referenciaTipo, contenido);
     },
     [onAddComment]
@@ -162,45 +397,243 @@ export default function GlosarioNegocioEditor({
     setNuevoComentarioGeneral("");
   };
 
-  // ── Guardar ──────────────────────────────────────────────────────────────
+  // ── Save ──────────────────────────────────────────────────────────────────
+
   const handleSave = async () => {
     await onSave(glosario);
     setHasChanges(false);
   };
 
-  const comentariosGenerales = glosario.comentarios.filter(
-    (c) => c.referencia_tipo === "general"
+  // ── Sortable column header helper ─────────────────────────────────────────
+
+  const SortableTh = ({
+    colKey, label, className = "",
+  }: { colKey: SortKey; label: string; className?: string }) => (
+    <th
+      onClick={() => handleSort(colKey)}
+      className={`text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-pointer hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] ${className}`}
+    >
+      <div className="flex items-center">
+        {label}
+        <SortIcon colKey={colKey} sortConfig={sortConfig} />
+      </div>
+    </th>
   );
 
+  // ── Row render ────────────────────────────────────────────────────────────
+
+  const py = ROW_PY[density];
+
+  const renderRow = (termino: TerminoGlosario, globalIdx: number) => {
+    const isSelected = terminoSeleccionadoId === termino.id;
+    const estadoCfg = termino.estado ? ESTADO_CONFIG[termino.estado] : null;
+    const catCfg    = termino.categoria ? CATEGORIA_CONFIG[termino.categoria] : null;
+    const comentCount = glosario.comentarios.filter((c) => c.referencia_id === termino.id).length;
+
+    const borderClass = isSelected
+      ? "border-l-[#28b8d5]"
+      : estadoCfg?.border ?? "border-l-transparent";
+
+    const bgClass = isSelected
+      ? "bg-[#28b8d5]/5 dark:bg-[#28b8d5]/8"
+      : "hover:bg-gray-50/80 dark:hover:bg-white/[0.025]";
+
+    return (
+      <tr
+        key={termino.id}
+        onClick={() => setTerminoSeleccionadoId(isSelected ? null : termino.id)}
+        onContextMenu={(e) => handleContextMenu(e, termino.id)}
+        className={`group relative cursor-pointer border-l-[3px] transition-colors ${borderClass} ${bgClass} divide-x divide-gray-100 dark:divide-white/[0.04]`}
+      >
+        {/* # */}
+        <td className={`${py} px-3 text-[11px] font-mono text-gray-300 dark:text-white/20 whitespace-nowrap select-none w-10`}>
+          {String(globalIdx + 1).padStart(2, "0")}
+        </td>
+
+        {/* Término — sticky */}
+        <td className={`${py} sticky left-0 z-[5] px-4 min-w-[180px] max-w-[220px]`}
+          style={{ backgroundColor: isSelected ? "rgba(40,184,213,0.04)" : "inherit" }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-800 dark:text-white/85 leading-snug flex-1 min-w-0 truncate">
+              {termino.termino}
+            </span>
+            {/* Row hover actions */}
+            {!readOnly && (
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setTerminoSeleccionadoId(termino.id); }}
+                  className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-200 dark:hover:bg-white/[0.08] transition-colors"
+                  title="Editar"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDuplicar(termino.id); }}
+                  className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-200 dark:hover:bg-white/[0.08] transition-colors"
+                  title="Duplicar"
+                >
+                  <Copy className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDeleteTermino(termino.id); }}
+                  className="p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                  title="Eliminar"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+          </div>
+        </td>
+
+        {/* Categoría */}
+        {!columnasOcultas.has("categoria") && (
+          <td className={`${py} px-4 whitespace-nowrap`}>
+            {catCfg ? (
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${catCfg.color}`}>
+                {catCfg.label}
+              </span>
+            ) : (
+              <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+            )}
+          </td>
+        )}
+
+        {/* Definición */}
+        {!columnasOcultas.has("definicion") && (
+          <td className={`${py} px-4 text-xs text-gray-500 dark:text-white/40 max-w-[300px]`}>
+            <span className="line-clamp-2 leading-relaxed">
+              {termino.definicion || (
+                <span className="text-gray-300 dark:text-white/20 italic">Sin definición</span>
+              )}
+            </span>
+          </td>
+        )}
+
+        {/* Propietario */}
+        {!columnasOcultas.has("propietario") && (
+          <td className={`${py} px-4 text-xs text-gray-500 dark:text-white/50 whitespace-nowrap max-w-[180px] truncate`}>
+            {termino.propietario || <span className="text-gray-300 dark:text-white/20">—</span>}
+          </td>
+        )}
+
+        {/* Estado */}
+        {!columnasOcultas.has("estado") && (
+          <td className={`${py} px-4 whitespace-nowrap`}>
+            {estadoCfg ? (
+              <div className="flex items-center gap-1.5">
+                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${estadoCfg.dot}`} />
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${estadoCfg.badge}`}>
+                  {estadoCfg.label}
+                </span>
+              </div>
+            ) : (
+              <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+            )}
+          </td>
+        )}
+
+        {/* Entidades */}
+        {!columnasOcultas.has("entidades") && (
+          <td className={`${py} px-4`}>
+            <div className="flex flex-wrap gap-1">
+              {termino.entidades_relacionadas.slice(0, 2).map((ent) => (
+                <span key={ent} className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium whitespace-nowrap">
+                  {ent}
+                </span>
+              ))}
+              {termino.entidades_relacionadas.length > 2 && (
+                <span className="text-[9px] text-gray-400 dark:text-white/25">
+                  +{termino.entidades_relacionadas.length - 2}
+                </span>
+              )}
+              {termino.entidades_relacionadas.length === 0 && (
+                <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+              )}
+            </div>
+          </td>
+        )}
+
+        {/* Sinónimos */}
+        {!columnasOcultas.has("sinonimos") && (
+          <td className={`${py} px-4`}>
+            <div className="flex flex-wrap gap-1">
+              {termino.sinonimos.slice(0, 2).map((sin) => (
+                <span key={sin} className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400 font-medium whitespace-nowrap">
+                  {sin}
+                </span>
+              ))}
+              {termino.sinonimos.length > 2 && (
+                <span className="text-[9px] text-gray-400 dark:text-white/25">
+                  +{termino.sinonimos.length - 2}
+                </span>
+              )}
+              {termino.sinonimos.length === 0 && (
+                <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+              )}
+            </div>
+          </td>
+        )}
+
+        {/* Comentarios */}
+        {!columnasOcultas.has("comentarios") && (
+          <td className={`${py} px-4 text-center`}>
+            {comentCount > 0 ? (
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                {comentCount}
+              </span>
+            ) : (
+              <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+            )}
+          </td>
+        )}
+
+        {/* Dynamic columns */}
+        {columnasDinamicas.map((col) => (
+          <td key={col.id} className={`${py} px-4 text-xs text-gray-500 dark:text-white/50 max-w-[160px] truncate`}>
+            {((termino as unknown as Record<string, unknown>)[col.id] as string) || (
+              <span className="text-gray-300 dark:text-white/20">—</span>
+            )}
+          </td>
+        ))}
+      </tr>
+    );
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
+
+  const visibleColCount = ALL_COLUMNS.filter((c) => !columnasOcultas.has(c.id)).length
+    + columnasDinamicas.length + 2; // +2 for # and Término
+
   return (
-    <div className="flex flex-col h-full">
-      {/* ── Toolbar superior ────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111111]">
-        <div className="flex items-center gap-3">
+    <div className="flex flex-col h-full" onClick={() => { setShowColumnMenu(false); setShowAddCol(false); }}>
+
+      {/* ── Toolbar ───────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111] shrink-0">
+        <div className="flex items-center gap-2.5">
           {/* Tabs */}
-          <div className="flex rounded-xl bg-gray-100 dark:bg-white/[0.04] p-0.5">
+          <div className="flex rounded-lg bg-gray-100 dark:bg-white/[0.04] p-0.5">
             {(["tabla", "comentarios", "versiones"] as TabActiva[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setTabActiva(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                   tabActiva === tab
                     ? "bg-white dark:bg-white/[0.1] text-gray-800 dark:text-white/90 shadow-sm"
                     : "text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/60"
                 }`}
               >
-                {tab === "tabla" && `Términos (${glosario.terminos.length})`}
+                {tab === "tabla"       && `Términos (${glosario.terminos.length})`}
                 {tab === "comentarios" && `Comentarios (${comentariosGenerales.length})`}
-                {tab === "versiones" && `v${glosario.version_actual}`}
+                {tab === "versiones"   && `v${glosario.version_actual}`}
               </button>
             ))}
           </div>
 
-          {/* Indicadores */}
           {!readOnly && hasChanges && (
             <span className="text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
-              Cambios sin guardar
+              Sin guardar
             </span>
           )}
           {readOnly && (
@@ -210,319 +643,344 @@ export default function GlosarioNegocioEditor({
           )}
         </div>
 
-        {!readOnly && (
-          <div className="flex items-center gap-2">
-            {/* Agregar columna dinámica */}
-            <div className="relative">
-              <button
-                onClick={() => setShowAddCol(!showAddCol)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/[0.04] text-xs font-medium text-gray-700 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/[0.08] transition-colors"
-              >
-                + Columna
-              </button>
-              {showAddCol && (
-                <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/[0.08] rounded-xl shadow-lg z-50">
-                  <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-                    Nombre de columna
-                  </label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text"
-                      value={nuevaColLabel}
-                      onChange={(e) => setNuevaColLabel(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddColumn()}
-                      placeholder="Ej. Validaciones"
-                      className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5]" 
-                    />
-                    <button 
-                      onClick={handleAddColumn}
-                      className="px-3 py-1.5 rounded-lg bg-[#28b8d5] text-white text-xs font-medium"
-                    >
-                      Añadir
-                    </button>
+        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          {tabActiva === "tabla" && (
+            <>
+              {/* View toggle group */}
+              <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/[0.08] p-0.5">
+                <button
+                  onClick={() => setDensity((d) => d === "comfortable" ? "compact" : "comfortable")}
+                  title={density === "comfortable" ? "Vista compacta" : "Vista cómoda"}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    density === "compact"
+                      ? "bg-[#28b8d5]/10 text-[#28b8d5]"
+                      : "text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/50"
+                  }`}
+                >
+                  <Rows3 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setAgrupacion((a) => a === "flat" ? "alfabetico" : "flat")}
+                  title={agrupacion === "flat" ? "Agrupar A–Z" : "Vista plana"}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    agrupacion === "alfabetico"
+                      ? "bg-[#28b8d5]/10 text-[#28b8d5]"
+                      : "text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/50"
+                  }`}
+                >
+                  <ListOrdered className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Column visibility */}
+              <div className="relative" ref={columnMenuRef}>
+                <button
+                  onClick={() => setShowColumnMenu((v) => !v)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                    showColumnMenu
+                      ? "border-[#28b8d5]/50 text-[#28b8d5] bg-[#28b8d5]/5"
+                      : "border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/40 hover:bg-gray-50 dark:hover:bg-white/[0.04]"
+                  }`}
+                >
+                  <Columns3 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Columnas</span>
+                  {columnasOcultas.size > 0 && (
+                    <span className="w-4 h-4 rounded-full bg-[#28b8d5] text-white text-[9px] font-bold flex items-center justify-center">
+                      {columnasOcultas.size}
+                    </span>
+                  )}
+                </button>
+                {showColumnMenu && (
+                  <div className="absolute right-0 top-full mt-1.5 w-44 bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-200 dark:border-white/[0.1] shadow-xl shadow-black/8 dark:shadow-black/30 p-1.5 z-50">
+                    <p className="px-2 py-1 text-[10px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-wider">
+                      Columnas visibles
+                    </p>
+                    {ALL_COLUMNS.map((col) => (
+                      <label
+                        key={col.id}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.04] cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!columnasOcultas.has(col.id)}
+                          onChange={() => toggleColumna(col.id)}
+                          className="w-3.5 h-3.5 accent-[#28b8d5] rounded"
+                        />
+                        <span className="text-xs text-gray-700 dark:text-white/70">{col.label}</span>
+                      </label>
+                    ))}
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Agregar término */}
-            <button
-              onClick={handleAddTermino}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#28b8d5]/30 text-xs font-medium text-[#28b8d5] hover:bg-[#28b8d5]/5 transition-colors"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Agregar término
-            </button>
-
-            <div className="w-px h-6 bg-gray-200 dark:bg-white/[0.08]" />
-
-            {/* Generar con IA */}
-            <button
-              onClick={onGenerateIA}
-              disabled={isGenerating}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#28b8d5] to-purple-500 text-white text-xs font-semibold hover:from-[#23a7c2] hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-            >
-              {isGenerating ? (
-                <>
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
-                  </svg>
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                  </svg>
-                  Generar con IA
-                </>
-              )}
-            </button>
-
-            {/* Guardar */}
-            <button
-              onClick={handleSave}
-              disabled={isSaving || !hasChanges}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-white/[0.1] dark:hover:bg-white/[0.15]"
-            >
-              {isSaving ? (
-                <>
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
-                  </svg>
-                  Guardando...
-                </>
-              ) : (
-                "Guardar"
-              )}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* ── Contenido principal ─────────────────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden">
-
-        {/* Tab: Tabla */}
-        {tabActiva === "tabla" && (
-          <>
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Barra de búsqueda */}
-              <div className="px-5 py-2.5 border-b border-gray-100 dark:border-white/[0.05] bg-gray-50 dark:bg-[#0d0d0d]">
-                <div className="relative max-w-sm">
-                  <svg
-                    width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/25"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                  <input
-                    type="text"
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    placeholder="Buscar término, sinónimo o propietario..."
-                    className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
-                  />
-                </div>
-                {busqueda && (
-                  <p className="text-[10px] text-gray-400 dark:text-white/25 mt-1">
-                    {terminosFiltrados.length} resultado{terminosFiltrados.length !== 1 ? "s" : ""} para &ldquo;{busqueda}&rdquo;
-                  </p>
                 )}
               </div>
 
-              {/* Tabla */}
+              <div className="w-px h-5 bg-gray-200 dark:bg-white/[0.08] mx-0.5" />
+
+              {/* Add dynamic column */}
+              {!readOnly && (
+                <div className="relative" ref={addColRef}>
+                  <button
+                    onClick={() => setShowAddCol((v) => !v)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] text-xs font-medium text-gray-500 dark:text-white/40 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors"
+                  >
+                    + Columna
+                  </button>
+                  {showAddCol && (
+                    <div className="absolute right-0 top-full mt-1.5 w-64 p-3 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-white/[0.1] rounded-xl shadow-xl z-50">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1.5">
+                        Nombre de columna
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={nuevaColLabel}
+                          onChange={(e) => setNuevaColLabel(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddColumn()}
+                          placeholder="Ej. Validaciones"
+                          autoFocus
+                          className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.03] px-2.5 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5]"
+                        />
+                        <button
+                          onClick={handleAddColumn}
+                          className="px-3 py-1.5 rounded-lg bg-[#28b8d5] text-white text-xs font-medium hover:bg-[#1fa3be] transition-colors"
+                        >
+                          Añadir
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {!readOnly && (
+            <>
+              {/* Agregar término */}
+              <button
+                onClick={handleAddTermino}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#28b8d5]/30 text-xs font-medium text-[#28b8d5] hover:bg-[#28b8d5]/5 transition-colors"
+              >
+                <span className="text-base leading-none -mt-px">+</span>
+                Agregar
+              </button>
+
+              <div className="w-px h-5 bg-gray-200 dark:bg-white/[0.08] mx-0.5" />
+
+              {/* Generate IA */}
+              <button
+                onClick={onGenerateIA}
+                disabled={isGenerating}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#28b8d5] to-purple-500 text-white text-xs font-semibold hover:from-[#23a7c2] hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm shadow-[#28b8d5]/20"
+              >
+                {isGenerating ? (
+                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                  </svg>
+                )}
+                {isGenerating ? "Generando…" : "IA"}
+              </button>
+
+              {/* Save */}
+              <button
+                onClick={handleSave}
+                disabled={isSaving || !hasChanges}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-white/[0.1] dark:hover:bg-white/[0.15]"
+              >
+                {isSaving ? (
+                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+                  </svg>
+                ) : null}
+                {isSaving ? "Guardando…" : "Guardar"}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── Main content ──────────────────────────────────────────────────── */}
+      <div className="flex-1 flex overflow-hidden">
+
+        {/* ── Tab: Tabla ────────────────────────────────────────────────────── */}
+        {tabActiva === "tabla" && (
+          <>
+            <div className="flex-1 flex flex-col overflow-hidden">
+
+              {/* Search bar */}
+              <div className="px-4 py-2 border-b border-gray-100 dark:border-white/[0.05] bg-gray-50/70 dark:bg-[#0d0d0d] shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1 max-w-sm">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/25"
+                    >
+                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                      placeholder="Buscar término, sinónimo, propietario…"
+                      className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70 placeholder-gray-400 outline-none focus:border-[#28b8d5] transition-colors"
+                    />
+                    {busqueda && (
+                      <button
+                        onClick={() => setBusqueda("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-white/50"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  {busqueda && (
+                    <p className="text-[10px] text-gray-400 dark:text-white/25 shrink-0">
+                      {terminosFiltrados.length} resultado{terminosFiltrados.length !== 1 ? "s" : ""}
+                    </p>
+                  )}
+                  {/* Status legend */}
+                  <div className="hidden md:flex items-center gap-3 ml-auto">
+                    {(Object.entries(ESTADO_CONFIG) as [EstadoTermino, typeof ESTADO_CONFIG[EstadoTermino]][]).map(([key, cfg]) => (
+                      <div key={key} className="flex items-center gap-1">
+                        <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                        <span className="text-[10px] text-gray-400 dark:text-white/25">{cfg.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Table */}
               <div className="flex-1 overflow-auto">
                 {glosario.terminos.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-6">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-white/[0.04] flex items-center justify-center">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400 dark:text-white/20">
-                        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-                      </svg>
+                  // ── Empty state ──────────────────────────────────────────
+                  <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-white/[0.05] flex items-center justify-center shadow-inner">
+                      <BookOpen className="w-7 h-7 text-gray-300 dark:text-white/20" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600 dark:text-white/50 mb-1">
+                      <p className="text-sm font-semibold text-gray-600 dark:text-white/50 mb-1">
                         Sin términos registrados
                       </p>
-                      <p className="text-xs text-gray-400 dark:text-white/25">
-                        Agrega términos manualmente o usa IA para generarlos.
+                      <p className="text-xs text-gray-400 dark:text-white/25 max-w-xs leading-relaxed">
+                        Agrega términos manualmente o usa IA para generar el glosario a partir del diagrama conceptual.
                       </p>
                     </div>
+                    {!readOnly && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleAddTermino}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-[#28b8d5]/40 text-xs font-semibold text-[#28b8d5] hover:bg-[#28b8d5]/5 transition-colors"
+                        >
+                          + Agregar término
+                        </button>
+                        <button
+                          onClick={onGenerateIA}
+                          disabled={isGenerating}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-[#28b8d5] to-purple-500 text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm"
+                        >
+                          Generar con IA
+                        </button>
+                      </div>
+                    )}
                   </div>
-                ) : terminosFiltrados.length === 0 ? (
+                ) : terminosOrdenados.length === 0 ? (
+                  // ── No results ────────────────────────────────────────────
                   <div className="flex flex-col items-center justify-center h-full gap-2">
                     <p className="text-sm text-gray-500 dark:text-white/40">
                       Sin resultados para &ldquo;{busqueda}&rdquo;
                     </p>
-                    <button
-                      onClick={() => setBusqueda("")}
-                      className="text-xs text-[#28b8d5] hover:underline"
-                    >
+                    <button onClick={() => setBusqueda("")} className="text-xs text-[#28b8d5] hover:underline">
                       Limpiar búsqueda
                     </button>
                   </div>
                 ) : (
-                  <table className="w-full text-sm border-collapse">
+                  // ── Table ─────────────────────────────────────────────────
+                  <table className="w-full text-sm border-collapse min-w-[640px]">
                     <thead>
-                      <tr className="border-b border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02]">
-                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap">
+                      <tr className="border-b-2 border-gray-200 dark:border-white/[0.08] divide-x divide-gray-200 dark:divide-white/[0.06]">
+                        {/* # */}
+                        <th className="sticky top-0 z-20 bg-gray-50 dark:bg-[#111] px-3 py-2.5 text-left text-[10px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-wide w-10 select-none">
                           #
                         </th>
-                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide">
-                          Término
-                        </th>
-                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide">
-                          Definición
-                        </th>
-                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide">
-                          Propietario
-                        </th>
-                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap">
-                          Entidades
-                        </th>
-                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap">
-                          Sinónimos
-                        </th>
-                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap">
-                          Coment.
-                        </th>
+                        {/* Término */}
+                        <SortableTh colKey="termino" label="Término" className="sticky left-0 top-0 z-30 min-w-[180px]" />
+                        {/* Dynamic toggleable columns */}
+                        {!columnasOcultas.has("categoria")   && <SortableTh colKey="categoria"   label="Categoría"   />}
+                        {!columnasOcultas.has("definicion")  && (
+                          <th className="sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
+                            Definición
+                          </th>
+                        )}
+                        {!columnasOcultas.has("propietario") && <SortableTh colKey="propietario" label="Propietario" />}
+                        {!columnasOcultas.has("estado")      && <SortableTh colKey="estado"      label="Estado"      />}
+                        {!columnasOcultas.has("entidades")   && (
+                          <th className="sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
+                            Entidades
+                          </th>
+                        )}
+                        {!columnasOcultas.has("sinonimos")   && (
+                          <th className="sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
+                            Sinónimos
+                          </th>
+                        )}
+                        {!columnasOcultas.has("comentarios") && (
+                          <th className="sticky top-0 z-10 text-center px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
+                            Coment.
+                          </th>
+                        )}
                         {columnasDinamicas.map((col) => (
-                          <th key={col.id} className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide">
+                          <th key={col.id} className="sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
                             {col.label}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                      {terminosFiltrados.map((termino, idx) => {
-                        const isSelected = terminoSeleccionadoId === termino.id;
-                        const comentTermino = glosario.comentarios.filter(
-                          (c) => c.referencia_id === termino.id
-                        ).length;
-                        return (
-                          <tr
-                            key={termino.id}
-                            onClick={() =>
-                              setTerminoSeleccionadoId(isSelected ? null : termino.id)
-                            }
-                            className={`cursor-pointer transition-colors ${
-                              isSelected
-                                ? "bg-[#28b8d5]/5 dark:bg-[#28b8d5]/10"
-                                : "hover:bg-gray-50 dark:hover:bg-white/[0.02]"
-                            }`}
-                          >
-                            {/* # */}
-                            <td className="px-4 py-3 text-[11px] font-mono text-gray-400 dark:text-white/25 whitespace-nowrap">
-                              {String(idx + 1).padStart(2, "0")}
-                            </td>
-
-                            {/* Término */}
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                {isSelected && (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[#28b8d5] shrink-0" />
-                                )}
-                                <span className="text-sm font-semibold text-gray-800 dark:text-white/80 truncate max-w-[160px]">
-                                  {termino.termino}
-                                </span>
-                              </div>
-                            </td>
-
-                            {/* Definición */}
-                            <td className="px-4 py-3 text-xs text-gray-500 dark:text-white/40 max-w-[280px]">
-                              <span className="line-clamp-2 leading-relaxed">
-                                {termino.definicion || (
-                                  <span className="text-gray-300 dark:text-white/20 italic">Sin definición</span>
-                                )}
-                              </span>
-                            </td>
-
-                            {/* Propietario */}
-                            <td className="px-4 py-3 text-xs text-gray-600 dark:text-white/50 whitespace-nowrap truncate max-w-[160px]">
-                              {termino.propietario || (
-                                <span className="text-gray-300 dark:text-white/20">—</span>
-                              )}
-                            </td>
-
-                            {/* Entidades */}
-                            <td className="px-4 py-3">
-                              <div className="flex flex-wrap gap-1">
-                                {termino.entidades_relacionadas.slice(0, 2).map((ent) => (
-                                  <span
-                                    key={ent}
-                                    className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium whitespace-nowrap"
+                    <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
+                      {agrupacion === "alfabetico" && terminosAgrupados
+                        ? Object.entries(terminosAgrupados)
+                            .sort(([a], [b]) => a.localeCompare(b))
+                            .map(([letter, items]) => (
+                              <React.Fragment key={letter}>
+                                {/* Letter group header */}
+                                <tr>
+                                  <td
+                                    colSpan={visibleColCount}
+                                    className="px-4 py-1.5 bg-gray-100/60 dark:bg-white/[0.03] border-y border-gray-200 dark:border-white/[0.06]"
                                   >
-                                    {ent}
-                                  </span>
-                                ))}
-                                {termino.entidades_relacionadas.length > 2 && (
-                                  <span className="text-[9px] text-gray-400 dark:text-white/25">
-                                    +{termino.entidades_relacionadas.length - 2}
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-
-                            {/* Sinónimos */}
-                            <td className="px-4 py-3">
-                              <div className="flex flex-wrap gap-1">
-                                {termino.sinonimos.slice(0, 2).map((sin) => (
-                                  <span
-                                    key={sin}
-                                    className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 font-medium whitespace-nowrap"
-                                  >
-                                    {sin}
-                                  </span>
-                                ))}
-                                {termino.sinonimos.length > 2 && (
-                                  <span className="text-[9px] text-gray-400 dark:text-white/25">
-                                    +{termino.sinonimos.length - 2}
-                                  </span>
-                                )}
-                                {termino.sinonimos.length === 0 && (
-                                  <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
-                                )}
-                              </div>
-                            </td>
-
-                            {/* Comentarios */}
-                            <td className="px-4 py-3 text-center">
-                              {comentTermino > 0 ? (
-                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-                                  {comentTermino}
-                                </span>
-                              ) : (
-                                <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
-                              )}
-                            </td>
-                            {columnasDinamicas.map((col) => (
-                              <td key={col.id} className="px-4 py-3 text-xs text-gray-600 dark:text-white/50 truncate max-w-[160px]">
-                                {(termino as any)[col.id] || (
-                                  <span className="text-gray-300 dark:text-white/20">—</span>
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        );
-                      })}
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-bold text-gray-500 dark:text-white/35 uppercase tracking-widest">
+                                        {letter}
+                                      </span>
+                                      <span className="text-[10px] text-gray-400 dark:text-white/20">
+                                        {items.length}
+                                      </span>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {items.map((t, i) => renderRow(t, i))}
+                              </React.Fragment>
+                            ))
+                        : terminosOrdenados.map((t, i) => renderRow(t, i))
+                      }
                     </tbody>
                   </table>
                 )}
               </div>
             </div>
 
-            {/* Panel lateral de detalle */}
+            {/* ── Side panel ──────────────────────────────────────────────── */}
             {terminoSeleccionado && (
               <PanelTermino
                 termino={terminoSeleccionado}
                 comentarios={glosario.comentarios}
                 columnasDinamicas={columnasDinamicas}
+                focusComentario={focusComentario}
+                onFocusComentarioHandled={() => setFocusComentario(false)}
                 onUpdate={handleUpdateTermino}
                 onDelete={handleDeleteTermino}
                 onClose={() => setTerminoSeleccionadoId(null)}
@@ -533,65 +991,40 @@ export default function GlosarioNegocioEditor({
           </>
         )}
 
-        {/* Tab: Comentarios generales */}
+        {/* ── Tab: Comentarios ──────────────────────────────────────────────── */}
         {tabActiva === "comentarios" && (
-          <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto">
+          <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto w-full">
             <h3 className="text-sm font-bold text-gray-800 dark:text-white/90 mb-4">
               Comentarios generales del glosario
             </h3>
-
             <div className="space-y-3 mb-6">
               {comentariosGenerales.length === 0 && (
-                <p className="text-sm text-gray-400 dark:text-white/30 italic">
-                  No hay comentarios generales aún.
-                </p>
+                <p className="text-sm text-gray-400 dark:text-white/30 italic">No hay comentarios generales aún.</p>
               )}
               {comentariosGenerales.map((c) => (
-                <div
-                  key={c.id}
-                  className="rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] p-4"
-                >
+                <div key={c.id} className="rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-semibold text-gray-700 dark:text-white/70">
-                      {c.autor_nombre}
-                    </span>
-                    <span
-                      className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
-                        c.autor_perfil === "CONSULTOR"
-                          ? "bg-[#28b8d5]/10 text-[#28b8d5]"
-                          : "bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400"
-                      }`}
-                    >
+                    <span className="text-xs font-semibold text-gray-700 dark:text-white/70">{c.autor_nombre}</span>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${c.autor_perfil === "CONSULTOR" ? "bg-[#28b8d5]/10 text-[#28b8d5]" : "bg-violet-100 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400"}`}>
                       {c.autor_perfil === "CONSULTOR" ? "Consultor" : "Empresa"}
                     </span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500 dark:bg-white/[0.05] dark:text-white/40">
-                      General
-                    </span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500 dark:bg-white/[0.05] dark:text-white/40">General</span>
                   </div>
                   <p className="text-sm text-gray-700 dark:text-white/60">{c.contenido}</p>
                   <span className="text-[10px] text-gray-400 dark:text-white/25 mt-2 block">
-                    {new Date(c.created_at).toLocaleDateString("es-CO", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {new Date(c.created_at).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
               ))}
             </div>
-
             {!readOnly && (
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={nuevoComentarioGeneral}
                   onChange={(e) => setNuevoComentarioGeneral(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && handleAddComentarioGeneral()
-                  }
-                  placeholder="Agregar comentario general sobre el glosario..."
+                  onKeyDown={(e) => e.key === "Enter" && handleAddComentarioGeneral()}
+                  placeholder="Agregar comentario general…"
                   className="flex-1 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-4 py-2.5 text-sm text-gray-700 dark:text-white/70 outline-none focus:border-[#28b8d5]"
                 />
                 <button
@@ -606,62 +1039,33 @@ export default function GlosarioNegocioEditor({
           </div>
         )}
 
-        {/* Tab: Versiones */}
+        {/* ── Tab: Versiones ────────────────────────────────────────────────── */}
         {tabActiva === "versiones" && (
-          <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto">
-            <h3 className="text-sm font-bold text-gray-800 dark:text-white/90 mb-4">
-              Historial de Versiones
-            </h3>
-
+          <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto w-full">
+            <h3 className="text-sm font-bold text-gray-800 dark:text-white/90 mb-4">Historial de Versiones</h3>
             <div className="space-y-0">
               {[...glosario.historial_versiones].reverse().map((v, i) => (
                 <div key={v.version} className="flex gap-4">
-                  {/* Timeline */}
                   <div className="flex flex-col items-center">
-                    <div
-                      className={`w-3 h-3 rounded-full shrink-0 ${
-                        i === 0 ? "bg-[#28b8d5]" : "bg-gray-300 dark:bg-white/[0.15]"
-                      }`}
-                    />
+                    <div className={`w-3 h-3 rounded-full shrink-0 ${i === 0 ? "bg-[#28b8d5]" : "bg-gray-300 dark:bg-white/[0.15]"}`} />
                     {i < glosario.historial_versiones.length - 1 && (
                       <div className="w-0.5 flex-1 bg-gray-200 dark:bg-white/[0.08]" />
                     )}
                   </div>
-
-                  {/* Contenido */}
                   <div className="pb-6">
                     <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className={`text-xs font-bold ${
-                          i === 0 ? "text-[#28b8d5]" : "text-gray-600 dark:text-white/50"
-                        }`}
-                      >
+                      <span className={`text-xs font-bold ${i === 0 ? "text-[#28b8d5]" : "text-gray-600 dark:text-white/50"}`}>
                         v{v.version}
                       </span>
                       {i === 0 && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium">
-                          Actual
-                        </span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium">Actual</span>
                       )}
-                      <span className="text-[10px] text-gray-400 dark:text-white/25">
-                        · {v.total_terminos} términos
-                      </span>
+                      <span className="text-[10px] text-gray-400 dark:text-white/25">· {v.total_terminos} términos</span>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-white/60 mb-1">
-                      {v.descripcion_cambio}
-                    </p>
+                    <p className="text-sm text-gray-700 dark:text-white/60 mb-1">{v.descripcion_cambio}</p>
                     <div className="flex items-center gap-2 text-[10px] text-gray-400 dark:text-white/25">
-                      <span>{v.autor}</span>
-                      <span>·</span>
-                      <span>
-                        {new Date(v.fecha).toLocaleDateString("es-CO", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
+                      <span>{v.autor}</span><span>·</span>
+                      <span>{new Date(v.fecha).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                     </div>
                   </div>
                 </div>
@@ -671,34 +1075,50 @@ export default function GlosarioNegocioEditor({
         )}
       </div>
 
-      {/* ── Footer: Resumen ─────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-[#0a0a0a]">
-        <div className="flex items-center gap-4 text-[11px] text-gray-500 dark:text-white/35">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#28b8d5]" />
-            {glosario.terminos.length}{" "}
-            {glosario.terminos.length === 1 ? "término" : "términos"}
+      {/* ── Footer ────────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-white/[0.08] bg-gray-50/70 dark:bg-[#0a0a0a] shrink-0">
+        <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-white/35">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#28b8d5]" />
+            {glosario.terminos.length} {glosario.terminos.length === 1 ? "término" : "términos"}
           </span>
-          {glosario.terminos.filter((t) => t.sinonimos.length > 0).length > 0 && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-purple-500" />
-              {glosario.terminos.reduce((acc, t) => acc + t.sinonimos.length, 0)} sinónimos
+          {glosario.terminos.filter((t) => t.estado === "aprobado").length > 0 && (
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              {glosario.terminos.filter((t) => t.estado === "aprobado").length} aprobados
+            </span>
+          )}
+          {glosario.terminos.filter((t) => t.estado === "en_revision").length > 0 && (
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              {glosario.terminos.filter((t) => t.estado === "en_revision").length} en revisión
             </span>
           )}
           <span className="text-gray-300 dark:text-white/20">·</span>
           <span>{glosario.comentarios.length} comentarios</span>
         </div>
         <span className="text-[11px] text-gray-400 dark:text-white/25">
-          Última modificación:{" "}
-          {new Date(glosario.updated_at).toLocaleDateString("es-CO", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          Actualizado {new Date(glosario.updated_at).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}
         </span>
       </div>
+
+      {/* ── Context menu ─────────────────────────────────────────────────── */}
+      {contextMenu && (
+        <ContextMenuGlosario
+          x={contextMenu.x}
+          y={contextMenu.y}
+          readOnly={readOnly}
+          onClose={() => setContextMenu(null)}
+          onEditar={() => setTerminoSeleccionadoId(contextMenu.terminoId)}
+          onDuplicar={() => handleDuplicar(contextMenu.terminoId)}
+          onCopiarNombre={() => handleCopiarNombre(contextMenu.terminoId)}
+          onAgregarComentario={() => {
+            setTerminoSeleccionadoId(contextMenu.terminoId);
+            setFocusComentario(true);
+          }}
+          onEliminar={() => handleDeleteTermino(contextMenu.terminoId)}
+        />
+      )}
     </div>
   );
 }

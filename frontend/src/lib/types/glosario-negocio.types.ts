@@ -1,11 +1,20 @@
 // ============================================================================
-// Types: Glosario de Negocio TO-BE
-// Artefacto #7 — Etapa TO-BE
+// Types: Glosario de Negocio
 // Diccionario de términos de negocio con definiciones, propietarios,
 // entidades relacionadas y sinónimos
 // ============================================================================
 
 export type EstadoComentarioGlosario = "abierto" | "resuelto";
+
+export type CategoriaTermino =
+  | "entidad"
+  | "atributo"
+  | "proceso"
+  | "regla_negocio"
+  | "kpi"
+  | "otro";
+
+export type EstadoTermino = "borrador" | "en_revision" | "aprobado" | "obsoleto";
 
 export interface TerminoGlosario {
   id: string;
@@ -15,6 +24,8 @@ export interface TerminoGlosario {
   entidades_relacionadas: string[];
   sinonimos: string[];
   notas: string;
+  categoria?: CategoriaTermino;
+  estado?: EstadoTermino;
 }
 
 export interface ComentarioGlosario {

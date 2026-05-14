@@ -28,8 +28,9 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         propietario: "Vicepresidencia Comercial",
         entidades_relacionadas: ["Cuenta", "Producto Financiero", "Segmento"],
         sinonimos: ["Golden Record", "Vista Única de Cliente", "Master Customer"],
-        notas:
-          "Piedra angular del MDM (Master Data Management). Identificado por un UUID global único, independiente del número de documento.",
+        notas: "Piedra angular del MDM (Master Data Management). Identificado por un UUID global único, independiente del número de documento.",
+        categoria: "entidad",
+        estado: "aprobado",
       },
       {
         id: "ter-002",
@@ -40,6 +41,8 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         entidades_relacionadas: ["Cliente Único", "Transacción", "Producto Financiero"],
         sinonimos: ["Account", "Producto Pasivo"],
         notas: "Identificada por número de cuenta con dígito verificador. No confundir con 'Producto Financiero'.",
+        categoria: "entidad",
+        estado: "aprobado",
       },
       {
         id: "ter-003",
@@ -50,6 +53,8 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         entidades_relacionadas: ["Cuenta", "Canal", "Producto Financiero"],
         sinonimos: ["Movimiento", "Operación", "Transaction"],
         notas: "Inmutable por diseño. El estado solo puede ser PENDIENTE, APROBADA, RECHAZADA o REVERTIDA.",
+        categoria: "entidad",
+        estado: "en_revision",
       },
       {
         id: "ter-004",
@@ -59,8 +64,9 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         propietario: "Vicepresidencia de Estrategia y Marketing",
         entidades_relacionadas: ["Cliente Único", "Producto Financiero", "Asesor"],
         sinonimos: ["Perfil de Cliente", "Customer Segment", "Tier"],
-        notas:
-          "Valores posibles: MASIVO, PREFERENCIAL, PYME, EMPRESARIAL, CORPORATIVO, PRIVADO. Recalculado mensualmente por el motor de segmentación.",
+        notas: "Valores posibles: MASIVO, PREFERENCIAL, PYME, EMPRESARIAL, CORPORATIVO, PRIVADO. Recalculado mensualmente por el motor de segmentación.",
+        categoria: "atributo",
+        estado: "borrador",
       },
       {
         id: "ter-005",
@@ -71,6 +77,8 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         entidades_relacionadas: ["Cliente Único", "Cuenta", "Canal"],
         sinonimos: ["Producto", "Facility", "Financial Product"],
         notas: "Un cliente puede tener N productos. Cada producto tiene su propia tabla de amortización si aplica.",
+        categoria: "entidad",
+        estado: "aprobado",
       },
       {
         id: "ter-006",
@@ -80,8 +88,9 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         propietario: "Vicepresidencia Digital",
         entidades_relacionadas: ["Transacción", "Cliente Único", "Sesión"],
         sinonimos: ["Channel", "Punto de Contacto", "Touchpoint"],
-        notas:
-          "Canales: APP_MOVIL, PORTAL_WEB, CAJERO_ATM, SUCURSAL_FISICA, BANCA_TELEFONICA, CORRESPONSAL_BANCARIO, API_EMPRESAS.",
+        notas: "Canales: APP_MOVIL, PORTAL_WEB, CAJERO_ATM, SUCURSAL_FISICA, BANCA_TELEFONICA, CORRESPONSAL_BANCARIO, API_EMPRESAS.",
+        categoria: "entidad",
+        estado: "borrador",
       },
       {
         id: "ter-007",
@@ -92,6 +101,8 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         entidades_relacionadas: ["Cliente Único", "Producto Financiero", "Sucursal"],
         sinonimos: ["Master Data", "Dato Maestro", "Golden Record"],
         notas: "Las entidades maestras del TO-BE son: Cliente, Producto, Sucursal, Empleado y Proveedor.",
+        categoria: "regla_negocio",
+        estado: "aprobado",
       },
       {
         id: "ter-008",
@@ -101,8 +112,9 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         propietario: "Vicepresidencia de Estrategia",
         entidades_relacionadas: ["Dashboard de Métricas", "Transacción", "Cliente Único"],
         sinonimos: ["KPI", "Métrica", "Indicador de Gestión"],
-        notas:
-          "KPIs primarios de arquitectura: Latencia de datos (<5 min), Tasa de duplicidad (<0.1%), Disponibilidad del API Gateway (>99.9%).",
+        notas: "KPIs primarios de arquitectura: Latencia de datos (<5 min), Tasa de duplicidad (<0.1%), Disponibilidad del API Gateway (>99.9%).",
+        categoria: "kpi",
+        estado: "en_revision",
       },
       {
         id: "ter-009",
@@ -113,6 +125,8 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         entidades_relacionadas: ["Entidad de Datos Maestra", "Pipeline de Datos"],
         sinonimos: ["Data Quality", "DQ", "Calidad del Dato"],
         notas: "Score mínimo aceptable por entidad: 95%. Por debajo activa alerta al Data Steward responsable.",
+        categoria: "proceso",
+        estado: "borrador",
       },
       {
         id: "ter-010",
@@ -123,6 +137,8 @@ const MOCK_GLOSARIO: Record<string, GlosarioNegocio> = {
         entidades_relacionadas: ["Transacción", "Entidad de Datos Maestra", "Calidad de Dato"],
         sinonimos: ["ETL", "ELT", "Data Pipeline", "Flujo de Datos"],
         notas: "Tecnología TO-BE: Apache Kafka (streaming) + Apache Spark (batch pesado). SLA: datos disponibles en <5 minutos.",
+        categoria: "proceso",
+        estado: "borrador",
       },
     ],
     comentarios: [
