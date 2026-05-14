@@ -294,22 +294,32 @@ class ProjectService:
 
         if is_admin:
             project = ProjectPermissionService.get_project_or_raise(db, project_id=project_id)
-            effective_level = int(PermissionLevel.DELEGAR)
+            artifact_items = [
+                cls._artifact_response(
+                    artifact=artifact,
+                    effective_permission_level=int(PermissionLevel.DELEGAR),
+                )
+                for artifact in sorted(project.artifacts, key=lambda item: item.order_index)
+            ]
         else:
-            project, _, effective_level = ProjectPermissionService.resolve_project_level(
+            project, _, _ = ProjectPermissionService.resolve_project_level(
                 db,
                 project_id=project_id,
                 actor_user_id=actor_user_id,
                 minimum_level=PermissionLevel.LECTURA,
             )
-
-        artifact_items = [
-            cls._artifact_response(
-                artifact=artifact,
-                effective_permission_level=effective_level,
-            )
-            for artifact in sorted(project.artifacts, key=lambda item: item.order_index)
-        ]
+            artifact_items = [
+                cls._artifact_response(
+                    artifact=artifact,
+                    effective_permission_level=ProjectPermissionService.resolve_artifact_level(
+                        db,
+                        project_id=project_id,
+                        actor_user_id=actor_user_id,
+                        artifact=artifact,
+                    )[2],
+                )
+                for artifact in sorted(project.artifacts, key=lambda item: item.order_index)
+            ]
         return ProjectDetailResponse(
             **cls._project_response(project=project).model_dump(),
             artifact_items=artifact_items,
