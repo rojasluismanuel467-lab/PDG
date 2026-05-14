@@ -52,7 +52,6 @@ def get_project(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ) -> ProjectDetailResponse:
-    print(f"[get_project] user={current_user.email} tipo={current_user.tipo_usuario!r} project={project_id}")
     return ProjectService.get_project(
         db,
         project_id=project_id,
