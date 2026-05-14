@@ -70,7 +70,16 @@ export const raciApi = {
     await apiClient.put(`/raci-matrices/${matrix_id}/activities/${activity_id}/assignments`, assignments);
   },
 
-  async addComment(matrixId: string, comment: any): Promise<void> {
+  async addComment(matrixId: string, comment: {
+    referencia_id: string | null;
+    rol_id?: string | null;
+    referencia_tipo: "actividad" | "rol" | "celda" | "general";
+    autor_id: string;
+    autor_nombre: string;
+    autor_perfil: string;
+    contenido: string;
+    estado: string;
+  }): Promise<void> {
     await apiClient.post(`/raci-matrices/${matrixId}/comments`, comment);
   }
 };

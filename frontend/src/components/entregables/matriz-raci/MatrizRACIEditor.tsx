@@ -14,6 +14,7 @@ import PanelActividad, {
   RACI_LABELS,
 } from "./PanelActividad";
 import PanelRol from "./PanelRol";
+import CeldaCommentPopover from "./CeldaCommentPopover";
 import { v4 as uuidv4 } from "uuid";
 
 interface MatrizRACIEditorProps {
@@ -22,8 +23,9 @@ interface MatrizRACIEditorProps {
   onGenerateIA: () => Promise<void>;
   onAddComment: (
     referenciaId: string | null,
-    referenciaTipo: "actividad" | "rol" | "general",
-    contenido: string
+    referenciaTipo: "actividad" | "rol" | "celda" | "general",
+    contenido: string,
+    rolId?: string | null
   ) => Promise<void>;
   isSaving: boolean;
   isGenerating: boolean;
@@ -89,6 +91,14 @@ export default function MatrizRACIEditor({
   const [density, setDensity] = useState<Density>("comfortable");
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+
+  // Cell comment popover state
+  const [celdaPopover, setCeldaPopover] = useState<{
+    actividadId: string;
+    rolId: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const mutate = useCallback((patch: Partial<MatrizRaci>) => {
     setMatriz((prev) => ({ ...prev, ...patch }));
@@ -800,31 +810,79 @@ export default function MatrizRACIEditor({
                                   {/* RACI cells */}
                                   {matriz.roles.map((rol) => {
                                     const asig = actividad.asignaciones[rol.id] as AsignacionRaci | undefined;
+                                    const cellComments = matriz.comentarios.filter(
+                                      (c) => c.referencia_tipo === "celda" &&
+                                        c.referencia_id === actividad.id &&
+                                        c.rol_id === rol.id
+                                    );
+                                    const openCount = cellComments.filter((c) => c.estado === "abierto").length;
+                                    const isPopoverOpen =
+                                      celdaPopover?.actividadId === actividad.id &&
+                                      celdaPopover?.rolId === rol.id;
                                     return (
                                       <td
                                         key={rol.id}
                                         className="px-2 text-center border-l border-gray-100 dark:border-white/[0.04]"
                                       >
-                                        <button
-                                          onClick={() => handleCellCycle(actividad.id, rol.id)}
-                                          disabled={readOnly}
-                                          title={
-                                            asig
-                                              ? `${asig} — ${RACI_LABELS[asig]}${readOnly ? "" : " · Clic para cambiar"}`
-                                              : readOnly
-                                              ? "Sin asignación"
-                                              : "Sin asignación · Clic para asignar"
-                                          }
-                                          className={`${CELL_W[density]} rounded-xl text-[12px] font-bold mx-auto flex items-center justify-center transition-all select-none ${
-                                            asig
-                                              ? `${RACI_COLORS[asig]} shadow-sm`
-                                              : readOnly
-                                              ? ""
-                                              : "text-gray-200 dark:text-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-400 dark:hover:text-white/30 cursor-pointer"
-                                          }`}
-                                        >
-                                          {asig ?? (readOnly ? "" : "·")}
-                                        </button>
+                                        <div className="relative inline-flex items-center justify-center group/cell">
+                                          <button
+                                            onClick={() => handleCellCycle(actividad.id, rol.id)}
+                                            disabled={readOnly}
+                                            title={
+                                              asig
+                                                ? `${asig} — ${RACI_LABELS[asig]}${readOnly ? "" : " · Clic para cambiar"}`
+                                                : readOnly
+                                                ? "Sin asignación"
+                                                : "Sin asignación · Clic para asignar"
+                                            }
+                                            className={`${CELL_W[density]} rounded-xl text-[12px] font-bold flex items-center justify-center transition-all select-none ${
+                                              asig
+                                                ? `${RACI_COLORS[asig]} shadow-sm`
+                                                : readOnly
+                                                ? ""
+                                                : "text-gray-200 dark:text-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-400 dark:hover:text-white/30 cursor-pointer"
+                                            }`}
+                                          >
+                                            {asig ?? (readOnly ? "" : "·")}
+                                          </button>
+
+                                          {/* Comment indicator triangle + hover button */}
+                                          {openCount > 0 ? (
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const rect = (e.currentTarget as HTMLElement)
+                                                  .closest("td")!
+                                                  .getBoundingClientRect();
+                                                setCeldaPopover(
+                                                  isPopoverOpen
+                                                    ? null
+                                                    : { actividadId: actividad.id, rolId: rol.id, x: rect.left, y: rect.bottom }
+                                                );
+                                              }}
+                                              title={`${openCount} comentario${openCount !== 1 ? "s" : ""}`}
+                                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 dark:bg-amber-500 text-white text-[8px] font-bold flex items-center justify-center shadow-sm hover:scale-110 transition-transform z-10"
+                                            >
+                                              {openCount}
+                                            </button>
+                                          ) : (
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const rect = (e.currentTarget as HTMLElement)
+                                                  .closest("td")!
+                                                  .getBoundingClientRect();
+                                                setCeldaPopover({ actividadId: actividad.id, rolId: rol.id, x: rect.left, y: rect.bottom });
+                                              }}
+                                              title="Agregar comentario a esta celda"
+                                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gray-200 dark:bg-white/[0.12] text-gray-500 dark:text-white/40 flex items-center justify-center opacity-0 group-hover/cell:opacity-100 hover:bg-[#28b8d5] hover:text-white transition-all z-10"
+                                            >
+                                              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                              </svg>
+                                            </button>
+                                          )}
+                                        </div>
                                       </td>
                                     );
                                   })}
@@ -1025,6 +1083,49 @@ export default function MatrizRACIEditor({
         <div className="flex-1" />
         <span>Actualizado {new Date(matriz.updated_at).toLocaleDateString("es-CO")}</span>
       </div>
+
+      {/* ── Cell comment popover (Google Docs style) ─────────────────────── */}
+      {celdaPopover && (() => {
+        const actividad = matriz.actividades.find((a) => a.id === celdaPopover.actividadId);
+        const rol = matriz.roles.find((r) => r.id === celdaPopover.rolId);
+        if (!actividad || !rol) return null;
+        const cellComments = matriz.comentarios.filter(
+          (c) =>
+            c.referencia_tipo === "celda" &&
+            c.referencia_id === celdaPopover.actividadId &&
+            c.rol_id === celdaPopover.rolId
+        );
+        return (
+          <CeldaCommentPopover
+            x={celdaPopover.x}
+            y={celdaPopover.y}
+            actividadNombre={actividad.nombre}
+            rolNombre={rol.nombre}
+            comentarios={cellComments}
+            readOnly={readOnly}
+            onClose={() => setCeldaPopover(null)}
+            onAdd={async (contenido) => {
+              await onAddComment(celdaPopover.actividadId, "celda", contenido, celdaPopover.rolId);
+            }}
+            onResolve={(id) => {
+              setMatriz((prev) => ({
+                ...prev,
+                comentarios: prev.comentarios.map((c) =>
+                  c.id === id ? { ...c, estado: "resuelto" } : c
+                ),
+              }));
+            }}
+            onReopen={(id) => {
+              setMatriz((prev) => ({
+                ...prev,
+                comentarios: prev.comentarios.map((c) =>
+                  c.id === id ? { ...c, estado: "abierto" } : c
+                ),
+              }));
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }

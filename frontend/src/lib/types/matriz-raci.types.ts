@@ -36,11 +36,13 @@ export interface ActividadRaci {
   notas?: string;
 }
 
-/** Comentario sobre una actividad o el proceso en general */
+/** Comentario sobre una actividad, rol, celda (actividad×rol) o la matriz en general */
 export interface ComentarioMatrizRaci {
   id: string;
   referencia_id: string | null;
-  referencia_tipo: "actividad" | "rol" | "general";
+  /** Para tipo "celda": referencia_id = actividad_id, rol_id = rol_id */
+  rol_id: string | null;
+  referencia_tipo: "actividad" | "rol" | "celda" | "general";
   autor_id: string;
   autor_nombre: string;
   autor_perfil: string;

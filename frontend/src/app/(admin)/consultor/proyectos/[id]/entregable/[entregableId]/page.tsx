@@ -451,27 +451,28 @@ export default function EntregablePage() {
   const handleAddCommentMatrizRaci = useCallback(
     async (
       referenciaId: string | null,
-      referenciaTipo: "actividad" | "rol" | "general",
-      contenido: string
+      referenciaTipo: "actividad" | "rol" | "celda" | "general",
+      contenido: string,
+      rolId?: string | null
     ) => {
       const matrixId = matrizRaci?.id;
       if (!matrixId) return;
 
       await raciApi.addComment(matrixId, {
         referencia_id: referenciaId,
+        rol_id: rolId ?? null,
         referencia_tipo: referenciaTipo,
-        autor_id: "usr-001",
-        autor_nombre: "Carlos Méndez",
-        autor_perfil: "CONSULTOR",
+        autor_id: user?.id ?? "usr-001",
+        autor_nombre: user?.nombre ?? "Usuario",
+        autor_perfil: user?.perfil ?? "CONSULTOR",
         contenido,
         estado: "abierto",
       });
 
-      // Recargar el grid para ver el comentario
       const actualizado = await raciApi.getGrid(matrixId);
       setMatrizRaci(actualizado);
     },
-    [matrizRaci]
+    [matrizRaci, user]
   );
 
   // ── Handlers del Glosario de Negocio ────────────────────────────────

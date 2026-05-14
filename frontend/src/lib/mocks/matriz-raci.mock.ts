@@ -200,6 +200,7 @@ const MOCK_MATRIZ_RACI: Record<string, MatrizRaci> = {
       {
         id: "com-raci-001",
         referencia_id: "act-003",
+        rol_id: null,
         referencia_tipo: "actividad",
         autor_id: "usr-001",
         autor_nombre: "Carlos Méndez",

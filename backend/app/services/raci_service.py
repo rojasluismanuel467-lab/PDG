@@ -328,6 +328,7 @@ class RaciService:
         comment = RaciComment(
             matrix_id=matrix_id,
             reference_id=data.referencia_id,
+            role_id=data.rol_id,
             reference_type=data.referencia_tipo,
             author_id=author_id,
             author_nombre=author_nombre,

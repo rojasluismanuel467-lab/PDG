@@ -73,6 +73,7 @@ class RaciAssignmentType(StrEnum):
 class RaciCommentReferenceType(StrEnum):
     ACTIVIDAD = "actividad"
     ROL = "rol"
+    CELDA = "celda"
     GENERAL = "general"
 
 

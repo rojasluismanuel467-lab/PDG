@@ -123,6 +123,7 @@ class RaciComment(TimestampedUUIDModel):
         nullable=False,
     )
     reference_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(), nullable=True)
+    role_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(), nullable=True)
     reference_type: Mapped[RaciCommentReferenceType] = mapped_column(
         SAEnum(RaciCommentReferenceType, name="raci_comment_reference_type_enum"),
         nullable=False,

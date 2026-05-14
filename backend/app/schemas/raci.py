@@ -25,22 +25,24 @@ class RaciVersionHistoryResponse(BaseModel):
 # ----------------- #
 class RaciCommentCreate(BaseModel):
     referencia_id: UUID | None = None
+    rol_id: UUID | None = None
     referencia_tipo: RaciCommentReferenceType
     contenido: str
 
 
 class RaciCommentResponse(BaseModel):
     id: UUID
-    referencia_id: UUID | None = None
-    referencia_tipo: RaciCommentReferenceType
-    autor_id: UUID
-    autor_nombre: str
-    autor_perfil: str
+    referencia_id: UUID | None = Field(None, validation_alias="reference_id")
+    rol_id: UUID | None = Field(None, validation_alias="role_id")
+    referencia_tipo: RaciCommentReferenceType = Field(validation_alias="reference_type")
+    autor_id: UUID = Field(validation_alias="author_id")
+    autor_nombre: str = Field(validation_alias="author_nombre")
+    autor_perfil: str = Field(validation_alias="author_perfil")
     contenido: str
     estado: str
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class RaciBulkActivity(BaseModel):
