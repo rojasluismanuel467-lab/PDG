@@ -14,9 +14,10 @@ interface EtapaProgressProps {
   onEtapaClick: (etapa: EtapaEntregable) => void;
 }
 
-const ETAPAS: EtapaEntregable[] = ["AS_IS", "TO_BE", "BRECHAS", "ROADMAP"];
+const ETAPAS: EtapaEntregable[] = ["CUESTIONARIO", "AS_IS", "TO_BE", "BRECHAS", "ROADMAP"];
 
 const ETAPA_LABEL: Record<EtapaEntregable, string> = {
+  CUESTIONARIO: "Diagnóstico",
   AS_IS: "AS-IS",
   TO_BE: "TO-BE",
   BRECHAS: "Brechas",

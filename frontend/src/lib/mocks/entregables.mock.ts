@@ -5,7 +5,7 @@ export type EstadoEntregable =
   | "APROBADO"                        // ambos aprobaron
   | "NO_APLICA";
 
-export type EtapaEntregable = "AS_IS" | "TO_BE" | "BRECHAS" | "ROADMAP";
+export type EtapaEntregable = "CUESTIONARIO" | "AS_IS" | "TO_BE" | "BRECHAS" | "ROADMAP";
 
 export type Entregable = {
   id: string;
@@ -36,8 +36,8 @@ export type Entregable = {
 // ============================================================================
 
 export const NOMBRES_ENTREGABLES: Record<EtapaEntregable, string[]> = {
+  CUESTIONARIO: ["Cuestionario de Madurez"],
   AS_IS: [
-    "Cuestionario de Madurez",
     "Diagrama Conceptual AS-IS",
     "Matriz de Inventario de Sistemas",
     "DFD AS-IS",
@@ -67,8 +67,10 @@ export const NOMBRES_ENTREGABLES: Record<EtapaEntregable, string[]> = {
 // ============================================================================
 
 const DESCRIPCIONES_ENTREGABLES: Record<EtapaEntregable, string[]> = {
-  AS_IS: [
+  CUESTIONARIO: [
     "Evaluación del nivel de madurez en gestión de datos de la organización. Formato: Cuestionario interactivo con radar chart.",
+  ],
+  AS_IS: [
     "Modelo visual de alto nivel de las entidades de negocio actuales y sus relaciones. Formato: Diagrama ER interactivo.",
     "Catálogo de aplicaciones, bases de datos y plataformas con sus características. Formato: Tabla editable (DataGrid).",
     "Mapa de cómo se mueve la información entre sistemas, procesos y actores en el estado actual. Formato: Diagrama de flujo.",
@@ -103,7 +105,7 @@ const generarEntregables = (
 ): Entregable[] => {
   const resultado: Entregable[] = [];
   let orden = 1;
-  const etapas: EtapaEntregable[] = ["AS_IS", "TO_BE", "BRECHAS", "ROADMAP"];
+  const etapas: EtapaEntregable[] = ["CUESTIONARIO", "AS_IS", "TO_BE", "BRECHAS", "ROADMAP"];
   etapas.forEach((etapa) => {
     NOMBRES_ENTREGABLES[etapa].forEach((nombre, i) => {
       const estado = estados[orden - 1];

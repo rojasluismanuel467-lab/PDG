@@ -26,6 +26,7 @@ interface ModalPermisosArtefactoProps {
 type FiltroEtapa = "ALL" | Entregable["etapa"];
 
 const ETAPA_LABEL: Record<Entregable["etapa"], string> = {
+  CUESTIONARIO: "Diagnóstico",
   AS_IS: "AS-IS",
   TO_BE: "TO-BE",
   BRECHAS: "Brechas",

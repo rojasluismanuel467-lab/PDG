@@ -404,6 +404,8 @@ class MaturityQuestionnaireService:
         project = MaturityQuestionnaireRepository.get_project_by_id(db, project_id=project_id)
         if project is None:
             raise NotFoundDomainError("Project not found")
+        if actor_user_type == UserType.ADMINISTRADOR:
+            return
         if project.manager_user_id == actor_user_id:
             return
 

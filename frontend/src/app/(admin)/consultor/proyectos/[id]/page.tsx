@@ -39,12 +39,13 @@ import ModalInvitarConsultor from "@/components/consultor/ModalInvitarConsultor"
 // Helpers
 // ---------------------------------------------------------------------------
 
-const ETAPAS: EtapaEntregable[] = ["AS_IS", "TO_BE", "BRECHAS", "ROADMAP"];
+const ETAPAS: EtapaEntregable[] = ["CUESTIONARIO", "AS_IS", "TO_BE", "BRECHAS", "ROADMAP"];
 
-type EtapaEntregable = "AS_IS" | "TO_BE" | "BRECHAS" | "ROADMAP";
+type EtapaEntregable = "CUESTIONARIO" | "AS_IS" | "TO_BE" | "BRECHAS" | "ROADMAP";
 type EstadoEntregable = Entregable["estado"];
 
 const ETAPA_LABEL: Record<EtapaEntregable, string> = {
+  CUESTIONARIO: "Diagnóstico",
   AS_IS: "AS-IS",
   TO_BE: "TO-BE",
   BRECHAS: "Brechas",
@@ -293,6 +294,16 @@ function EntregableCard({
           {/* Lógica especial para Cuestionario de Madurez */}
           {esCuestionarioMadurez(entregable) ? (
             <>
+              {entregable.estado !== "APROBADO" && entregable.estado !== "NO_APLICA" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={cargando}
+                  onClick={() => handleAccion("NO_APLICA")}
+                >
+                  No aplica
+                </Button>
+              )}
               <Link
                 href={`/consultor/proyectos/${idProyecto}/cuestionario-madurez`}
                 className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-xl border border-[#334155] bg-white text-[#0F172A] hover:bg-slate-50 transition-all duration-200 dark:bg-white/[0.07] dark:text-white/85 dark:border-white/[0.18] dark:hover:bg-white/[0.12] dark:hover:text-white"
@@ -745,7 +756,8 @@ export default function DetalleProyectoPage() {
 
   // Guardamos el estado de habilitación anterior para detectar desbloqueos
   const habilitacionAnteriorRef = useRef<Record<EtapaEntregable, boolean>>({
-    AS_IS: true,
+    CUESTIONARIO: true,
+    AS_IS: false,
     TO_BE: false,
     BRECHAS: false,
     ROADMAP: false,
@@ -764,6 +776,7 @@ export default function DetalleProyectoPage() {
         setTabActiva(etapaInicial);
         // Inicializar ref de habilitación
         habilitacionAnteriorRef.current = {
+          CUESTIONARIO: etapaHabilitada(ents, "CUESTIONARIO"),
           AS_IS: etapaHabilitada(ents, "AS_IS"),
           TO_BE: etapaHabilitada(ents, "TO_BE"),
           BRECHAS: etapaHabilitada(ents, "BRECHAS"),
@@ -844,6 +857,7 @@ export default function DetalleProyectoPage() {
       // Detectar etapas que se desbloquean
       const habAnt = habilitacionAnteriorRef.current;
       const nuevaHab: Record<EtapaEntregable, boolean> = {
+        CUESTIONARIO: etapaHabilitada(nuevos, "CUESTIONARIO"),
         AS_IS: etapaHabilitada(nuevos, "AS_IS"),
         TO_BE: etapaHabilitada(nuevos, "TO_BE"),
         BRECHAS: etapaHabilitada(nuevos, "BRECHAS"),
@@ -891,21 +905,22 @@ export default function DetalleProyectoPage() {
     );
   }
 
+  const isAdmin = user?.perfil === "ADMIN";
   const esMiProyecto = proyecto.consultor_gerente.id === user?.id;
 
   // Membership del usuario actual en el equipo (si existe)
   const miPropiaMembership = equipo.find((m) => m.id_usuario === user?.id);
 
-  // Puede gestionar permisos: gerente O consultor delegado (nivel 5 en algún bloque)
+  // Puede gestionar permisos: admin, gerente O consultor delegado (nivel 5 en algún bloque)
   const esDelegado =
     !esMiProyecto &&
     (miPropiaMembership?.nivel_asis === 5 ||
       miPropiaMembership?.nivel_tobe === 5 ||
       miPropiaMembership?.nivel_brechas === 5);
-  const puedeGestionarPermisos = esMiProyecto || !!esDelegado;
+  const puedeGestionarPermisos = isAdmin || esMiProyecto || !!esDelegado;
 
-  // Puede ver la pestaña Equipo: el gerente o cualquier miembro del proyecto
-  const puedeVerEquipo = esMiProyecto || !!miPropiaMembership;
+  // Puede ver la pestaña Equipo: admin, gerente o cualquier miembro del proyecto
+  const puedeVerEquipo = isAdmin || esMiProyecto || !!miPropiaMembership;
 
   const aprobados = entregables.filter((e) => e.estado === "APROBADO").length;
   const noAplica = entregables.filter((e) => e.estado === "NO_APLICA").length;

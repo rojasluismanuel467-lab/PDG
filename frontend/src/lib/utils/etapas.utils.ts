@@ -14,7 +14,8 @@ export const etapaHabilitada = (
   etapa: EtapaEntregable
 ): boolean => {
   switch (etapa) {
-    case "AS_IS": return true;
+    case "CUESTIONARIO": return true;
+    case "AS_IS": return etapaCompletada(entregables, "CUESTIONARIO");
     case "TO_BE": return etapaCompletada(entregables, "AS_IS");
     case "BRECHAS": return etapaCompletada(entregables, "TO_BE");
     case "ROADMAP": return etapaCompletada(entregables, "BRECHAS");
@@ -23,6 +24,7 @@ export const etapaHabilitada = (
 
 export const mensajeBloqueoEtapa = (etapa: EtapaEntregable): string => {
   switch (etapa) {
+    case "AS_IS": return "Debes completar el Cuestionario de Madurez para habilitar esta etapa.";
     case "TO_BE": return "Debes aprobar todos los entregables de AS-IS para habilitar esta etapa.";
     case "BRECHAS": return "Debes aprobar todos los entregables de TO-BE para habilitar esta etapa.";
     case "ROADMAP": return "Debes aprobar el entregable de Brechas para habilitar esta etapa.";

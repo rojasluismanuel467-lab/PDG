@@ -39,6 +39,7 @@ export type ContenidoEntregableEmpresa = {
 const delay = (ms = 250) => new Promise((res) => setTimeout(res, ms));
 
 const ETAPA_LABEL: Record<Entregable["etapa"], string> = {
+  CUESTIONARIO: "Diagnóstico",
   AS_IS: "AS-IS",
   TO_BE: "TO-BE",
   BRECHAS: "Brechas",

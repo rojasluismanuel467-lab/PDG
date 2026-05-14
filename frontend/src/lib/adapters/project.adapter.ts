@@ -36,7 +36,7 @@ export type LegacyArtifact = {
   id_proyecto: string;
   nombre: string;
   descripcion: string;
-  etapa: "AS_IS" | "TO_BE" | "BRECHAS" | "ROADMAP";
+  etapa: "CUESTIONARIO" | "AS_IS" | "TO_BE" | "BRECHAS" | "ROADMAP";
   orden: number;
   orden_etapa: number;
   estado: "PENDIENTE" | "EN_PROGRESO" | "PENDIENTE_APROBACION_EMPRESA" | "APROBADO" | "NO_APLICA";
@@ -111,7 +111,7 @@ export function toLegacyArtifact(artifact: ProjectArtifact): LegacyArtifact {
     id_proyecto: "",
     nombre: artifactNameMap[artifact.code] ?? artifact.name,
     descripcion: artifact.description,
-    etapa: artifact.block,
+    etapa: artifact.code === "ASIS_MATURITY_QUESTIONNAIRE" ? "CUESTIONARIO" : artifact.block,
     orden: artifact.order_index,
     orden_etapa: artifact.block_order,
     estado: artifactStatusMap[artifact.status],
