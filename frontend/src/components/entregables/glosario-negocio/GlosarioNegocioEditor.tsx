@@ -613,9 +613,9 @@ export default function GlosarioNegocioEditor({
     >
 
       {/* ── Toolbar ───────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-2.5 shadow-[0_4px_16px_rgba(15,54,78,0.08)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-[#111]/95 dark:shadow-black/35 shrink-0">
-        <div className="flex items-center gap-2.5">
-          {/* Tabs */}
+      <div className="sticky top-0 z-20 flex items-center gap-4 border-b border-gray-200 bg-white/95 px-4 py-2.5 shadow-[0_4px_16px_rgba(15,54,78,0.08)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-[#111]/95 dark:shadow-black/35 shrink-0">
+        {/* Izquierda: navegación + estado */}
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <div className="flex rounded-lg bg-gray-100 dark:bg-white/[0.04] p-0.5">
             {(["tabla", "comentarios", "versiones"] as TabActiva[]).map((tab) => (
               <button
@@ -635,8 +635,8 @@ export default function GlosarioNegocioEditor({
           </div>
 
           {!readOnly && hasChanges && (
-            <span className="text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
-              Sin guardar
+            <span className="hidden sm:inline-flex text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+              Cambios sin guardar
             </span>
           )}
           {readOnly && (
@@ -646,7 +646,8 @@ export default function GlosarioNegocioEditor({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+        {/* Derecha: controles de vista + acciones */}
+        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
           {tabActiva === "tabla" && (
             <>
               {/* View toggle group */}
@@ -769,14 +770,14 @@ export default function GlosarioNegocioEditor({
 
               <div className="w-px h-5 bg-gray-200 dark:bg-white/[0.08] mx-0.5" />
 
-              {/* Generate IA */}
+              {/* Generar con IA (énfasis medio-accent) */}
               <button
                 onClick={onGenerateIA}
                 disabled={isGenerating}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#28b8d5] to-purple-500 text-white text-xs font-semibold hover:from-[#23a7c2] hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm shadow-[#28b8d5]/20"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#28b8d5]/25 bg-[#28b8d5]/5 text-[#28b8d5] text-xs font-semibold hover:bg-[#28b8d5]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isGenerating ? (
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                  <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
                   </svg>
                 ) : (
@@ -784,21 +785,21 @@ export default function GlosarioNegocioEditor({
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                   </svg>
                 )}
-                {isGenerating ? "Generando…" : "IA"}
+                {isGenerating ? "Generando…" : "Generar con IA"}
               </button>
 
-              {/* Save */}
+              {/* Guardar (énfasis primario) */}
               <button
                 onClick={handleSave}
                 disabled={isSaving || !hasChanges}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-white/[0.1] dark:hover:bg-white/[0.15]"
+                className="flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#0f3f74] text-white text-xs font-semibold hover:bg-[#0d3563] disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-[#1b7ca5] dark:hover:bg-[#186d92] whitespace-nowrap"
               >
                 {isSaving ? (
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                  <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
                   </svg>
                 ) : null}
-                {isSaving ? "Guardando…" : "Guardar"}
+                {isSaving ? "Guardando…" : "Guardar cambios"}
               </button>
             </>
           )}

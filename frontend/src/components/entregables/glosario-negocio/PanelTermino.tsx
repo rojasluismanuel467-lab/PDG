@@ -169,212 +169,231 @@ export default function PanelTermino({
       )}
 
       {/* ── Form ───────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/45 dark:bg-transparent">
+      <div className="flex-1 overflow-y-auto bg-white/45 dark:bg-transparent">
 
-        {/* Término */}
-        <div>
-          <label className="field-label">Término</label>
-          <input
-            type="text"
-            value={form.termino}
-            onChange={(e) => update({ termino: e.target.value })}
-            disabled={readOnly}
-            className="field-input"
-          />
+        {/* ── Sección: Identificación ─────────────────────────────────── */}
+        <div className="p-4 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Identificación
+          </p>
+
+          {/* Término */}
+          <div>
+            <label className="field-label">Término</label>
+            <input
+              type="text"
+              value={form.termino}
+              onChange={(e) => update({ termino: e.target.value })}
+              disabled={readOnly}
+              className="field-input"
+            />
+          </div>
+
+          {/* Categoría + Estado */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="field-label">Categoría</label>
+              <select
+                value={form.categoria ?? ""}
+                onChange={(e) => update({ categoria: (e.target.value as CategoriaTermino) || undefined })}
+                disabled={readOnly}
+                className="field-input appearance-none pr-6"
+              >
+                <option value="">— Ninguna</option>
+                {CATEGORIAS.map((c) => (
+                  <option key={c} value={c}>{CATEGORIA_CONFIG[c].label}</option>
+                ))}
+              </select>
+              {form.categoria && (
+                <div className="mt-1">
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${CATEGORIA_CONFIG[form.categoria].color}`}>
+                    {CATEGORIA_CONFIG[form.categoria].label}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="field-label">Estado</label>
+              <select
+                value={form.estado ?? ""}
+                onChange={(e) => update({ estado: (e.target.value as EstadoTermino) || undefined })}
+                disabled={readOnly}
+                className="field-input appearance-none pr-6"
+              >
+                <option value="">— Ninguno</option>
+                {ESTADOS.map((e) => (
+                  <option key={e} value={e}>{ESTADO_CONFIG[e].label}</option>
+                ))}
+              </select>
+              {form.estado && (
+                <div className="mt-1 flex items-center gap-1">
+                  <div className={`w-1.5 h-1.5 rounded-full ${ESTADO_CONFIG[form.estado].dot}`} />
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ESTADO_CONFIG[form.estado].badge}`}>
+                    {ESTADO_CONFIG[form.estado].label}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Categoría + Estado — side by side */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* ── Sección: Definición ─────────────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Definición y propietario
+          </p>
+
           <div>
-            <label className="field-label">Categoría</label>
-            <select
-              value={form.categoria ?? ""}
-              onChange={(e) => update({ categoria: (e.target.value as CategoriaTermino) || undefined })}
+            <label className="field-label">Definición</label>
+            <textarea
+              value={form.definicion}
+              onChange={(e) => update({ definicion: e.target.value })}
               disabled={readOnly}
-              className="field-input appearance-none pr-6"
-            >
-              <option value="">— Ninguna</option>
-              {CATEGORIAS.map((c) => (
-                <option key={c} value={c}>{CATEGORIA_CONFIG[c].label}</option>
-              ))}
-            </select>
-            {form.categoria && (
-              <div className="mt-1">
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${CATEGORIA_CONFIG[form.categoria].color}`}>
-                  {CATEGORIA_CONFIG[form.categoria].label}
+              rows={4}
+              className="field-input resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="field-label">Propietario</label>
+            <input
+              type="text"
+              value={form.propietario}
+              onChange={(e) => update({ propietario: e.target.value })}
+              disabled={readOnly}
+              placeholder="ej. Vicepresidencia Comercial"
+              className="field-input"
+            />
+          </div>
+        </div>
+
+        {/* ── Sección: Relaciones ─────────────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Relaciones
+          </p>
+
+          {/* Entidades relacionadas */}
+          <div>
+            <label className="field-label">Entidades relacionadas</label>
+            <div className="flex flex-wrap gap-1.5 mb-2 min-h-[22px]">
+              {form.entidades_relacionadas.map((ent) => (
+                <span key={ent} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#28b8d5]/10 text-[#28b8d5]">
+                  {ent}
+                  {!readOnly && (
+                    <button onClick={() => handleRemoveEntidad(ent)} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
+                  )}
                 </span>
+              ))}
+              {form.entidades_relacionadas.length === 0 && (
+                <span className="text-[11px] text-gray-400 dark:text-white/25 italic">Sin entidades.</span>
+              )}
+            </div>
+            {!readOnly && (
+              <div className="flex gap-1.5">
+                <input
+                  type="text" value={nuevaEntidad} onChange={(e) => setNuevaEntidad(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddEntidad()}
+                  placeholder="ej. Cuenta"
+                  className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
+                />
+                <button onClick={handleAddEntidad} disabled={!nuevaEntidad.trim()} className="tag-add-btn">+</button>
               </div>
             )}
           </div>
+
+          {/* Sinónimos */}
           <div>
-            <label className="field-label">Estado</label>
-            <select
-              value={form.estado ?? ""}
-              onChange={(e) => update({ estado: (e.target.value as EstadoTermino) || undefined })}
-              disabled={readOnly}
-              className="field-input appearance-none pr-6"
-            >
-              <option value="">— Ninguno</option>
-              {ESTADOS.map((e) => (
-                <option key={e} value={e}>{ESTADO_CONFIG[e].label}</option>
-              ))}
-            </select>
-            {form.estado && (
-              <div className="mt-1 flex items-center gap-1">
-                <div className={`w-1.5 h-1.5 rounded-full ${ESTADO_CONFIG[form.estado].dot}`} />
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ESTADO_CONFIG[form.estado].badge}`}>
-                  {ESTADO_CONFIG[form.estado].label}
+            <label className="field-label">Sinónimos</label>
+            <div className="flex flex-wrap gap-1.5 mb-2 min-h-[22px]">
+              {form.sinonimos.map((sin) => (
+                <span key={sin} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400">
+                  {sin}
+                  {!readOnly && (
+                    <button onClick={() => handleRemoveSinonimo(sin)} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
+                  )}
                 </span>
+              ))}
+              {form.sinonimos.length === 0 && (
+                <span className="text-[11px] text-gray-400 dark:text-white/25 italic">Sin sinónimos.</span>
+              )}
+            </div>
+            {!readOnly && (
+              <div className="flex gap-1.5">
+                <input
+                  type="text" value={nuevoSinonimo} onChange={(e) => setNuevoSinonimo(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddSinonimo()}
+                  placeholder="ej. Golden Record"
+                  className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
+                />
+                <button onClick={handleAddSinonimo} disabled={!nuevoSinonimo.trim()} className="tag-add-btn">+</button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Definición */}
-        <div>
-          <label className="field-label">Definición</label>
-          <textarea
-            value={form.definicion}
-            onChange={(e) => update({ definicion: e.target.value })}
-            disabled={readOnly}
-            rows={4}
-            className="field-input resize-none"
-          />
-        </div>
-
-        {/* Propietario */}
-        <div>
-          <label className="field-label">Propietario</label>
-          <input
-            type="text"
-            value={form.propietario}
-            onChange={(e) => update({ propietario: e.target.value })}
-            disabled={readOnly}
-            placeholder="ej. Vicepresidencia Comercial"
-            className="field-input"
-          />
-        </div>
-
-        {/* Entidades relacionadas */}
-        <div>
-          <label className="field-label">Entidades relacionadas</label>
-          <div className="flex flex-wrap gap-1.5 mb-2 min-h-[22px]">
-            {form.entidades_relacionadas.map((ent) => (
-              <span key={ent} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#28b8d5]/10 text-[#28b8d5]">
-                {ent}
-                {!readOnly && (
-                  <button onClick={() => handleRemoveEntidad(ent)} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
-                )}
-              </span>
-            ))}
-            {form.entidades_relacionadas.length === 0 && (
-              <span className="text-[11px] text-gray-400 dark:text-white/25 italic">Sin entidades.</span>
-            )}
-          </div>
-          {!readOnly && (
-            <div className="flex gap-1.5">
-              <input
-                type="text"
-                value={nuevaEntidad}
-                onChange={(e) => setNuevaEntidad(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddEntidad()}
-                placeholder="ej. Cuenta"
-                className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
-              />
-              <button onClick={handleAddEntidad} disabled={!nuevaEntidad.trim()} className="tag-add-btn">+</button>
-            </div>
-          )}
-        </div>
-
-        {/* Sinónimos */}
-        <div>
-          <label className="field-label">Sinónimos</label>
-          <div className="flex flex-wrap gap-1.5 mb-2 min-h-[22px]">
-            {form.sinonimos.map((sin) => (
-              <span key={sin} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400">
-                {sin}
-                {!readOnly && (
-                  <button onClick={() => handleRemoveSinonimo(sin)} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
-                )}
-              </span>
-            ))}
-            {form.sinonimos.length === 0 && (
-              <span className="text-[11px] text-gray-400 dark:text-white/25 italic">Sin sinónimos.</span>
-            )}
-          </div>
-          {!readOnly && (
-            <div className="flex gap-1.5">
-              <input
-                type="text"
-                value={nuevoSinonimo}
-                onChange={(e) => setNuevoSinonimo(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddSinonimo()}
-                placeholder="ej. Golden Record"
-                className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
-              />
-              <button onClick={handleAddSinonimo} disabled={!nuevoSinonimo.trim()} className="tag-add-btn">+</button>
-            </div>
-          )}
-        </div>
-
-        {/* Notas */}
-        <div>
-          <label className="field-label">Notas</label>
+        {/* ── Sección: Notas ──────────────────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Notas
+          </p>
           <textarea
             value={form.notas}
             onChange={(e) => update({ notas: e.target.value })}
             disabled={readOnly}
-            rows={2}
+            rows={3}
             placeholder="Observaciones adicionales…"
             className="field-input resize-none"
           />
         </div>
 
-        {/* Dynamic columns */}
-        {columnasDinamicas.map((col) => (
-          <div key={col.id}>
-            <label className="field-label">{col.label}</label>
-            <input
-              type="text"
-              value={((form as unknown as Record<string, unknown>)[col.id] as string) ?? ""}
-              onChange={(e) => update({ [col.id]: e.target.value } as Partial<TerminoGlosario>)}
-              disabled={readOnly}
-              className="field-input"
-            />
-          </div>
-        ))}
-
-        {/* Separator */}
-        <div className="border-t border-gray-100 dark:border-white/[0.06]" />
-
-        {/* Comentarios del término */}
-        <div>
-          <label className="field-label">
-            Comentarios
-            {comentariosTermino.length > 0 && (
-              <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 font-bold">
-                {comentariosTermino.length}
-              </span>
-            )}
-          </label>
-          <div className="space-y-2 mb-2">
-            {comentariosTermino.length === 0 && (
-              <p className="text-[11px] text-gray-400 dark:text-white/25 italic">Sin comentarios.</p>
-            )}
-            {comentariosTermino.map((c) => (
-              <div key={c.id} className="rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02] p-2.5">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-[10px] font-semibold text-gray-600 dark:text-white/60">{c.autor_nombre}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium">
-                    {c.autor_perfil === "CONSULTOR" ? "Consultor" : "Empresa"}
-                  </span>
-                </div>
-                <p className="text-[11px] text-gray-700 dark:text-white/60 leading-relaxed">{c.contenido}</p>
+        {/* ── Sección: Campos adicionales ─────────────────────────────── */}
+        {columnasDinamicas.length > 0 && (
+          <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+            <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+              Campos adicionales
+            </p>
+            {columnasDinamicas.map((col) => (
+              <div key={col.id}>
+                <label className="field-label">{col.label}</label>
+                <input
+                  type="text"
+                  value={((form as unknown as Record<string, unknown>)[col.id] as string) ?? ""}
+                  onChange={(e) => update({ [col.id]: e.target.value } as Partial<TerminoGlosario>)}
+                  disabled={readOnly}
+                  className="field-input"
+                />
               </div>
             ))}
           </div>
+        )}
+
+        {/* ── Sección: Comentarios ────────────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-2">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest flex items-center gap-2">
+            Comentarios
+            {comentariosTermino.length > 0 && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 font-bold">
+                {comentariosTermino.length}
+              </span>
+            )}
+          </p>
+          {comentariosTermino.length === 0 && (
+            <p className="text-[11px] text-gray-400 dark:text-white/25 italic">Sin comentarios.</p>
+          )}
+          {comentariosTermino.map((c) => (
+            <div key={c.id} className="rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02] p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[10px] font-semibold text-gray-600 dark:text-white/60">{c.autor_nombre}</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium">
+                  {c.autor_perfil === "CONSULTOR" ? "Consultor" : "Empresa"}
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-700 dark:text-white/60 leading-relaxed">{c.contenido}</p>
+            </div>
+          ))}
           {!readOnly && (
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 pt-1">
               <input
                 ref={comentarioInputRef}
                 type="text"
@@ -388,16 +407,20 @@ export default function PanelTermino({
             </div>
           )}
         </div>
+
+        {/* Espaciado inferior */}
+        <div className="h-2" />
       </div>
 
-      {/* ── Footer: save ───────────────────────────────────────────────── */}
-      {!readOnly && hasChanges && (
+      {/* ── Footer: save — siempre visible en modo edición ─────────────── */}
+      {!readOnly && (
         <div className="px-4 py-3 border-t border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111] shrink-0">
           <button
             onClick={handleSave}
-            className="w-full py-2 rounded-xl bg-gray-900 dark:bg-white/[0.1] text-white text-xs font-semibold hover:bg-gray-800 dark:hover:bg-white/[0.15] transition-colors"
+            disabled={!hasChanges}
+            className="w-full py-2 rounded-xl bg-[#0f3f74] dark:bg-[#1b7ca5] text-white text-xs font-semibold hover:bg-[#0d3563] dark:hover:bg-[#186d92] disabled:opacity-35 disabled:cursor-not-allowed transition-all"
           >
-            Aplicar cambios
+            {hasChanges ? "Aplicar cambios" : "Sin cambios pendientes"}
           </button>
         </div>
       )}
