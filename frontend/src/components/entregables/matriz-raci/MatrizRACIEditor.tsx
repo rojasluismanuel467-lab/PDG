@@ -32,7 +32,7 @@ interface MatrizRACIEditorProps {
   readOnly?: boolean;
 }
 
-type TabActiva = "matriz" | "comentarios" | "versiones";
+type TabActiva = "matriz" | "versiones";
 type Density = "compact" | "comfortable";
 
 const RACI_ORDER: AsignacionRaci[] = ["R", "A", "C", "I"];
@@ -84,7 +84,6 @@ export default function MatrizRACIEditor({
   const [tabActiva, setTabActiva] = useState<TabActiva>("matriz");
   const [actividadSeleccionada, setActividadSeleccionada] = useState<ActividadRaci | null>(null);
   const [rolSeleccionado, setRolSeleccionado] = useState<RolRaci | null>(null);
-  const [nuevoComentarioGeneral, setNuevoComentarioGeneral] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState<CategoriaActividad | "todas">("todas");
   const [searchQuery, setSearchQuery] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
@@ -259,12 +258,6 @@ export default function MatrizRACIEditor({
     setHasChanges(false);
   };
 
-  const handleAddComentarioGeneral = async () => {
-    if (!nuevoComentarioGeneral.trim()) return;
-    await onAddComment(null, "general", nuevoComentarioGeneral.trim());
-    setNuevoComentarioGeneral("");
-  };
-
   const handleExportCSV = () => {
     const headers = ["Actividad", "Categoría", ...matriz.roles.map((r) => r.nombre)];
     const rows = matriz.actividades.map((a) => [
@@ -294,8 +287,6 @@ export default function MatrizRACIEditor({
   const actividadesSinA = matriz.actividades.filter(
     (a) => matriz.roles.length > 0 && !Object.values(a.asignaciones).includes("A")
   ).length;
-  const comentariosGenerales = matriz.comentarios.filter((c) => c.referencia_tipo === "general");
-
   return (
     <div
       className="flex flex-col h-full bg-white dark:bg-[#0f0f0f]"
@@ -308,10 +299,6 @@ export default function MatrizRACIEditor({
           {(
             [
               { key: "matriz", label: "Matriz" },
-              {
-                key: "comentarios",
-                label: `Comentarios${matriz.comentarios.length ? ` (${matriz.comentarios.length})` : ""}`,
-              },
               { key: "versiones", label: `v${matriz.version_actual}` },
             ] as { key: TabActiva; label: string }[]
           ).map(({ key, label }) => (
@@ -923,75 +910,6 @@ export default function MatrizRACIEditor({
               onClose={() => setRolSeleccionado(null)}
               readOnly={readOnly}
             />
-          )}
-        </div>
-      )}
-
-      {/* ── Tab: Comentarios ─────────────────────────────────────────────── */}
-      {tabActiva === "comentarios" && (
-        <div className="flex-1 overflow-y-auto px-6 py-5 max-w-3xl">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-white/70 mb-4">
-            Comentarios generales
-            <span className="ml-2 text-xs font-normal text-gray-400 dark:text-white/30">
-              ({comentariosGenerales.length})
-            </span>
-          </h3>
-
-          <div className="space-y-3 mb-6">
-            {comentariosGenerales.length === 0 && (
-              <p className="text-xs text-gray-400 dark:text-white/25 py-4 text-center">
-                Sin comentarios generales sobre la matriz.
-              </p>
-            )}
-            {comentariosGenerales.map((c) => (
-              <div
-                key={c.id}
-                className="bg-gray-50 dark:bg-white/[0.03] rounded-xl p-3.5 border border-gray-100 dark:border-white/[0.06] shadow-sm"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-white/[0.08] flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-white/50 uppercase">
-                      {c.autor_nombre.slice(0, 2)}
-                    </div>
-                    <span className="text-xs font-semibold text-gray-700 dark:text-white/60">{c.autor_nombre}</span>
-                    <span className="text-[10px] text-gray-400 dark:text-white/25">{c.autor_perfil}</span>
-                  </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                    c.estado === "abierto"
-                      ? "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                      : "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400"
-                  }`}>
-                    {c.estado}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-white/50 leading-relaxed">{c.contenido}</p>
-                <p className="text-[10px] text-gray-300 dark:text-white/20 mt-2">
-                  {new Date(c.created_at).toLocaleDateString("es-CO", {
-                    year: "numeric", month: "short", day: "numeric",
-                    hour: "2-digit", minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {!readOnly && (
-            <div className="flex gap-2">
-              <textarea
-                value={nuevoComentarioGeneral}
-                onChange={(e) => setNuevoComentarioGeneral(e.target.value)}
-                placeholder="Agregar comentario general sobre la matriz RACI…"
-                rows={3}
-                className="flex-1 bg-white dark:bg-transparent border border-gray-200 dark:border-white/[0.08] rounded-xl px-3 py-2.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-300 dark:placeholder-white/20 focus:outline-none focus:border-[#28b8d5]/50 resize-none shadow-sm"
-              />
-              <button
-                onClick={handleAddComentarioGeneral}
-                disabled={!nuevoComentarioGeneral.trim()}
-                className="self-end px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#28b8d5] text-white hover:bg-[#1fa3be] disabled:opacity-40 transition-colors shadow-sm"
-              >
-                Agregar
-              </button>
-            </div>
           )}
         </div>
       )}
