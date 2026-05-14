@@ -129,6 +129,7 @@ export default function PanelTermino({
           {!readOnly && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
+              data-no-elevation="true"
               className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
               title="Eliminar término"
             >
@@ -141,6 +142,7 @@ export default function PanelTermino({
           )}
           <button
             onClick={onClose}
+            data-no-elevation="true"
             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors"
             title="Cerrar (Esc)"
           >
@@ -281,7 +283,7 @@ export default function PanelTermino({
                 <span key={ent} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#28b8d5]/10 text-[#28b8d5]">
                   {ent}
                   {!readOnly && (
-                    <button onClick={() => handleRemoveEntidad(ent)} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
+                    <button data-no-elevation="true" onClick={() => handleRemoveEntidad(ent)} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
                   )}
                 </span>
               ))}
@@ -310,7 +312,7 @@ export default function PanelTermino({
                 <span key={sin} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400">
                   {sin}
                   {!readOnly && (
-                    <button onClick={() => handleRemoveSinonimo(sin)} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
+                    <button data-no-elevation="true" onClick={() => handleRemoveSinonimo(sin)} className="ml-0.5 hover:text-red-500 transition-colors leading-none">×</button>
                   )}
                 </span>
               ))}

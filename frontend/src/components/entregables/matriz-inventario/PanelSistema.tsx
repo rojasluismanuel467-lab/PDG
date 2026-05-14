@@ -160,6 +160,7 @@ export default function PanelSistema({
           {!readOnly && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
+              data-no-elevation="true"
               className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
               title="Eliminar sistema"
             >
@@ -173,6 +174,7 @@ export default function PanelSistema({
           )}
           <button
             onClick={onClose}
+            data-no-elevation="true"
             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -397,7 +399,7 @@ export default function PanelSistema({
                 >
                   {area}
                   {!readOnly && (
-                    <button onClick={() => handleRemoveArea(area)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                    <button data-no-elevation="true" onClick={() => handleRemoveArea(area)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
                   )}
                 </span>
               ))}
@@ -410,7 +412,7 @@ export default function PanelSistema({
                   placeholder="ej. Gestión Humana"
                   className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
                 />
-                <button onClick={handleAddArea} disabled={!nuevoArea.trim()}
+                <button data-no-elevation="true" onClick={handleAddArea} disabled={!nuevoArea.trim()}
                   className="px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors">
                   +
                 </button>
@@ -428,7 +430,7 @@ export default function PanelSistema({
                 <span key={amb} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#28b8d5]/10 text-[#28b8d5]">
                   {amb}
                   {!readOnly && (
-                    <button onClick={() => handleRemoveAmbiente(amb)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                    <button data-no-elevation="true" onClick={() => handleRemoveAmbiente(amb)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
                   )}
                 </span>
               ))}
@@ -441,7 +443,7 @@ export default function PanelSistema({
                   placeholder="ej. Producción"
                   className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
                 />
-                <button onClick={handleAddAmbiente} disabled={!nuevoAmbiente.trim()}
+                <button data-no-elevation="true" onClick={handleAddAmbiente} disabled={!nuevoAmbiente.trim()}
                   className="px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors">
                   +
                 </button>
@@ -459,7 +461,7 @@ export default function PanelSistema({
                 <span key={dato} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400">
                   {dato}
                   {!readOnly && (
-                    <button onClick={() => handleRemoveDato(dato)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                    <button data-no-elevation="true" onClick={() => handleRemoveDato(dato)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
                   )}
                 </span>
               ))}
@@ -472,7 +474,7 @@ export default function PanelSistema({
                   placeholder="ej. Datos personales"
                   className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
                 />
-                <button onClick={handleAddDato} disabled={!nuevoDato.trim()}
+                <button data-no-elevation="true" onClick={handleAddDato} disabled={!nuevoDato.trim()}
                   className="px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors">
                   +
                 </button>

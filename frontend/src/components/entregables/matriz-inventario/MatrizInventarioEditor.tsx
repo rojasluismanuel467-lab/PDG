@@ -463,7 +463,7 @@ export default function MatrizInventarioEditor({
               <button
                 key={tab}
                 onClick={() => setTabActiva(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`no-btn-shadow px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   tabActiva === tab
                     ? "bg-white dark:bg-white/[0.1] text-gray-800 dark:text-white/90 shadow-sm"
                     : "text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/60"
@@ -514,6 +514,7 @@ export default function MatrizInventarioEditor({
                 </button>
                 <button
                   onClick={() => { setShowAddCol(false); setNuevaColLabel(""); }}
+                  data-no-elevation="true"
                   className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">

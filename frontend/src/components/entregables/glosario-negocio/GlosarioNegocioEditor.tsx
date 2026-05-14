@@ -463,6 +463,7 @@ export default function GlosarioNegocioEditor({
               <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                 <button
                   onClick={(e) => { e.stopPropagation(); setTerminoSeleccionadoId(termino.id); }}
+                  data-no-elevation="true"
                   className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-200 dark:hover:bg-white/[0.08] transition-colors"
                   title="Editar"
                 >
@@ -470,6 +471,7 @@ export default function GlosarioNegocioEditor({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDuplicar(termino.id); }}
+                  data-no-elevation="true"
                   className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-200 dark:hover:bg-white/[0.08] transition-colors"
                   title="Duplicar"
                 >
@@ -477,6 +479,7 @@ export default function GlosarioNegocioEditor({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteTermino(termino.id); }}
+                  data-no-elevation="true"
                   className="p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                   title="Eliminar"
                 >
@@ -621,7 +624,7 @@ export default function GlosarioNegocioEditor({
               <button
                 key={tab}
                 onClick={() => setTabActiva(tab)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                className={`no-btn-shadow px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                   tabActiva === tab
                     ? "bg-white dark:bg-white/[0.1] text-gray-800 dark:text-white/90 shadow-sm"
                     : "text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/60"
@@ -833,6 +836,7 @@ export default function GlosarioNegocioEditor({
                     {busqueda && (
                       <button
                         onClick={() => setBusqueda("")}
+                        data-no-elevation="true"
                         className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-white/50"
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
