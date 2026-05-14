@@ -5,7 +5,7 @@ import React, {
 import {
   Pencil, Copy, Trash2, MessageSquare, ClipboardCopy,
   ChevronUp, ChevronDown, ChevronsUpDown,
-  Rows3, ListOrdered, Columns3, BookOpen,
+  Rows3, ListOrdered, Columns3, BookOpen, GripVertical,
 } from "lucide-react";
 import type {
   GlosarioNegocio,
@@ -189,6 +189,17 @@ export default function GlosarioNegocioEditor({
   const [columnasOcultas, setColumnasOcultas] = useState<Set<ColId>>(new Set());
   const [showColumnMenu, setShowColumnMenu] = useState(false);
 
+  const colOrderKey = `glosario-col-order-${glosarioInicial.id || "default"}`;
+  const [colOrder, setColOrder] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(colOrderKey);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return ALL_COLUMNS.map((c) => c.id);
+  });
+  const [dragColId, setDragColId] = useState<string | null>(null);
+  const [dragOverColId, setDragOverColId] = useState<string | null>(null);
+
   // Context menu
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
   const [focusComentario, setFocusComentario] = useState(false);
@@ -210,6 +221,21 @@ export default function GlosarioNegocioEditor({
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(columnasDinamicas));
   }, [columnasDinamicas, storageKey]);
+
+  useEffect(() => {
+    setColOrder((prev) => {
+      const staticIds = new Set(ALL_COLUMNS.map((c) => c.id));
+      const dynamicIds = columnasDinamicas.map((c) => c.id);
+      const newDynamic = dynamicIds.filter((id) => !prev.includes(id));
+      const validIds = new Set([...staticIds, ...dynamicIds]);
+      const filtered = prev.filter((id) => validIds.has(id));
+      return [...filtered, ...newDynamic];
+    });
+  }, [columnasDinamicas]);
+
+  useEffect(() => {
+    localStorage.setItem(colOrderKey, JSON.stringify(colOrder));
+  }, [colOrder, colOrderKey]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -404,21 +430,79 @@ export default function GlosarioNegocioEditor({
     setHasChanges(false);
   };
 
+  // ── Drag handlers ─────────────────────────────────────────────────────────
+
+  const handleColDragStart = (e: React.DragEvent, colId: string) => {
+    setDragColId(colId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const handleColDragOver = (e: React.DragEvent, colId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverColId !== colId) setDragOverColId(colId);
+  };
+  const handleColDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!dragColId || dragColId === targetId) return;
+    setColOrder((prev) => {
+      const next = [...prev];
+      const fromIdx = next.indexOf(dragColId);
+      const toIdx = next.indexOf(targetId);
+      if (fromIdx === -1 || toIdx === -1) return prev;
+      next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, dragColId);
+      return next;
+    });
+    setDragColId(null);
+    setDragOverColId(null);
+  };
+  const handleColDragEnd = () => {
+    setDragColId(null);
+    setDragOverColId(null);
+  };
+
   // ── Sortable column header helper ─────────────────────────────────────────
 
   const SortableTh = ({
     colKey, label, className = "",
-  }: { colKey: SortKey; label: string; className?: string }) => (
-    <th
-      onClick={() => handleSort(colKey)}
-      className={`text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-pointer hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] ${className}`}
-    >
-      <div className="flex items-center">
-        {label}
-        <SortIcon colKey={colKey} sortConfig={sortConfig} />
-      </div>
-    </th>
-  );
+    draggable: isDraggable, colId,
+  }: {
+    colKey: SortKey; label: string; className?: string;
+    draggable?: boolean; colId?: string;
+  }) => {
+    const id = colId ?? colKey;
+    const isDragging = isDraggable && dragColId === id;
+    const isDragOver = isDraggable && dragOverColId === id;
+    return (
+      <th
+        onClick={() => handleSort(colKey)}
+        draggable={isDraggable}
+        onDragStart={isDraggable ? (e) => handleColDragStart(e, id) : undefined}
+        onDragOver={isDraggable ? (e) => handleColDragOver(e, id) : undefined}
+        onDrop={isDraggable ? (e) => handleColDrop(e, id) : undefined}
+        onDragEnd={isDraggable ? handleColDragEnd : undefined}
+        className={`text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-pointer hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] group/th
+          ${isDragOver ? "bg-[#28b8d5]/8 border-l-2 border-l-[#28b8d5]" : ""}
+          ${isDragging ? "opacity-40" : ""}
+          ${className}`}
+      >
+        <div className="flex items-center">
+          {isDraggable && (
+            <GripVertical className="w-3 h-3 text-gray-300 dark:text-white/20 shrink-0 mr-1 opacity-0 group-hover/th:opacity-100 transition-opacity" />
+          )}
+          {label}
+          <SortIcon colKey={colKey} sortConfig={sortConfig} />
+        </div>
+      </th>
+    );
+  };
+
+  // ── Ordered visible columns ────────────────────────────────────────────────
+
+  const orderedVisibleCols = colOrder.filter((id) => {
+    if (ALL_COLUMNS.some((c) => c.id === id)) return !columnasOcultas.has(id as ColId);
+    return columnasDinamicas.some((c) => c.id === id);
+  });
 
   // ── Row render ────────────────────────────────────────────────────────────
 
@@ -490,116 +574,116 @@ export default function GlosarioNegocioEditor({
           </div>
         </td>
 
-        {/* Categoría */}
-        {!columnasOcultas.has("categoria") && (
-          <td className={`${py} px-4 whitespace-nowrap`}>
-            {catCfg ? (
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${catCfg.color}`}>
-                {catCfg.label}
-              </span>
-            ) : (
-              <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
-            )}
-          </td>
-        )}
-
-        {/* Definición */}
-        {!columnasOcultas.has("definicion") && (
-          <td className={`${py} px-4 text-xs text-gray-500 dark:text-white/40 max-w-[300px]`}>
-            <span className="line-clamp-2 leading-relaxed">
-              {termino.definicion || (
-                <span className="text-gray-300 dark:text-white/20 italic">Sin definición</span>
-              )}
-            </span>
-          </td>
-        )}
-
-        {/* Propietario */}
-        {!columnasOcultas.has("propietario") && (
-          <td className={`${py} px-4 text-xs text-gray-500 dark:text-white/50 whitespace-nowrap max-w-[180px] truncate`}>
-            {termino.propietario || <span className="text-gray-300 dark:text-white/20">—</span>}
-          </td>
-        )}
-
-        {/* Estado */}
-        {!columnasOcultas.has("estado") && (
-          <td className={`${py} px-4 whitespace-nowrap`}>
-            {estadoCfg ? (
-              <div className="flex items-center gap-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${estadoCfg.dot}`} />
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${estadoCfg.badge}`}>
-                  {estadoCfg.label}
-                </span>
-              </div>
-            ) : (
-              <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
-            )}
-          </td>
-        )}
-
-        {/* Entidades */}
-        {!columnasOcultas.has("entidades") && (
-          <td className={`${py} px-4`}>
-            <div className="flex flex-wrap gap-1">
-              {termino.entidades_relacionadas.slice(0, 2).map((ent) => (
-                <span key={ent} className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium whitespace-nowrap">
-                  {ent}
-                </span>
-              ))}
-              {termino.entidades_relacionadas.length > 2 && (
-                <span className="text-[9px] text-gray-400 dark:text-white/25">
-                  +{termino.entidades_relacionadas.length - 2}
-                </span>
-              )}
-              {termino.entidades_relacionadas.length === 0 && (
-                <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
-              )}
-            </div>
-          </td>
-        )}
-
-        {/* Sinónimos */}
-        {!columnasOcultas.has("sinonimos") && (
-          <td className={`${py} px-4`}>
-            <div className="flex flex-wrap gap-1">
-              {termino.sinonimos.slice(0, 2).map((sin) => (
-                <span key={sin} className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400 font-medium whitespace-nowrap">
-                  {sin}
-                </span>
-              ))}
-              {termino.sinonimos.length > 2 && (
-                <span className="text-[9px] text-gray-400 dark:text-white/25">
-                  +{termino.sinonimos.length - 2}
-                </span>
-              )}
-              {termino.sinonimos.length === 0 && (
-                <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
-              )}
-            </div>
-          </td>
-        )}
-
-        {/* Comentarios */}
-        {!columnasOcultas.has("comentarios") && (
-          <td className={`${py} px-4 text-center`}>
-            {comentCount > 0 ? (
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-                {comentCount}
-              </span>
-            ) : (
-              <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
-            )}
-          </td>
-        )}
-
-        {/* Dynamic columns */}
-        {columnasDinamicas.map((col) => (
-          <td key={col.id} className={`${py} px-4 text-xs text-gray-500 dark:text-white/50 max-w-[160px] truncate`}>
-            {((termino as unknown as Record<string, unknown>)[col.id] as string) || (
-              <span className="text-gray-300 dark:text-white/20">—</span>
-            )}
-          </td>
-        ))}
+        {orderedVisibleCols.map((colId) => {
+          switch (colId) {
+            case "categoria":
+              return (
+                <td key="categoria" className={`${py} px-4 whitespace-nowrap`}>
+                  {catCfg ? (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${catCfg.color}`}>
+                      {catCfg.label}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+                  )}
+                </td>
+              );
+            case "definicion":
+              return (
+                <td key="definicion" className={`${py} px-4 text-xs text-gray-500 dark:text-white/40 max-w-[300px]`}>
+                  <span className="line-clamp-2 leading-relaxed">
+                    {termino.definicion || (
+                      <span className="text-gray-300 dark:text-white/20 italic">Sin definición</span>
+                    )}
+                  </span>
+                </td>
+              );
+            case "propietario":
+              return (
+                <td key="propietario" className={`${py} px-4 text-xs text-gray-500 dark:text-white/50 whitespace-nowrap max-w-[180px] truncate`}>
+                  {termino.propietario || <span className="text-gray-300 dark:text-white/20">—</span>}
+                </td>
+              );
+            case "estado":
+              return (
+                <td key="estado" className={`${py} px-4 whitespace-nowrap`}>
+                  {estadoCfg ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${estadoCfg.dot}`} />
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${estadoCfg.badge}`}>
+                        {estadoCfg.label}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+                  )}
+                </td>
+              );
+            case "entidades":
+              return (
+                <td key="entidades" className={`${py} px-4`}>
+                  <div className="flex flex-wrap gap-1">
+                    {termino.entidades_relacionadas.slice(0, 2).map((ent) => (
+                      <span key={ent} className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium whitespace-nowrap">
+                        {ent}
+                      </span>
+                    ))}
+                    {termino.entidades_relacionadas.length > 2 && (
+                      <span className="text-[9px] text-gray-400 dark:text-white/25">
+                        +{termino.entidades_relacionadas.length - 2}
+                      </span>
+                    )}
+                    {termino.entidades_relacionadas.length === 0 && (
+                      <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+                    )}
+                  </div>
+                </td>
+              );
+            case "sinonimos":
+              return (
+                <td key="sinonimos" className={`${py} px-4`}>
+                  <div className="flex flex-wrap gap-1">
+                    {termino.sinonimos.slice(0, 2).map((sin) => (
+                      <span key={sin} className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400 font-medium whitespace-nowrap">
+                        {sin}
+                      </span>
+                    ))}
+                    {termino.sinonimos.length > 2 && (
+                      <span className="text-[9px] text-gray-400 dark:text-white/25">
+                        +{termino.sinonimos.length - 2}
+                      </span>
+                    )}
+                    {termino.sinonimos.length === 0 && (
+                      <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+                    )}
+                  </div>
+                </td>
+              );
+            case "comentarios":
+              return (
+                <td key="comentarios" className={`${py} px-4 text-center`}>
+                  {comentCount > 0 ? (
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                      {comentCount}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300 dark:text-white/20 text-xs">—</span>
+                  )}
+                </td>
+              );
+            default: {
+              const dynCol = columnasDinamicas.find((c) => c.id === colId);
+              if (!dynCol) return null;
+              return (
+                <td key={colId} className={`${py} px-4 text-xs text-gray-500 dark:text-white/50 max-w-[160px] truncate`}>
+                  {((termino as unknown as Record<string, unknown>)[dynCol.id] as string) || (
+                    <span className="text-gray-300 dark:text-white/20">—</span>
+                  )}
+                </td>
+              );
+            }
+          }
+        })}
       </tr>
     );
   };
@@ -918,35 +1002,70 @@ export default function GlosarioNegocioEditor({
                         </th>
                         {/* Término */}
                         <SortableTh colKey="termino" label="Término" className="sticky left-0 top-0 z-30 min-w-[180px]" />
-                        {/* Dynamic toggleable columns */}
-                        {!columnasOcultas.has("categoria")   && <SortableTh colKey="categoria"   label="Categoría"   />}
-                        {!columnasOcultas.has("definicion")  && (
-                          <th className="sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
-                            Definición
-                          </th>
-                        )}
-                        {!columnasOcultas.has("propietario") && <SortableTh colKey="propietario" label="Propietario" />}
-                        {!columnasOcultas.has("estado")      && <SortableTh colKey="estado"      label="Estado"      />}
-                        {!columnasOcultas.has("entidades")   && (
-                          <th className="sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
-                            Entidades
-                          </th>
-                        )}
-                        {!columnasOcultas.has("sinonimos")   && (
-                          <th className="sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
-                            Sinónimos
-                          </th>
-                        )}
-                        {!columnasOcultas.has("comentarios") && (
-                          <th className="sticky top-0 z-10 text-center px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
-                            Coment.
-                          </th>
-                        )}
-                        {columnasDinamicas.map((col) => (
-                          <th key={col.id} className="sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none bg-gray-50 dark:bg-[#111]">
-                            {col.label}
-                          </th>
-                        ))}
+                        {orderedVisibleCols.map((colId) => {
+                          const staticCol = ALL_COLUMNS.find((c) => c.id === colId);
+                          const dynCol = columnasDinamicas.find((c) => c.id === colId);
+                          const isDragging = dragColId === colId;
+                          const isDragOver = dragOverColId === colId;
+
+                          if (staticCol) {
+                            const sortKey = (["termino", "propietario", "estado", "categoria"] as SortKey[]).includes(colId as SortKey)
+                              ? colId as SortKey : undefined;
+                            if (sortKey) {
+                              return (
+                                <SortableTh
+                                  key={colId}
+                                  colKey={sortKey}
+                                  label={staticCol.label}
+                                  draggable
+                                  colId={colId}
+                                  className={colId === "definicion" ? "min-w-[200px]" : ""}
+                                />
+                              );
+                            }
+                            // Non-sortable static column
+                            return (
+                              <th
+                                key={colId}
+                                draggable
+                                onDragStart={(e) => handleColDragStart(e, colId)}
+                                onDragOver={(e) => handleColDragOver(e, colId)}
+                                onDrop={(e) => handleColDrop(e, colId)}
+                                onDragEnd={handleColDragEnd}
+                                className={`sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-grab active:cursor-grabbing hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] group/th
+                                  ${isDragOver ? "bg-[#28b8d5]/8 border-l-2 border-l-[#28b8d5]" : ""}
+                                  ${isDragging ? "opacity-40" : ""}
+                                `}
+                              >
+                                <div className="flex items-center gap-1">
+                                  <GripVertical className="w-3 h-3 text-gray-300 dark:text-white/20 shrink-0 opacity-0 group-hover/th:opacity-100 transition-opacity" />
+                                  {staticCol.label}
+                                </div>
+                              </th>
+                            );
+                          }
+
+                          // Dynamic column
+                          return (
+                            <th
+                              key={colId}
+                              draggable
+                              onDragStart={(e) => handleColDragStart(e, colId)}
+                              onDragOver={(e) => handleColDragOver(e, colId)}
+                              onDrop={(e) => handleColDrop(e, colId)}
+                              onDragEnd={handleColDragEnd}
+                              className={`sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-grab active:cursor-grabbing bg-gray-50 dark:bg-[#111] group/th
+                                ${isDragOver ? "bg-[#28b8d5]/8 border-l-2 border-l-[#28b8d5]" : ""}
+                                ${isDragging ? "opacity-40" : ""}
+                              `}
+                            >
+                              <div className="flex items-center gap-1">
+                                <GripVertical className="w-3 h-3 text-gray-300 dark:text-white/20 shrink-0 opacity-0 group-hover/th:opacity-100 transition-opacity" />
+                                {dynCol?.label ?? colId}
+                              </div>
+                            </th>
+                          );
+                        })}
                       </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">

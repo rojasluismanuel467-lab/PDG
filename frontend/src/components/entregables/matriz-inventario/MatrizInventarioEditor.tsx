@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { GripVertical } from "lucide-react";
 import ReactDOM from "react-dom";
 import type {
   MatrizInventarioSistemas,
@@ -40,6 +41,17 @@ interface MatrizInventarioEditorProps {
 type TabActiva = "tabla" | "comentarios" | "versiones";
 type SortKey = "nombre" | "tipo" | "criticidad" | "estado" | "propietario_tecnico";
 type SortConfig = { key: SortKey; dir: "asc" | "desc" };
+
+type DragColId = "area_estrategica" | "tipo" | "tecnologia" | "criticidad" | "estado" | "propietario_tecnico" | string;
+
+const STATIC_DRAGGABLE_COLS: { id: string; label: string; sortKey?: SortKey }[] = [
+  { id: "area_estrategica",    label: "Área Estratégica" },
+  { id: "tipo",                label: "Tipo",            sortKey: "tipo" },
+  { id: "tecnologia",          label: "Tecnología" },
+  { id: "criticidad",          label: "Criticidad",      sortKey: "criticidad" },
+  { id: "estado",              label: "Estado",           sortKey: "estado" },
+  { id: "propietario_tecnico", label: "Propietario TI",  sortKey: "propietario_tecnico" },
+];
 
 const TIPO_COLORES: Record<TipoSistema, string> = {
   aplicacion: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
@@ -266,6 +278,18 @@ export default function MatrizInventarioEditor({
   const [filtroEstado, setFiltroEstado] = useState<EstadoSistema | "todos">("todos");
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "nombre", dir: "asc" });
 
+  // Column order (drag-to-reorder)
+  const colOrderKey = `inventario-col-order-${matrizInicial.id || "default"}`;
+  const [colOrder, setColOrder] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(colOrderKey);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return STATIC_DRAGGABLE_COLS.map((c) => c.id);
+  });
+  const [dragColId, setDragColId] = useState<string | null>(null);
+  const [dragOverColId, setDragOverColId] = useState<string | null>(null);
+
   // ── Columnas dinámicas ─────────────────────────────────────────────────
   const storageKey = `inventario-columnas-${matrizInicial.id || "default"}`;
   const [columnasDinamicas, setColumnasDinamicas] = useState<{ id: string; label: string }[]>([]);
@@ -284,6 +308,23 @@ export default function MatrizInventarioEditor({
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(columnasDinamicas));
   }, [columnasDinamicas, storageKey]);
+
+  // Sync dynamic columns into colOrder
+  useEffect(() => {
+    setColOrder((prev) => {
+      const staticIds = new Set(STATIC_DRAGGABLE_COLS.map((c) => c.id));
+      const dynamicIds = columnasDinamicas.map((c) => c.id);
+      const newDynamic = dynamicIds.filter((id) => !prev.includes(id));
+      const validIds = new Set([...staticIds, ...dynamicIds]);
+      const filtered = prev.filter((id) => validIds.has(id));
+      return [...filtered, ...newDynamic];
+    });
+  }, [columnasDinamicas]);
+
+  // Persist colOrder
+  useEffect(() => {
+    localStorage.setItem(colOrderKey, JSON.stringify(colOrder));
+  }, [colOrder, colOrderKey]);
 
   const handleAddColumn = () => {
     const label = nuevaColLabel.trim();
@@ -449,6 +490,157 @@ export default function MatrizInventarioEditor({
     return sortConfig.dir === "asc"
       ? <span className="text-[#28b8d5]">↑</span>
       : <span className="text-[#28b8d5]">↓</span>;
+  };
+
+  const handleColDragStart = (e: React.DragEvent, colId: string) => {
+    setDragColId(colId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const handleColDragOver = (e: React.DragEvent, colId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverColId !== colId) setDragOverColId(colId);
+  };
+  const handleColDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!dragColId || dragColId === targetId) return;
+    setColOrder((prev) => {
+      const next = [...prev];
+      const fromIdx = next.indexOf(dragColId);
+      const toIdx = next.indexOf(targetId);
+      if (fromIdx === -1 || toIdx === -1) return prev;
+      next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, dragColId);
+      return next;
+    });
+    setDragColId(null);
+    setDragOverColId(null);
+  };
+  const handleColDragEnd = () => {
+    setDragColId(null);
+    setDragOverColId(null);
+  };
+
+  const renderDraggableCell = (colId: string, sistema: SistemaInventario, tdBase: string) => {
+    switch (colId) {
+      case "area_estrategica":
+        return (
+          <CeldaComentario
+            key={colId}
+            sistemaId={sistema.id}
+            campo="areas_estrategicas"
+            comentarios={matriz.comentarios}
+            onAddComment={handleAddCeldaComment}
+            readOnly={readOnly}
+            className={`${tdBase} text-xs text-gray-600 dark:text-white/50`}
+          >
+            <span className="block truncate">
+              {sistema.areas_estrategicas && sistema.areas_estrategicas.length > 0
+                ? sistema.areas_estrategicas.join(", ")
+                : <span className="text-gray-300 dark:text-white/20">—</span>}
+            </span>
+          </CeldaComentario>
+        );
+      case "tipo":
+        return (
+          <CeldaComentario
+            key={colId}
+            sistemaId={sistema.id}
+            campo="tipo"
+            comentarios={matriz.comentarios}
+            onAddComment={handleAddCeldaComment}
+            readOnly={readOnly}
+            className={`${tdBase} whitespace-nowrap`}
+          >
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORES[sistema.tipo]}`}>
+              {TIPO_LABELS[sistema.tipo]}
+            </span>
+          </CeldaComentario>
+        );
+      case "tecnologia":
+        return (
+          <CeldaComentario
+            key={colId}
+            sistemaId={sistema.id}
+            campo="tecnologia"
+            comentarios={matriz.comentarios}
+            onAddComment={handleAddCeldaComment}
+            readOnly={readOnly}
+            className={tdBase}
+          >
+            <span className="block truncate text-xs text-gray-600 dark:text-white/50">
+              {sistema.tecnologia || <span className="text-gray-300 dark:text-white/20">—</span>}
+            </span>
+          </CeldaComentario>
+        );
+      case "criticidad":
+        return (
+          <CeldaComentario
+            key={colId}
+            sistemaId={sistema.id}
+            campo="criticidad"
+            comentarios={matriz.comentarios}
+            onAddComment={handleAddCeldaComment}
+            readOnly={readOnly}
+            className={`${tdBase} whitespace-nowrap`}
+          >
+            {sistema.criticidad
+              ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${CRITICIDAD_COLORS[sistema.criticidad]}`}>{CRITICIDAD_LABELS[sistema.criticidad]}</span>
+              : <span className="text-gray-300 dark:text-white/20">—</span>}
+          </CeldaComentario>
+        );
+      case "estado":
+        return (
+          <CeldaComentario
+            key={colId}
+            sistemaId={sistema.id}
+            campo="estado"
+            comentarios={matriz.comentarios}
+            onAddComment={handleAddCeldaComment}
+            readOnly={readOnly}
+            className={`${tdBase} whitespace-nowrap`}
+          >
+            {sistema.estado
+              ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${ESTADO_COLORES[sistema.estado]}`}>{ESTADO_LABELS[sistema.estado]}</span>
+              : <span className="text-gray-300 dark:text-white/20">—</span>}
+          </CeldaComentario>
+        );
+      case "propietario_tecnico":
+        return (
+          <CeldaComentario
+            key={colId}
+            sistemaId={sistema.id}
+            campo="propietario_tecnico"
+            comentarios={matriz.comentarios}
+            onAddComment={handleAddCeldaComment}
+            readOnly={readOnly}
+            className={tdBase}
+          >
+            <span className="block truncate text-xs text-gray-500 dark:text-white/40">
+              {sistema.propietario_tecnico || <span className="text-gray-300 dark:text-white/20">—</span>}
+            </span>
+          </CeldaComentario>
+        );
+      default: {
+        const dynCol = columnasDinamicas.find((c) => c.id === colId);
+        if (!dynCol) return null;
+        return (
+          <CeldaComentario
+            key={colId}
+            sistemaId={sistema.id}
+            campo={dynCol.id}
+            comentarios={matriz.comentarios}
+            onAddComment={handleAddCeldaComment}
+            readOnly={readOnly}
+            className={tdBase}
+          >
+            <span className="block truncate text-xs text-gray-600 dark:text-white/50">
+              {(sistema as any)[dynCol.id] || <span className="text-gray-300 dark:text-white/20">—</span>}
+            </span>
+          </CeldaComentario>
+        );
+      }
+    }
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -726,15 +918,7 @@ export default function MatrizInventarioEditor({
                   <colgroup>
                     <col className="w-10" />
                     <col />
-                    <col />
-                    <col className="w-28" />
-                    <col />
-                    <col className="w-24" />
-                    <col className="w-24" />
-                    <col />
-                    {columnasDinamicas.map((col) => (
-                      <col key={col.id} />
-                    ))}
+                    {colOrder.map((colId) => <col key={colId} />)}
                   </colgroup>
                   <thead>
                     <tr className="bg-gray-100 dark:bg-white/[0.05] shadow-sm">
@@ -750,53 +934,37 @@ export default function MatrizInventarioEditor({
                           Nombre del Sistema {renderSortIcon("nombre")}
                         </div>
                       </th>
-                      <th scope="col" className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
-                        Área Estratégica
-                      </th>
-                      <th
-                        scope="col"
-                        onClick={() => toggleSort("tipo")}
-                        className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          Tipo {renderSortIcon("tipo")}
-                        </div>
-                      </th>
-                      <th scope="col" className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
-                        Tecnología
-                      </th>
-                      <th
-                        scope="col"
-                        onClick={() => toggleSort("criticidad")}
-                        className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          Criticidad {renderSortIcon("criticidad")}
-                        </div>
-                      </th>
-                      <th
-                        scope="col"
-                        onClick={() => toggleSort("estado")}
-                        className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          Estado {renderSortIcon("estado")}
-                        </div>
-                      </th>
-                      <th
-                        scope="col"
-                        onClick={() => toggleSort("propietario_tecnico")}
-                        className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          Propietario TI {renderSortIcon("propietario_tecnico")}
-                        </div>
-                      </th>
-                      {columnasDinamicas.map((col) => (
-                        <th scope="col" key={col.id} className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
-                          <span className="block truncate">{col.label}</span>
-                        </th>
-                      ))}
+                      {colOrder.map((colId) => {
+                        const staticDef = STATIC_DRAGGABLE_COLS.find((c) => c.id === colId);
+                        const dynDef = columnasDinamicas.find((c) => c.id === colId);
+                        const label = staticDef?.label ?? dynDef?.label ?? colId;
+                        const sortKey = staticDef?.sortKey;
+                        const isDragging = dragColId === colId;
+                        const isDragOver = dragOverColId === colId;
+                        return (
+                          <th
+                            key={colId}
+                            scope="col"
+                            draggable
+                            onDragStart={(e) => handleColDragStart(e, colId)}
+                            onDragOver={(e) => handleColDragOver(e, colId)}
+                            onDrop={(e) => handleColDrop(e, colId)}
+                            onDragEnd={handleColDragEnd}
+                            onClick={sortKey ? () => toggleSort(sortKey) : undefined}
+                            className={`sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] select-none transition-colors group/th
+                              ${sortKey ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"}
+                              ${isDragOver ? "bg-[#28b8d5]/8 border-l-[#28b8d5]" : ""}
+                              ${isDragging ? "opacity-40" : ""}
+                            `}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <GripVertical className="w-3 h-3 text-gray-300 dark:text-white/20 shrink-0 opacity-0 group-hover/th:opacity-100 transition-opacity" />
+                              {label}
+                              {sortKey && renderSortIcon(sortKey)}
+                            </div>
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody>
@@ -846,108 +1014,7 @@ export default function MatrizInventarioEditor({
                             )}
                           </CeldaComentario>
 
-                          {/* Área Estratégica */}
-                          <CeldaComentario
-                            sistemaId={sistema.id}
-                            campo="areas_estrategicas"
-                            comentarios={matriz.comentarios}
-                            onAddComment={handleAddCeldaComment}
-                            readOnly={readOnly}
-                            className={`${tdBase} text-xs text-gray-600 dark:text-white/50`}
-                          >
-                            <span className="block truncate">
-                            {sistema.areas_estrategicas && sistema.areas_estrategicas.length > 0
-                              ? sistema.areas_estrategicas.join(", ")
-                              : <span className="text-gray-300 dark:text-white/20">—</span>}
-                            </span>
-                          </CeldaComentario>
-
-                          {/* Tipo */}
-                          <CeldaComentario
-                            sistemaId={sistema.id}
-                            campo="tipo"
-                            comentarios={matriz.comentarios}
-                            onAddComment={handleAddCeldaComment}
-                            readOnly={readOnly}
-                            className={`${tdBase} whitespace-nowrap`}
-                          >
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORES[sistema.tipo]}`}>
-                              {TIPO_LABELS[sistema.tipo]}
-                            </span>
-                          </CeldaComentario>
-
-                          {/* Tecnología */}
-                          <CeldaComentario
-                            sistemaId={sistema.id}
-                            campo="tecnologia"
-                            comentarios={matriz.comentarios}
-                            onAddComment={handleAddCeldaComment}
-                            readOnly={readOnly}
-                            className={tdBase}
-                          >
-                            <span className="block truncate text-xs text-gray-600 dark:text-white/50">
-                              {sistema.tecnologia || <span className="text-gray-300 dark:text-white/20">—</span>}
-                            </span>
-                          </CeldaComentario>
-
-                          {/* Criticidad */}
-                          <CeldaComentario
-                            sistemaId={sistema.id}
-                            campo="criticidad"
-                            comentarios={matriz.comentarios}
-                            onAddComment={handleAddCeldaComment}
-                            readOnly={readOnly}
-                            className={`${tdBase} whitespace-nowrap`}
-                          >
-                            {sistema.criticidad
-                              ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${CRITICIDAD_COLORS[sistema.criticidad]}`}>{CRITICIDAD_LABELS[sistema.criticidad]}</span>
-                              : <span className="text-gray-300 dark:text-white/20">—</span>}
-                          </CeldaComentario>
-
-                          {/* Estado */}
-                          <CeldaComentario
-                            sistemaId={sistema.id}
-                            campo="estado"
-                            comentarios={matriz.comentarios}
-                            onAddComment={handleAddCeldaComment}
-                            readOnly={readOnly}
-                            className={`${tdBase} whitespace-nowrap`}
-                          >
-                            {sistema.estado
-                              ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${ESTADO_COLORES[sistema.estado]}`}>{ESTADO_LABELS[sistema.estado]}</span>
-                              : <span className="text-gray-300 dark:text-white/20">—</span>}
-                          </CeldaComentario>
-
-                          {/* Propietario TI */}
-                          <CeldaComentario
-                            sistemaId={sistema.id}
-                            campo="propietario_tecnico"
-                            comentarios={matriz.comentarios}
-                            onAddComment={handleAddCeldaComment}
-                            readOnly={readOnly}
-                            className={tdBase}
-                          >
-                            <span className="block truncate text-xs text-gray-500 dark:text-white/40">
-                              {sistema.propietario_tecnico || <span className="text-gray-300 dark:text-white/20">—</span>}
-                            </span>
-                          </CeldaComentario>
-
-                          {/* Columnas dinámicas */}
-                          {columnasDinamicas.map((col) => (
-                            <CeldaComentario
-                              key={col.id}
-                              sistemaId={sistema.id}
-                              campo={col.id}
-                              comentarios={matriz.comentarios}
-                              onAddComment={handleAddCeldaComment}
-                              readOnly={readOnly}
-                              className={tdBase}
-                            >
-                              <span className="block truncate text-xs text-gray-600 dark:text-white/50">
-                                {(sistema as any)[col.id] || <span className="text-gray-300 dark:text-white/20">—</span>}
-                              </span>
-                            </CeldaComentario>
-                          ))}
+                          {colOrder.map((colId) => renderDraggableCell(colId, sistema, tdBase))}
                         </tr>
                       );
                     })}
