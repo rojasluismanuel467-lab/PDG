@@ -482,7 +482,7 @@ export default function GlosarioNegocioEditor({
         onDrop={isDraggable ? (e) => handleColDrop(e, id) : undefined}
         onDragEnd={isDraggable ? handleColDragEnd : undefined}
         className={`text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-pointer hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] group/th
-          ${isDragOver ? "bg-[#28b8d5]/8 border-l-2 border-l-[#28b8d5]" : ""}
+          ${isDragOver ? "border-l-[3px] border-l-[#28b8d5] shadow-[-4px_0_8px_rgba(40,184,213,0.4)]" : ""}
           ${isDragging ? "opacity-40" : ""}
           ${className}`}
       >
@@ -1033,7 +1033,7 @@ export default function GlosarioNegocioEditor({
                                 onDrop={(e) => handleColDrop(e, colId)}
                                 onDragEnd={handleColDragEnd}
                                 className={`sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-grab active:cursor-grabbing hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] group/th
-                                  ${isDragOver ? "bg-[#28b8d5]/8 border-l-2 border-l-[#28b8d5]" : ""}
+                                  ${isDragOver ? "border-l-[3px] border-l-[#28b8d5] shadow-[-4px_0_8px_rgba(40,184,213,0.4)]" : ""}
                                   ${isDragging ? "opacity-40" : ""}
                                 `}
                               >
@@ -1055,7 +1055,7 @@ export default function GlosarioNegocioEditor({
                               onDrop={(e) => handleColDrop(e, colId)}
                               onDragEnd={handleColDragEnd}
                               className={`sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-grab active:cursor-grabbing bg-gray-50 dark:bg-[#111] group/th
-                                ${isDragOver ? "bg-[#28b8d5]/8 border-l-2 border-l-[#28b8d5]" : ""}
+                                ${isDragOver ? "border-l-[3px] border-l-[#28b8d5] shadow-[-4px_0_8px_rgba(40,184,213,0.4)]" : ""}
                                 ${isDragging ? "opacity-40" : ""}
                               `}
                             >

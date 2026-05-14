@@ -953,7 +953,7 @@ export default function MatrizInventarioEditor({
                             onClick={sortKey ? () => toggleSort(sortKey) : undefined}
                             className={`sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] select-none transition-colors group/th
                               ${sortKey ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"}
-                              ${isDragOver ? "bg-[#28b8d5]/8 border-l-[#28b8d5]" : ""}
+                              ${isDragOver ? "border-l-[3px] border-l-[#28b8d5] shadow-[-4px_0_8px_rgba(40,184,213,0.4)]" : ""}
                               ${isDragging ? "opacity-40" : ""}
                             `}
                           >
