@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import ReactDOM from "react-dom";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { projectsApi } from "@/lib/api/projects";
@@ -8,7 +9,6 @@ import { toLegacyProject, type LegacyProject as Proyecto, type LegacyProjectStat
 import { calcularProgreso, formatearFecha } from "@/lib/utils/proyecto.utils";
 import Badge from "@/components/ui/badge/Badge";
 import Button from "@/components/ui/button/Button";
-import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
 import { useModal } from "@/hooks/useModal";
 import { useToast } from "@/hooks/useToast";
@@ -78,12 +78,94 @@ interface FilaProyectoProps {
 
 function FilaProyecto({ proyecto, onCambiarEstado }: FilaProyectoProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const [mounted, setMounted] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
   const progreso = calcularProgreso(
     proyecto.entregables.aprobados,
     proyecto.entregables.no_aplica
   );
   const badge = ESTADO_BADGE[proyecto.estado];
   const tieneAcciones = proyecto.estado === "ACTIVO" || proyecto.estado === "EN_PAUSA";
+
+  useEffect(() => { setMounted(true); }, []);
+
+  const handleToggleMenu = () => {
+    if (!menuAbierto && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setMenuAbierto((prev) => !prev);
+  };
+
+  // Cierra al hacer clic fuera del menú
+  useEffect(() => {
+    if (!menuAbierto) return;
+    const handler = (e: MouseEvent) => {
+      if (!btnRef.current?.contains(e.target as Node)) {
+        setMenuAbierto(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuAbierto]);
+
+  // Portal: evita que overflow-hidden de la tabla recorte el menú
+  const menuPortal = menuAbierto && mounted
+    ? ReactDOM.createPortal(
+        <div
+          style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
+          className="min-w-[170px] rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-white/[0.08] dark:bg-[#0d0d0d] dark:shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+        >
+          {proyecto.estado === "ACTIVO" && (
+            <DropdownItem
+              onClick={() => {
+                setMenuAbierto(false);
+                onCambiarEstado({
+                  proyectoId: proyecto.id,
+                  nombreProyecto: proyecto.nombre,
+                  nuevoEstado: "EN_PAUSA",
+                });
+              }}
+            >
+              Poner en pausa
+            </DropdownItem>
+          )}
+          {proyecto.estado === "EN_PAUSA" && (
+            <DropdownItem
+              onClick={() => {
+                setMenuAbierto(false);
+                onCambiarEstado({
+                  proyectoId: proyecto.id,
+                  nombreProyecto: proyecto.nombre,
+                  nuevoEstado: "ACTIVO",
+                });
+              }}
+            >
+              Reactivar
+            </DropdownItem>
+          )}
+          <DropdownItem
+            onClick={() => {
+              setMenuAbierto(false);
+              onCambiarEstado({
+                proyectoId: proyecto.id,
+                nombreProyecto: proyecto.nombre,
+                nuevoEstado: "CERRADO",
+              });
+            }}
+            className="text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-400/10"
+          >
+            Cerrar proyecto
+          </DropdownItem>
+        </div>,
+        document.body
+      )
+    : null;
 
   return (
     <tr className="border-b border-gray-100 dark:border-white/[0.05] hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
@@ -151,11 +233,13 @@ function FilaProyecto({ proyecto, onCambiarEstado }: FilaProyectoProps) {
       {/* Acciones */}
       <td className="px-5 py-4">
         {tieneAcciones ? (
-          <div className="relative">
+          <>
             <button
-              className="dropdown-toggle flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-white/60 dark:hover:bg-white/[0.06] transition-colors"
-              onClick={() => setMenuAbierto((prev) => !prev)}
+              ref={btnRef}
+              onClick={handleToggleMenu}
               aria-label="Acciones del proyecto"
+              aria-expanded={menuAbierto}
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-white/60 dark:hover:bg-white/[0.06] transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <circle cx="12" cy="5" r="1.5" />
@@ -163,50 +247,8 @@ function FilaProyecto({ proyecto, onCambiarEstado }: FilaProyectoProps) {
                 <circle cx="12" cy="19" r="1.5" />
               </svg>
             </button>
-            <Dropdown isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} className="min-w-[170px]">
-              {proyecto.estado === "ACTIVO" && (
-                <DropdownItem
-                  onClick={() => {
-                    setMenuAbierto(false);
-                    onCambiarEstado({
-                      proyectoId: proyecto.id,
-                      nombreProyecto: proyecto.nombre,
-                      nuevoEstado: "EN_PAUSA",
-                    });
-                  }}
-                >
-                  Poner en pausa
-                </DropdownItem>
-              )}
-              {proyecto.estado === "EN_PAUSA" && (
-                <DropdownItem
-                  onClick={() => {
-                    setMenuAbierto(false);
-                    onCambiarEstado({
-                      proyectoId: proyecto.id,
-                      nombreProyecto: proyecto.nombre,
-                      nuevoEstado: "ACTIVO",
-                    });
-                  }}
-                >
-                  Reactivar
-                </DropdownItem>
-              )}
-              <DropdownItem
-                onClick={() => {
-                  setMenuAbierto(false);
-                  onCambiarEstado({
-                    proyectoId: proyecto.id,
-                    nombreProyecto: proyecto.nombre,
-                    nuevoEstado: "CERRADO",
-                  });
-                }}
-                className="text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-400/10"
-              >
-                Cerrar proyecto
-              </DropdownItem>
-            </Dropdown>
-          </div>
+            {menuPortal}
+          </>
         ) : (
           <span className="text-sm text-gray-300 dark:text-white/20 select-none">—</span>
         )}
