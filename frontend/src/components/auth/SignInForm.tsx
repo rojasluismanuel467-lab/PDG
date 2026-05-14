@@ -96,17 +96,24 @@ function SignInFormInner() {
             Iniciar sesión
           </h1>
           {IS_DEV && (
-            <div className="mt-2 space-y-0.5">
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                credenciales admin :{" "}
-                <span className="font-mono text-gray-600 dark:text-gray-300">
-                  admin@arqdata.local
-                </span>{" "}
-                /{" "}
-                <span className="font-mono text-gray-600 dark:text-gray-300">
-                  Admin12345!
-                </span>
-              </p>
+            <div className="mt-2 space-y-1">
+              {[
+                { label: "Admin", email: "admin@arqdata.local", pass: "Admin12345!" },
+                { label: "Consultor", email: "carlos.mendez@arqdata.co", pass: "Consultor123!" },
+                { label: "Empresa", email: "empresa@arqdata.co", pass: "Empresa123!" },
+              ].map(({ label, email: devEmail, pass }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => { setEmail(devEmail); setPassword(pass); }}
+                  className="block w-full text-left text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <span className="font-medium text-gray-500 dark:text-gray-400 w-16 inline-block">{label}:</span>{" "}
+                  <span className="font-mono">{devEmail}</span>{" "}
+                  /{" "}
+                  <span className="font-mono">{pass}</span>
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -133,6 +140,7 @@ function SignInFormInner() {
                 type="email"
                 name="email"
                 placeholder="correo@ejemplo.com"
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 error={emailError}
                 hint={emailError ? "Ingresa un correo electrónico válido." : undefined}
@@ -149,6 +157,7 @@ function SignInFormInner() {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="••••••••"
+                  value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   error={passwordError}
                 />

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/header/NotificationDropdown";
@@ -17,8 +17,11 @@ const AppHeader: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+
+  const showBack = pathname.split("/").filter(Boolean).length > 2;
 
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
@@ -56,6 +59,17 @@ const AppHeader: React.FC = () => {
     <header className="sticky top-0 z-99999 flex w-full border-gray-200 bg-white/90 backdrop-blur-md dark:border-white/[0.06] dark:bg-[#000000]/75 lg:border-b">
       <div className="flex grow flex-col items-center justify-between lg:flex-row lg:px-6">
         <div className="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 dark:border-white/[0.06] sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
+          {showBack && (
+            <button
+              onClick={() => router.back()}
+              aria-label="Volver"
+              className="flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 dark:border-white/[0.08] dark:text-gray-400 lg:h-11 lg:w-11"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7" />
+              </svg>
+            </button>
+          )}
           <button
             className="z-99999 items-center justify-center rounded-lg border border-gray-200 text-gray-500 dark:border-white/[0.08] dark:text-gray-400 lg:flex lg:h-11 lg:w-11"
             onClick={handleToggle}

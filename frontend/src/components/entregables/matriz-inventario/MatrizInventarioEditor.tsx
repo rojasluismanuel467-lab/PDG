@@ -552,36 +552,49 @@ export default function MatrizInventarioEditor({
                   </div>
                 </div>
               ) : (
-                <table className="w-full text-sm border-separate border-spacing-0">
+                <table className="w-full table-fixed text-sm border-separate border-spacing-0">
+                  <colgroup>
+                    <col className="w-10" />
+                    <col />
+                    <col />
+                    <col className="w-28" />
+                    <col />
+                    <col className="w-24" />
+                    <col className="w-24" />
+                    <col />
+                    {columnasDinamicas.map((col) => (
+                      <col key={col.id} />
+                    ))}
+                  </colgroup>
                   <thead>
                     <tr className="bg-gray-100 dark:bg-white/[0.05] shadow-sm">
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap border border-gray-300 dark:border-white/[0.12]">
+                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         #
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide border border-gray-300 dark:border-white/[0.12]">
+                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Nombre del Sistema
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap border border-gray-300 dark:border-white/[0.12]">
+                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Área Estratégica
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap border border-gray-300 dark:border-white/[0.12]">
+                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Tipo
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide border border-gray-300 dark:border-white/[0.12]">
+                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Tecnología
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap border border-gray-300 dark:border-white/[0.12]">
+                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Criticidad
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap border border-gray-300 dark:border-white/[0.12]">
+                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Estado
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide border border-gray-300 dark:border-white/[0.12]">
+                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Propietario TI
                       </th>
                       {columnasDinamicas.map((col) => (
-                        <th key={col.id} className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide border border-gray-300 dark:border-white/[0.12]">
-                          {col.label}
+                        <th key={col.id} className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
+                          <span className="block truncate">{col.label}</span>
                         </th>
                       ))}
                     </tr>
@@ -615,9 +628,9 @@ export default function MatrizInventarioEditor({
                             readOnly={readOnly}
                             className={tdBase}
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 overflow-hidden">
                               {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#28b8d5] shrink-0" />}
-                              <span className="text-sm font-medium text-gray-800 dark:text-white/80 truncate max-w-[200px]">
+                              <span className="text-sm font-medium text-gray-800 dark:text-white/80 truncate">
                                 {sistema.nombre}
                               </span>
                             </div>
@@ -635,11 +648,13 @@ export default function MatrizInventarioEditor({
                             comentarios={matriz.comentarios}
                             onAddComment={handleAddCeldaComment}
                             readOnly={readOnly}
-                            className={`${tdBase} text-xs text-gray-600 dark:text-white/50 max-w-[160px] whitespace-normal`}
+                            className={`${tdBase} text-xs text-gray-600 dark:text-white/50`}
                           >
+                            <span className="block truncate">
                             {sistema.areas_estrategicas && sistema.areas_estrategicas.length > 0
                               ? sistema.areas_estrategicas.join(", ")
                               : <span className="text-gray-300 dark:text-white/20">—</span>}
+                            </span>
                           </CeldaComentario>
 
                           {/* Tipo */}
@@ -665,7 +680,7 @@ export default function MatrizInventarioEditor({
                             readOnly={readOnly}
                             className={tdBase}
                           >
-                            <span className="block truncate max-w-[160px] text-xs text-gray-600 dark:text-white/50">
+                            <span className="block truncate text-xs text-gray-600 dark:text-white/50">
                               {sistema.tecnologia || <span className="text-gray-300 dark:text-white/20">—</span>}
                             </span>
                           </CeldaComentario>
@@ -707,7 +722,7 @@ export default function MatrizInventarioEditor({
                             readOnly={readOnly}
                             className={tdBase}
                           >
-                            <span className="block truncate max-w-[180px] text-xs text-gray-500 dark:text-white/40">
+                            <span className="block truncate text-xs text-gray-500 dark:text-white/40">
                               {sistema.propietario_tecnico || <span className="text-gray-300 dark:text-white/20">—</span>}
                             </span>
                           </CeldaComentario>
@@ -723,7 +738,7 @@ export default function MatrizInventarioEditor({
                               readOnly={readOnly}
                               className={tdBase}
                             >
-                              <span className="block truncate max-w-[160px] text-xs text-gray-600 dark:text-white/50">
+                              <span className="block truncate text-xs text-gray-600 dark:text-white/50">
                                 {(sistema as any)[col.id] || <span className="text-gray-300 dark:text-white/20">—</span>}
                               </span>
                             </CeldaComentario>
