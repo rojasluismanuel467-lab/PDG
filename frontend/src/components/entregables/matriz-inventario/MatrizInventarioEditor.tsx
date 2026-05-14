@@ -290,6 +290,18 @@ export default function MatrizInventarioEditor({
   const [dragColId, setDragColId] = useState<string | null>(null);
   const [dragOverColId, setDragOverColId] = useState<string | null>(null);
 
+  // Col/row resize
+  const colWidthsKey = `inventario-col-widths-${matrizInicial.id || "default"}`;
+  const rowHeightsKey = `inventario-row-heights-${matrizInicial.id || "default"}`;
+  const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
+    try { const s = localStorage.getItem(colWidthsKey); if (s) return JSON.parse(s); } catch {}
+    return {};
+  });
+  const [rowHeights, setRowHeights] = useState<Record<string, number>>(() => {
+    try { const s = localStorage.getItem(rowHeightsKey); if (s) return JSON.parse(s); } catch {}
+    return {};
+  });
+
   // ── Columnas dinámicas ─────────────────────────────────────────────────
   const storageKey = `inventario-columnas-${matrizInicial.id || "default"}`;
   const [columnasDinamicas, setColumnasDinamicas] = useState<{ id: string; label: string }[]>([]);
@@ -325,6 +337,9 @@ export default function MatrizInventarioEditor({
   useEffect(() => {
     localStorage.setItem(colOrderKey, JSON.stringify(colOrder));
   }, [colOrder, colOrderKey]);
+
+  useEffect(() => { localStorage.setItem(colWidthsKey, JSON.stringify(colWidths)); }, [colWidths, colWidthsKey]);
+  useEffect(() => { localStorage.setItem(rowHeightsKey, JSON.stringify(rowHeights)); }, [rowHeights, rowHeightsKey]);
 
   const handleAddColumn = () => {
     const label = nuevaColLabel.trim();
@@ -519,6 +534,48 @@ export default function MatrizInventarioEditor({
   const handleColDragEnd = () => {
     setDragColId(null);
     setDragOverColId(null);
+  };
+
+  const handleColResizeStart = (e: React.MouseEvent, colId: string, defaultW: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startW = colWidths[colId] ?? defaultW;
+    const startX = e.clientX;
+    const onMove = (ev: MouseEvent) => {
+      const newW = Math.max(60, startW + ev.clientX - startX);
+      setColWidths((prev) => ({ ...prev, [colId]: newW }));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  const handleRowResizeStart = (e: React.MouseEvent, rowId: string, defaultH: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startH = rowHeights[rowId] ?? defaultH;
+    const startY = e.clientY;
+    const onMove = (ev: MouseEvent) => {
+      const newH = Math.max(36, startH + ev.clientY - startY);
+      setRowHeights((prev) => ({ ...prev, [rowId]: newH }));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
   };
 
   const renderDraggableCell = (colId: string, sistema: SistemaInventario, tdBase: string) => {
@@ -916,9 +973,9 @@ export default function MatrizInventarioEditor({
                 <table className="w-full table-fixed text-sm border-separate border-spacing-0">
                   <caption className="sr-only">Matriz de inventario de sistemas</caption>
                   <colgroup>
-                    <col className="w-10" />
-                    <col />
-                    {colOrder.map((colId) => <col key={colId} />)}
+                    <col style={{ width: 40 }} />
+                    <col style={{ width: colWidths["nombre"] ?? 200 }} />
+                    {colOrder.map((colId) => <col key={colId} style={{ width: colWidths[colId] ?? 160 }} />)}
                   </colgroup>
                   <thead>
                     <tr className="bg-gray-100 dark:bg-white/[0.05] shadow-sm">
@@ -928,11 +985,12 @@ export default function MatrizInventarioEditor({
                       <th
                         scope="col"
                         onClick={() => toggleSort("nombre")}
-                        className="sticky top-0 left-10 z-20 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
+                        className="sticky top-0 left-10 z-20 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide relative border border-gray-300 dark:border-white/[0.12] cursor-pointer"
                       >
                         <div className="flex items-center gap-1.5">
                           Nombre del Sistema {renderSortIcon("nombre")}
                         </div>
+                        <div className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#28b8d5]/60 z-10 transition-colors" onMouseDown={(e) => handleColResizeStart(e, "nombre", 200)} onClick={(e) => e.stopPropagation()} />
                       </th>
                       {colOrder.map((colId) => {
                         const staticDef = STATIC_DRAGGABLE_COLS.find((c) => c.id === colId);
@@ -951,7 +1009,7 @@ export default function MatrizInventarioEditor({
                             onDrop={(e) => handleColDrop(e, colId)}
                             onDragEnd={handleColDragEnd}
                             onClick={sortKey ? () => toggleSort(sortKey) : undefined}
-                            className={`sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] select-none transition-colors group/th
+                            className={`sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide relative border border-gray-300 dark:border-white/[0.12] select-none transition-colors group/th
                               ${sortKey ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"}
                               ${isDragOver ? "border-l-[3px] border-l-[#28b8d5] shadow-[-4px_0_8px_rgba(40,184,213,0.4)]" : ""}
                               ${isDragging ? "opacity-40" : ""}
@@ -962,6 +1020,7 @@ export default function MatrizInventarioEditor({
                               {label}
                               {sortKey && renderSortIcon(sortKey)}
                             </div>
+                            <div className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#28b8d5]/60 z-10 transition-colors" onMouseDown={(e) => handleColResizeStart(e, colId, 160)} onClick={(e) => e.stopPropagation()} />
                           </th>
                         );
                       })}
@@ -986,10 +1045,12 @@ export default function MatrizInventarioEditor({
                           key={sistema.id}
                           onClick={() => setSistemaSeleccionadoId(isSelected ? null : sistema.id)}
                           className={`cursor-pointer transition-colors hover:brightness-95 dark:hover:bg-white/[0.04] ${rowBase}`}
+                          style={rowHeights[sistema.id] ? { height: rowHeights[sistema.id] } : undefined}
                         >
                           {/* # */}
-                          <td className={`${tdBase} sticky left-0 z-20 ${stickyCellBg} text-[11px] font-mono text-gray-400 dark:text-white/25 whitespace-nowrap`}>
+                          <td className={`${tdBase} sticky left-0 z-20 ${stickyCellBg} text-[11px] font-mono text-gray-400 dark:text-white/25 whitespace-nowrap relative`}>
                             {String(idx + 1).padStart(2, "0")}
+                            <div className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-[#28b8d5]/40 z-10 transition-colors" onMouseDown={(e) => handleRowResizeStart(e, sistema.id, 44)} onClick={(e) => e.stopPropagation()} />
                           </td>
 
                           {/* Nombre */}

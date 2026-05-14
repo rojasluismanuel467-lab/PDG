@@ -88,6 +88,20 @@ export default function MatrizRACIEditor({
   useEffect(() => { setMatriz(matrizProp); }, [matrizProp]);
   const [isCopying, setIsCopying] = useState(false);
 
+  // Col/row resize
+  const colWidthsKey = `raci-col-widths-${matrizProp.entregable_id || "default"}`;
+  const rowHeightsKey = `raci-row-heights-${matrizProp.entregable_id || "default"}`;
+  const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
+    try { const s = localStorage.getItem(colWidthsKey); if (s) return JSON.parse(s); } catch {}
+    return {};
+  });
+  const [rowHeights, setRowHeights] = useState<Record<string, number>>(() => {
+    try { const s = localStorage.getItem(rowHeightsKey); if (s) return JSON.parse(s); } catch {}
+    return {};
+  });
+  useEffect(() => { localStorage.setItem(colWidthsKey, JSON.stringify(colWidths)); }, [colWidths, colWidthsKey]);
+  useEffect(() => { localStorage.setItem(rowHeightsKey, JSON.stringify(rowHeights)); }, [rowHeights, rowHeightsKey]);
+
   const [tabActiva, setTabActiva] = useState<TabActiva>("matriz");
   const [actividadSeleccionada, setActividadSeleccionada] = useState<ActividadRaci | null>(null);
   const [rolSeleccionado, setRolSeleccionado] = useState<RolRaci | null>(null);
@@ -313,6 +327,48 @@ export default function MatrizRACIEditor({
     setRolSeleccionado(null);
     setHasChanges(true);
   }, []);
+
+  const handleColResizeStart = (e: React.MouseEvent, colId: string, defaultW: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startW = colWidths[colId] ?? defaultW;
+    const startX = e.clientX;
+    const onMove = (ev: MouseEvent) => {
+      const newW = Math.max(60, startW + ev.clientX - startX);
+      setColWidths((prev) => ({ ...prev, [colId]: newW }));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  const handleRowResizeStart = (e: React.MouseEvent, rowId: string, defaultH: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startH = rowHeights[rowId] ?? defaultH;
+    const startY = e.clientY;
+    const onMove = (ev: MouseEvent) => {
+      const newH = Math.max(36, startH + ev.clientY - startY);
+      setRowHeights((prev) => ({ ...prev, [rowId]: newH }));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+  };
 
   const handleClearMatrix = () => {
     if (!confirm("¿Eliminar todas las actividades y roles de la matriz?")) return;
@@ -630,17 +686,24 @@ export default function MatrizRACIEditor({
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
+                  <table className="w-full border-collapse table-fixed">
+                    <colgroup>
+                      <col style={{ width: colWidths["actividad"] ?? 240 }} />
+                      {matriz.roles.map((rol) => (
+                        <col key={rol.id} style={{ width: colWidths[rol.id] ?? 120 }} />
+                      ))}
+                    </colgroup>
                     <thead>
                       <tr className="border-b-2 border-gray-200 dark:border-white/[0.08] bg-gray-50/80 dark:bg-white/[0.02]">
                         {/* Activity column header */}
-                        <th className="sticky left-0 z-20 bg-gray-50 dark:bg-[#111] text-left px-4 py-3 min-w-[240px] border-r border-gray-200 dark:border-white/[0.08]" style={{ boxShadow: "2px 0 4px -1px rgba(0,0,0,0.06)" }}>
+                        <th className="sticky left-0 z-20 bg-gray-50 dark:bg-[#111] text-left px-4 py-3 border-r border-gray-200 dark:border-white/[0.08] relative" style={{ boxShadow: "2px 0 4px -1px rgba(0,0,0,0.06)" }}>
                           <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/25">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                             Actividad / Proceso
                           </div>
+                          <div className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#28b8d5]/60 z-10 transition-colors" onMouseDown={(e) => handleColResizeStart(e, "actividad", 240)} onClick={(e) => e.stopPropagation()} />
                         </th>
 
                         {/* Role column headers */}
@@ -651,7 +714,7 @@ export default function MatrizRACIEditor({
                           return (
                             <th
                               key={rol.id}
-                              className="px-2 py-2 text-center min-w-[110px] max-w-[140px] border-l border-gray-100 dark:border-white/[0.05]"
+                              className="px-2 py-2 text-center border-l border-gray-100 dark:border-white/[0.05] relative"
                               onContextMenu={(e) => openContextMenu(e, { type: "rol", rolId: rol.id, rolNombre: rol.nombre })}
                             >
                               <button
@@ -708,6 +771,7 @@ export default function MatrizRACIEditor({
                                   </span>
                                 )}
                               </button>
+                              <div className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#28b8d5]/60 z-10 transition-colors" onMouseDown={(e) => handleColResizeStart(e, rol.id, 120)} onClick={(e) => e.stopPropagation()} />
                             </th>
                           );
                         })}
@@ -774,10 +838,11 @@ export default function MatrizRACIEditor({
                                       ? "bg-[#28b8d5]/[0.05] dark:bg-[#28b8d5]/[0.07]"
                                       : "bg-white dark:bg-transparent hover:bg-gray-50/60 dark:hover:bg-white/[0.02]"
                                   }`}
+                                  style={rowHeights[actividad.id] ? { height: rowHeights[actividad.id] } : undefined}
                                 >
                                   {/* Activity cell (sticky) */}
                                   <td
-                                    className={`sticky left-0 z-10 border-r border-gray-200 dark:border-white/[0.07] px-3 ${ROW_PY[density]} cursor-pointer ${
+                                    className={`sticky left-0 z-10 border-r border-gray-200 dark:border-white/[0.07] px-3 ${ROW_PY[density]} cursor-pointer relative ${
                                       isSelected
                                         ? "bg-[#28b8d5]/[0.05] dark:bg-[#28b8d5]/[0.06]"
                                         : "bg-white dark:bg-[#0f0f0f] group-hover/row:bg-gray-50/60 dark:group-hover/row:bg-[#161616]"
@@ -884,6 +949,7 @@ export default function MatrizRACIEditor({
                                         </svg>
                                       </div>
                                     </div>
+                                    <div className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-[#28b8d5]/40 z-10 transition-colors" onMouseDown={(e) => handleRowResizeStart(e, actividad.id, 44)} onClick={(e) => e.stopPropagation()} />
                                   </td>
 
                                   {/* RACI cells */}

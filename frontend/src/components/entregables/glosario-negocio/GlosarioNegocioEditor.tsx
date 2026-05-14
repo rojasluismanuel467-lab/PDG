@@ -200,6 +200,18 @@ export default function GlosarioNegocioEditor({
   const [dragColId, setDragColId] = useState<string | null>(null);
   const [dragOverColId, setDragOverColId] = useState<string | null>(null);
 
+  // Col/row resize
+  const colWidthsKey = `glosario-col-widths-${glosarioInicial.id || "default"}`;
+  const rowHeightsKey = `glosario-row-heights-${glosarioInicial.id || "default"}`;
+  const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
+    try { const s = localStorage.getItem(colWidthsKey); if (s) return JSON.parse(s); } catch {}
+    return {};
+  });
+  const [rowHeights, setRowHeights] = useState<Record<string, number>>(() => {
+    try { const s = localStorage.getItem(rowHeightsKey); if (s) return JSON.parse(s); } catch {}
+    return {};
+  });
+
   // Context menu
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
   const [focusComentario, setFocusComentario] = useState(false);
@@ -236,6 +248,9 @@ export default function GlosarioNegocioEditor({
   useEffect(() => {
     localStorage.setItem(colOrderKey, JSON.stringify(colOrder));
   }, [colOrder, colOrderKey]);
+
+  useEffect(() => { localStorage.setItem(colWidthsKey, JSON.stringify(colWidths)); }, [colWidths, colWidthsKey]);
+  useEffect(() => { localStorage.setItem(rowHeightsKey, JSON.stringify(rowHeights)); }, [rowHeights, rowHeightsKey]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -461,14 +476,56 @@ export default function GlosarioNegocioEditor({
     setDragOverColId(null);
   };
 
+  const handleColResizeStart = (e: React.MouseEvent, colId: string, defaultW: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startW = colWidths[colId] ?? defaultW;
+    const startX = e.clientX;
+    const onMove = (ev: MouseEvent) => {
+      const newW = Math.max(60, startW + ev.clientX - startX);
+      setColWidths((prev) => ({ ...prev, [colId]: newW }));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  const handleRowResizeStart = (e: React.MouseEvent, rowId: string, defaultH: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startH = rowHeights[rowId] ?? defaultH;
+    const startY = e.clientY;
+    const onMove = (ev: MouseEvent) => {
+      const newH = Math.max(36, startH + ev.clientY - startY);
+      setRowHeights((prev) => ({ ...prev, [rowId]: newH }));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+  };
+
   // ── Sortable column header helper ─────────────────────────────────────────
 
   const SortableTh = ({
     colKey, label, className = "",
-    draggable: isDraggable, colId,
+    draggable: isDraggable, colId, defaultW = 160,
   }: {
     colKey: SortKey; label: string; className?: string;
-    draggable?: boolean; colId?: string;
+    draggable?: boolean; colId?: string; defaultW?: number;
   }) => {
     const id = colId ?? colKey;
     const isDragging = isDraggable && dragColId === id;
@@ -481,7 +538,7 @@ export default function GlosarioNegocioEditor({
         onDragOver={isDraggable ? (e) => handleColDragOver(e, id) : undefined}
         onDrop={isDraggable ? (e) => handleColDrop(e, id) : undefined}
         onDragEnd={isDraggable ? handleColDragEnd : undefined}
-        className={`text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-pointer hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] group/th
+        className={`relative text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-pointer hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] group/th
           ${isDragOver ? "border-l-[3px] border-l-[#28b8d5] shadow-[-4px_0_8px_rgba(40,184,213,0.4)]" : ""}
           ${isDragging ? "opacity-40" : ""}
           ${className}`}
@@ -493,6 +550,7 @@ export default function GlosarioNegocioEditor({
           {label}
           <SortIcon colKey={colKey} sortConfig={sortConfig} />
         </div>
+        <div className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#28b8d5]/60 z-10 transition-colors" onMouseDown={(e) => handleColResizeStart(e, id, defaultW)} onClick={(e) => e.stopPropagation()} />
       </th>
     );
   };
@@ -528,10 +586,12 @@ export default function GlosarioNegocioEditor({
         onClick={() => setTerminoSeleccionadoId(isSelected ? null : termino.id)}
         onContextMenu={(e) => handleContextMenu(e, termino.id)}
         className={`group relative cursor-pointer border-l-[3px] transition-colors ${borderClass} ${bgClass} divide-x divide-gray-100 dark:divide-white/[0.04]`}
+        style={rowHeights[termino.id] ? { height: rowHeights[termino.id] } : undefined}
       >
         {/* # */}
-        <td className={`${py} px-3 text-[11px] font-mono text-gray-300 dark:text-white/20 whitespace-nowrap select-none w-10`}>
+        <td className={`${py} px-3 text-[11px] font-mono text-gray-300 dark:text-white/20 whitespace-nowrap select-none w-10 relative`}>
           {String(globalIdx + 1).padStart(2, "0")}
+          <div className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-[#28b8d5]/40 z-10 transition-colors" onMouseDown={(e) => handleRowResizeStart(e, termino.id, 44)} onClick={(e) => e.stopPropagation()} />
         </td>
 
         {/* Término — sticky */}
@@ -993,7 +1053,14 @@ export default function GlosarioNegocioEditor({
                 ) : (
                   // ── Table ─────────────────────────────────────────────────
                   <div className="overflow-hidden rounded-2xl border border-[#dbe8ef] bg-white/95 shadow-[0_12px_30px_rgba(17,54,77,0.1)] dark:border-white/[0.08] dark:bg-[#0f151c]/90 dark:shadow-black/35">
-                    <table className="min-w-[640px] w-full border-collapse text-sm">
+                    <table className="min-w-[640px] w-full border-collapse text-sm table-fixed">
+                      <colgroup>
+                        <col style={{ width: 40 }} />
+                        <col style={{ width: colWidths["termino"] ?? 200 }} />
+                        {orderedVisibleCols.map((colId) => (
+                          <col key={colId} style={{ width: colWidths[colId] ?? 160 }} />
+                        ))}
+                      </colgroup>
                       <thead>
                         <tr className="divide-x divide-gray-200 border-b-2 border-gray-200 dark:divide-white/[0.06] dark:border-white/[0.08]">
                         {/* # */}
@@ -1001,7 +1068,7 @@ export default function GlosarioNegocioEditor({
                           #
                         </th>
                         {/* Término */}
-                        <SortableTh colKey="termino" label="Término" className="sticky left-0 top-0 z-30 min-w-[180px]" />
+                        <SortableTh colKey="termino" label="Término" className="sticky left-0 top-0 z-30 min-w-[180px]" defaultW={200} />
                         {orderedVisibleCols.map((colId) => {
                           const staticCol = ALL_COLUMNS.find((c) => c.id === colId);
                           const dynCol = columnasDinamicas.find((c) => c.id === colId);
@@ -1032,7 +1099,7 @@ export default function GlosarioNegocioEditor({
                                 onDragOver={(e) => handleColDragOver(e, colId)}
                                 onDrop={(e) => handleColDrop(e, colId)}
                                 onDragEnd={handleColDragEnd}
-                                className={`sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-grab active:cursor-grabbing hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] group/th
+                                className={`sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-grab active:cursor-grabbing hover:text-gray-700 dark:hover:text-white/60 transition-colors bg-gray-50 dark:bg-[#111] group/th relative
                                   ${isDragOver ? "border-l-[3px] border-l-[#28b8d5] shadow-[-4px_0_8px_rgba(40,184,213,0.4)]" : ""}
                                   ${isDragging ? "opacity-40" : ""}
                                 `}
@@ -1041,6 +1108,7 @@ export default function GlosarioNegocioEditor({
                                   <GripVertical className="w-3 h-3 text-gray-300 dark:text-white/20 shrink-0 opacity-0 group-hover/th:opacity-100 transition-opacity" />
                                   {staticCol.label}
                                 </div>
+                                <div className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#28b8d5]/60 z-10 transition-colors" onMouseDown={(e) => handleColResizeStart(e, colId, 160)} onClick={(e) => e.stopPropagation()} />
                               </th>
                             );
                           }
@@ -1054,7 +1122,7 @@ export default function GlosarioNegocioEditor({
                               onDragOver={(e) => handleColDragOver(e, colId)}
                               onDrop={(e) => handleColDrop(e, colId)}
                               onDragEnd={handleColDragEnd}
-                              className={`sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-grab active:cursor-grabbing bg-gray-50 dark:bg-[#111] group/th
+                              className={`sticky top-0 z-10 text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide whitespace-nowrap select-none cursor-grab active:cursor-grabbing bg-gray-50 dark:bg-[#111] group/th relative
                                 ${isDragOver ? "border-l-[3px] border-l-[#28b8d5] shadow-[-4px_0_8px_rgba(40,184,213,0.4)]" : ""}
                                 ${isDragging ? "opacity-40" : ""}
                               `}
@@ -1063,6 +1131,7 @@ export default function GlosarioNegocioEditor({
                                 <GripVertical className="w-3 h-3 text-gray-300 dark:text-white/20 shrink-0 opacity-0 group-hover/th:opacity-100 transition-opacity" />
                                 {dynCol?.label ?? colId}
                               </div>
+                              <div className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#28b8d5]/60 z-10 transition-colors" onMouseDown={(e) => handleColResizeStart(e, colId, 160)} onClick={(e) => e.stopPropagation()} />
                             </th>
                           );
                         })}
