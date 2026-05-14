@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
 import type {
   MatrizInventarioSistemas,
@@ -38,6 +38,8 @@ interface MatrizInventarioEditorProps {
 }
 
 type TabActiva = "tabla" | "comentarios" | "versiones";
+type SortKey = "nombre" | "tipo" | "criticidad" | "estado" | "propietario_tecnico";
+type SortConfig = { key: SortKey; dir: "asc" | "desc" };
 
 const TIPO_COLORES: Record<TipoSistema, string> = {
   aplicacion: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
@@ -258,6 +260,11 @@ export default function MatrizInventarioEditor({
   const [tabActiva, setTabActiva] = useState<TabActiva>("tabla");
   const [nuevoComentarioGeneral, setNuevoComentarioGeneral] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState<TipoSistema | "todos">("todos");
+  const [filtroCriticidad, setFiltroCriticidad] = useState<NivelCriticidad | "todos">("todos");
+  const [filtroEstado, setFiltroEstado] = useState<EstadoSistema | "todos">("todos");
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "nombre", dir: "asc" });
 
   // ── Columnas dinámicas ─────────────────────────────────────────────────
   const storageKey = `inventario-columnas-${matrizInicial.id || "default"}`;
@@ -391,6 +398,58 @@ export default function MatrizInventarioEditor({
   const comentariosGenerales = matriz.comentarios.filter(
     (c) => c.referencia_tipo === "general"
   );
+
+  const sistemasFiltrados = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    const filtered = matriz.sistemas.filter((s) => {
+      if (filtroTipo !== "todos" && s.tipo !== filtroTipo) return false;
+      if (filtroCriticidad !== "todos" && s.criticidad !== filtroCriticidad) return false;
+      if (filtroEstado !== "todos" && s.estado !== filtroEstado) return false;
+      if (!q) return true;
+      const haystack = [
+        s.nombre,
+        s.tecnologia ?? "",
+        s.propietario_tecnico ?? "",
+        s.descripcion ?? "",
+        s.areas_estrategicas?.join(" ") ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+
+    const normalize = (v?: string | null) => (v ?? "").toLowerCase();
+    return [...filtered].sort((a, b) => {
+      const dir = sortConfig.dir === "asc" ? 1 : -1;
+      if (sortConfig.key === "nombre") return normalize(a.nombre).localeCompare(normalize(b.nombre)) * dir;
+      if (sortConfig.key === "tipo") return normalize(a.tipo).localeCompare(normalize(b.tipo)) * dir;
+      if (sortConfig.key === "criticidad") return normalize(a.criticidad).localeCompare(normalize(b.criticidad)) * dir;
+      if (sortConfig.key === "estado") return normalize(a.estado).localeCompare(normalize(b.estado)) * dir;
+      return normalize(a.propietario_tecnico).localeCompare(normalize(b.propietario_tecnico)) * dir;
+    });
+  }, [matriz.sistemas, busqueda, filtroTipo, filtroCriticidad, filtroEstado, sortConfig]);
+
+  const resetFiltros = () => {
+    setBusqueda("");
+    setFiltroTipo("todos");
+    setFiltroCriticidad("todos");
+    setFiltroEstado("todos");
+    setSortConfig({ key: "nombre", dir: "asc" });
+  };
+
+  const toggleSort = (key: SortKey) => {
+    setSortConfig((prev) => {
+      if (prev.key !== key) return { key, dir: "asc" };
+      return { key, dir: prev.dir === "asc" ? "desc" : "asc" };
+    });
+  };
+
+  const renderSortIcon = (key: SortKey) => {
+    if (sortConfig.key !== key) return <span className="text-gray-300 dark:text-white/20">↕</span>;
+    return sortConfig.dir === "asc"
+      ? <span className="text-[#28b8d5]">↑</span>
+      : <span className="text-[#28b8d5]">↓</span>;
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -533,7 +592,86 @@ export default function MatrizInventarioEditor({
         {tabActiva === "tabla" && (
           <>
             {/* Tabla de sistemas */}
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-white/[0.06] bg-white/70 dark:bg-[#101010]">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="relative min-w-[220px] flex-1 max-w-sm">
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/25"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                      placeholder="Buscar sistema, tecnología o propietario..."
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
+                    />
+                  </div>
+
+                  <select
+                    value={filtroTipo}
+                    onChange={(e) => setFiltroTipo(e.target.value as TipoSistema | "todos")}
+                    className="px-2.5 py-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70"
+                  >
+                    <option value="todos">Tipo: todos</option>
+                    {Object.entries(TIPO_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={filtroCriticidad}
+                    onChange={(e) => setFiltroCriticidad(e.target.value as NivelCriticidad | "todos")}
+                    className="px-2.5 py-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70"
+                  >
+                    <option value="todos">Criticidad: todas</option>
+                    {Object.entries(CRITICIDAD_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={filtroEstado}
+                    onChange={(e) => setFiltroEstado(e.target.value as EstadoSistema | "todos")}
+                    className="px-2.5 py-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70"
+                  >
+                    <option value="todos">Estado: todos</option>
+                    {Object.entries(ESTADO_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={resetFiltros}
+                    className="px-2.5 py-2 rounded-lg text-xs text-gray-500 dark:text-white/45 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+                  >
+                    Limpiar
+                  </button>
+                </div>
+
+                <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-500 dark:text-white/35">
+                  <span>
+                    Mostrando {sistemasFiltrados.length} de {matriz.sistemas.length} sistemas
+                  </span>
+                  {(busqueda || filtroTipo !== "todos" || filtroCriticidad !== "todos" || filtroEstado !== "todos") && (
+                    <span className="px-1.5 py-0.5 rounded bg-[#28b8d5]/10 text-[#28b8d5] font-medium">
+                      Filtros activos
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-auto px-3 pb-3">
               {matriz.sistemas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-6">
                   <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-white/[0.04] flex items-center justify-center">
@@ -551,8 +689,22 @@ export default function MatrizInventarioEditor({
                     </p>
                   </div>
                 </div>
+              ) : sistemasFiltrados.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-6">
+                  <p className="text-sm font-medium text-gray-600 dark:text-white/50">
+                    No hay resultados con los filtros actuales
+                  </p>
+                  <button
+                    onClick={resetFiltros}
+                    className="text-xs text-[#28b8d5] hover:underline"
+                  >
+                    Limpiar filtros
+                  </button>
+                </div>
               ) : (
+                <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#0f0f10] shadow-[0_8px_24px_rgba(16,24,40,0.08)]">
                 <table className="w-full table-fixed text-sm border-separate border-spacing-0">
+                  <caption className="sr-only">Matriz de inventario de sistemas</caption>
                   <colgroup>
                     <col className="w-10" />
                     <col />
@@ -568,39 +720,69 @@ export default function MatrizInventarioEditor({
                   </colgroup>
                   <thead>
                     <tr className="bg-gray-100 dark:bg-white/[0.05] shadow-sm">
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
+                      <th scope="col" className="sticky top-0 left-0 z-30 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         #
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
-                        Nombre del Sistema
+                      <th
+                        scope="col"
+                        onClick={() => toggleSort("nombre")}
+                        className="sticky top-0 left-10 z-20 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Nombre del Sistema {renderSortIcon("nombre")}
+                        </div>
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
+                      <th scope="col" className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Área Estratégica
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
-                        Tipo
+                      <th
+                        scope="col"
+                        onClick={() => toggleSort("tipo")}
+                        className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Tipo {renderSortIcon("tipo")}
+                        </div>
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
+                      <th scope="col" className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                         Tecnología
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
-                        Criticidad
+                      <th
+                        scope="col"
+                        onClick={() => toggleSort("criticidad")}
+                        className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Criticidad {renderSortIcon("criticidad")}
+                        </div>
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
-                        Estado
+                      <th
+                        scope="col"
+                        onClick={() => toggleSort("estado")}
+                        className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Estado {renderSortIcon("estado")}
+                        </div>
                       </th>
-                      <th className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
-                        Propietario TI
+                      <th
+                        scope="col"
+                        onClick={() => toggleSort("propietario_tecnico")}
+                        className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Propietario TI {renderSortIcon("propietario_tecnico")}
+                        </div>
                       </th>
                       {columnasDinamicas.map((col) => (
-                        <th key={col.id} className="text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
+                        <th scope="col" key={col.id} className="sticky top-0 z-10 bg-gray-100 dark:bg-[#141416] text-left px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-white/35 uppercase tracking-wide overflow-hidden border border-gray-300 dark:border-white/[0.12]">
                           <span className="block truncate">{col.label}</span>
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {matriz.sistemas.map((sistema, idx) => {
+                    {sistemasFiltrados.map((sistema, idx) => {
                       const isSelected = sistemaSeleccionadoId === sistema.id;
                       const rowBase = isSelected
                         ? "bg-[#28b8d5]/5 dark:bg-[#28b8d5]/10"
@@ -608,6 +790,11 @@ export default function MatrizInventarioEditor({
                         ? "bg-white dark:bg-transparent"
                         : "bg-gray-50/70 dark:bg-white/[0.02]";
                       const tdBase = "px-4 py-3 border border-gray-200 dark:border-white/[0.08]";
+                      const stickyCellBg = isSelected
+                        ? "bg-[#eefafe] dark:bg-[#102530]"
+                        : idx % 2 === 0
+                        ? "bg-white dark:bg-[#0f0f10]"
+                        : "bg-gray-50 dark:bg-[#131314]";
                       return (
                         <tr
                           key={sistema.id}
@@ -615,7 +802,7 @@ export default function MatrizInventarioEditor({
                           className={`cursor-pointer transition-colors hover:brightness-95 dark:hover:bg-white/[0.04] ${rowBase}`}
                         >
                           {/* # */}
-                          <td className={`${tdBase} text-[11px] font-mono text-gray-400 dark:text-white/25 whitespace-nowrap`}>
+                          <td className={`${tdBase} sticky left-0 z-20 ${stickyCellBg} text-[11px] font-mono text-gray-400 dark:text-white/25 whitespace-nowrap`}>
                             {String(idx + 1).padStart(2, "0")}
                           </td>
 
@@ -626,7 +813,7 @@ export default function MatrizInventarioEditor({
                             comentarios={matriz.comentarios}
                             onAddComment={handleAddCeldaComment}
                             readOnly={readOnly}
-                            className={tdBase}
+                            className={`${tdBase} sticky left-10 z-10 ${stickyCellBg}`}
                           >
                             <div className="flex items-center gap-2 overflow-hidden">
                               {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#28b8d5] shrink-0" />}
@@ -748,7 +935,9 @@ export default function MatrizInventarioEditor({
                     })}
                   </tbody>
                 </table>
+                </div>
               )}
+            </div>
             </div>
 
             {/* Panel lateral de detalle */}
