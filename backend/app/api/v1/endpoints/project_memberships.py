@@ -51,6 +51,7 @@ def list_project_members(
         db,
         project_id=project_id,
         actor_user_id=current_user.id,
+        actor_user_type=current_user.tipo_usuario,
     )
 
 
@@ -89,6 +90,7 @@ def list_member_artifact_permissions(
         db,
         project_id=project_id,
         actor_user_id=current_user.id,
+        actor_user_type=current_user.tipo_usuario,
         target_user_id=user_id,
     )
     return ArtifactPermissionsListResponse(items=items)

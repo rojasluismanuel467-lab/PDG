@@ -42,10 +42,14 @@ class ProjectMembershipService:
         *,
         project_id: uuid.UUID,
         actor_user_id: uuid.UUID,
+        actor_user_type: UserType | None = None,
     ) -> _ProjectAccessContext:
         project = ProjectMembershipRepository.get_project_by_id(db, project_id=project_id)
         if project is None:
             raise NotFoundDomainError("Project not found")
+
+        if actor_user_type == UserType.ADMINISTRADOR:
+            return _ProjectAccessContext(is_manager=True, actor_membership=None)
 
         is_manager = project.manager_user_id == actor_user_id
         actor_membership = ProjectMembershipRepository.get_membership(
@@ -154,6 +158,7 @@ class ProjectMembershipService:
             db,
             project_id=project_id,
             actor_user_id=actor_user_id,
+            actor_user_type=actor_user_type,
         )
 
         requested = {
@@ -270,11 +275,13 @@ class ProjectMembershipService:
         *,
         project_id: uuid.UUID,
         actor_user_id: uuid.UUID,
+        actor_user_type: UserType | None = None,
     ) -> ProjectMembersListResponse:
         cls._resolve_project_access(
             db,
             project_id=project_id,
             actor_user_id=actor_user_id,
+            actor_user_type=actor_user_type,
         )
 
         memberships = ProjectMembershipRepository.list_memberships(db, project_id=project_id)
@@ -296,6 +303,7 @@ class ProjectMembershipService:
             db,
             project_id=project_id,
             actor_user_id=actor_user_id,
+            actor_user_type=actor_user_type,
         )
 
         membership = ProjectMembershipRepository.get_membership(
@@ -365,6 +373,7 @@ class ProjectMembershipService:
             db,
             project_id=project_id,
             actor_user_id=actor_user_id,
+            actor_user_type=actor_user_type,
         )
         membership = ProjectMembershipRepository.get_membership(
             db,
@@ -429,10 +438,10 @@ class ProjectMembershipService:
         *,
         project_id: uuid.UUID,
         actor_user_id: uuid.UUID,
+        actor_user_type: UserType | None = None,
         target_user_id: uuid.UUID,
     ) -> list[ArtifactPermissionResponse]:
-        # Actor must be a member or manager of the project
-        cls._resolve_project_access(db, project_id=project_id, actor_user_id=actor_user_id)
+        cls._resolve_project_access(db, project_id=project_id, actor_user_id=actor_user_id, actor_user_type=actor_user_type)
         permissions = ProjectMembershipRepository.list_artifact_permissions_for_member(
             db, project_id=project_id, user_id=target_user_id
         )
@@ -449,7 +458,7 @@ class ProjectMembershipService:
         actor_user_type: UserType,
         target_user_id: uuid.UUID,
     ) -> None:
-        context = cls._resolve_project_access(db, project_id=project_id, actor_user_id=actor_user_id)
+        context = cls._resolve_project_access(db, project_id=project_id, actor_user_id=actor_user_id, actor_user_type=actor_user_type)
         membership = ProjectMembershipRepository.get_membership(
             db, project_id=project_id, user_id=target_user_id
         )
@@ -503,6 +512,7 @@ class ProjectMembershipService:
             db,
             project_id=project_id,
             actor_user_id=actor_user_id,
+            actor_user_type=actor_user_type,
         )
         if not context.is_manager:
             raise ForbiddenDomainError("Only project manager can remove members")
