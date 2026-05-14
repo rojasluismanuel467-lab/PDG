@@ -301,7 +301,7 @@ export const mockDFDAsIs: DiagramaFlujoDatos = {
     {
       id: "com-dfd-003",
       referencia_id: null,
-      referencia_tipo: "general",
+      referencia_tipo: "nodo",
       autor_id: "usr-001",
       autor_nombre: "Carlos Méndez",
       autor_perfil: "CONSULTOR",

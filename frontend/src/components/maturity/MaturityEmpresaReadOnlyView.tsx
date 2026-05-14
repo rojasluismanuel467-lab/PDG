@@ -663,7 +663,7 @@ export const MaturityEmpresaReadOnlyView: React.FC<MaturityEmpresaReadOnlyViewPr
                           <Scale className="h-3.5 w-3.5" />
                           Diferencia:{" "}
                           <span className="font-semibold">
-                            {answer.validated_score === null
+                            {answer.validated_score == null
                               ? "Pendiente de validación"
                               : Math.abs((answer.respondent_score ?? answer.score) - answer.validated_score)}
                           </span>

@@ -94,10 +94,8 @@ export default function FlujoEdgeComponent({
     return getStraightPath({
       sourceX,
       sourceY,
-      sourcePosition,
       targetX,
       targetY,
-      targetPosition,
     });
   })();
 

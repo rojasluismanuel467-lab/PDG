@@ -141,7 +141,7 @@ export const MOCK_USUARIOS: Usuario[] = [
     tipo_usuario: "CONSULTOR",
     nombre: "Valentina Ospina",
     email: "v.ospina@arqdata.co",
-    estado: "PENDIENTE",
+    estado: "INACTIVO",
     avatar: null,
     permisos_por_proyecto: [
       {
@@ -286,7 +286,7 @@ export const mockCrearUsuario = async (
     tipo_usuario: data.tipo_usuario,
     nombre: data.nombre,
     email: data.email,
-    estado: "PENDIENTE",
+    estado: "ACTIVO",
     avatar: null,
     permisos_por_proyecto: [],
     creado_en: new Date().toISOString().split("T")[0],

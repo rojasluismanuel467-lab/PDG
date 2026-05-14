@@ -521,7 +521,7 @@ export default function DFDCanvas({
   );
 
   const isValidFlowConnection = useCallback(
-    (connection: Connection) => {
+    (connection: Connection | Edge) => {
       if (!connection.source || !connection.target) return false;
       return isValidDFDConnection(dfd.nodos, connection.source, connection.target);
     },
