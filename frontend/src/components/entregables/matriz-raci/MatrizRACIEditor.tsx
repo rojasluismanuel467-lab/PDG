@@ -17,6 +17,7 @@ import PanelRol from "./PanelRol";
 import CeldaCommentPopover from "./CeldaCommentPopover";
 import ContextMenuRaci, { type ContextMenuRaciState } from "./ContextMenuRaci";
 import { v4 as uuidv4 } from "uuid";
+import { raciApi } from "@/lib/api/raci";
 
 interface MatrizRACIEditorProps {
   matriz: MatrizRaci;
@@ -31,6 +32,8 @@ interface MatrizRACIEditorProps {
   isSaving: boolean;
   isGenerating: boolean;
   readOnly?: boolean;
+  artifactCode?: string;
+  projectId?: string;
 }
 
 type TabActiva = "matriz" | "versiones";
@@ -78,9 +81,12 @@ export default function MatrizRACIEditor({
   isSaving,
   isGenerating,
   readOnly = false,
+  artifactCode,
+  projectId,
 }: MatrizRACIEditorProps) {
   const [matriz, setMatriz] = useState<MatrizRaci>(matrizProp);
   useEffect(() => { setMatriz(matrizProp); }, [matrizProp]);
+  const [isCopying, setIsCopying] = useState(false);
 
   const [tabActiva, setTabActiva] = useState<TabActiva>("matriz");
   const [actividadSeleccionada, setActividadSeleccionada] = useState<ActividadRaci | null>(null);
@@ -114,6 +120,38 @@ export default function MatrizRACIEditor({
     setMatriz((prev) => ({ ...prev, ...patch }));
     setHasChanges(true);
   }, []);
+
+  const handleCopyFromAsis = useCallback(async () => {
+    if (!projectId) return;
+    setIsCopying(true);
+    try {
+      const matrices = await raciApi.listByProject(projectId);
+      const asIsMatrix = matrices.find((m) => m.entregable_id !== matriz.entregable_id);
+      if (!asIsMatrix) return;
+
+      const asIsGrid = await raciApi.getGrid(asIsMatrix.id);
+
+      const roleIdMap: Record<string, string> = {};
+      const newRoles: RolRaci[] = asIsGrid.roles.map((role) => {
+        const newId = uuidv4();
+        roleIdMap[role.id] = newId;
+        return { ...role, id: newId };
+      });
+
+      const newActividades: ActividadRaci[] = asIsGrid.actividades.map((act) => {
+        const newAsignaciones: Record<string, AsignacionRaci> = {};
+        for (const [oldRoleId, asig] of Object.entries(act.asignaciones)) {
+          const newRoleId = roleIdMap[oldRoleId];
+          if (newRoleId) newAsignaciones[newRoleId] = asig;
+        }
+        return { ...act, id: uuidv4(), asignaciones: newAsignaciones };
+      });
+
+      await onSave({ ...matriz, roles: newRoles, actividades: newActividades });
+    } finally {
+      setIsCopying(false);
+    }
+  }, [projectId, matriz, onSave]);
 
   const actividadesFiltradas = matriz.actividades
     .filter((a) => filtroCategoria === "todas" || a.categoria === filtroCategoria)
@@ -531,25 +569,39 @@ export default function MatrizRACIEditor({
                   Agrega los roles del equipo responsable y las actividades o procesos de datos que necesitan asignación RACI.
                 </p>
                 {!readOnly && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleAddRol}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold border border-[#28b8d5]/40 text-[#28b8d5] hover:bg-[#28b8d5]/8 transition-all"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      Agregar rol
-                    </button>
-                    <button
-                      onClick={handleAddActividad}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-[#28b8d5] text-white hover:bg-[#1fa3be] transition-all shadow-sm shadow-[#28b8d5]/20"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                      </svg>
-                      Agregar actividad
-                    </button>
+                  <div className="flex flex-col items-center gap-3">
+                    {artifactCode === "TOBE_RACI_MATRIX" && projectId && (
+                      <button
+                        onClick={handleCopyFromAsis}
+                        disabled={isCopying || isSaving}
+                        className="flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-xs font-semibold bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 transition-all shadow-sm"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        {isCopying ? "Copiando…" : "Copiar desde AS-IS"}
+                      </button>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleAddRol}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold border border-[#28b8d5]/40 text-[#28b8d5] hover:bg-[#28b8d5]/8 transition-all"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Agregar rol
+                      </button>
+                      <button
+                        onClick={handleAddActividad}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-[#28b8d5] text-white hover:bg-[#1fa3be] transition-all shadow-sm shadow-[#28b8d5]/20"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Agregar actividad
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

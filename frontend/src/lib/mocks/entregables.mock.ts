@@ -31,7 +31,7 @@ export type Entregable = {
 };
 
 // ============================================================================
-// Los 16 artefactos definidos en la Lógica de Negocio ARQDATA v1.0
+// Los 19 artefactos definidos en la Lógica de Negocio ARQDATA v1.0
 // Nombres EXACTOS — NO modificar sin actualizar la lógica de negocio
 // ============================================================================
 
@@ -43,12 +43,15 @@ export const NOMBRES_ENTREGABLES: Record<EtapaEntregable, string[]> = {
     "DFD AS-IS",
     "Matriz RACI / Roles",
     "Modelo Lógico de Datos AS-IS",
+    "Glosario de Negocio AS-IS",
   ],
   TO_BE: [
     "Diagrama Conceptual TO-BE",
     "Modelo Lógico de Datos TO-BE",
     "Glosario de Negocio",
     "DFD TO-BE",
+    "Inventario de Sistemas TO-BE",
+    "Matriz RACI / Roles TO-BE",
   ],
   BRECHAS: [
     "Matriz CRUD Comparativa",
@@ -76,12 +79,15 @@ const DESCRIPCIONES_ENTREGABLES: Record<EtapaEntregable, string[]> = {
     "Mapa de cómo se mueve la información entre sistemas, procesos y actores en el estado actual. Formato: Diagrama de flujo.",
     "Definición de responsabilidades (Responsible, Accountable, Consulted, Informed) sobre los datos. Formato: Matriz editable.",
     "Estructura detallada del estado actual: entidades, atributos, tipos de datos y relaciones. Formato: Editor mixto (tabla + texto).",
+    "Definiciones actuales de términos, entidades y atributos clave del negocio. Formato: Tabla editable con búsqueda.",
   ],
   TO_BE: [
     "Modelo visual de las entidades de negocio futuras y sus relaciones objetivo. Formato: Diagrama ER interactivo.",
     "Estructura detallada de entidades, atributos, tipos de datos y relaciones del estado objetivo. Formato: Editor mixto (tabla + texto).",
     "Definiciones estandarizadas de términos, entidades y atributos clave del negocio. Formato: Tabla editable con búsqueda.",
     "Arquitectura de integración futura: flujos de datos optimizados entre sistemas objetivo. Formato: Diagrama de flujo.",
+    "Catálogo objetivo de aplicaciones, bases de datos y plataformas con sus características planeadas. Formato: Tabla editable (DataGrid).",
+    "Definición objetivo de responsabilidades sobre los datos usando estructura RACI. Formato: Matriz editable.",
   ],
   BRECHAS: [
     "Cruce entre AS-IS y TO-BE indicando qué se Crea, Lee, Actualiza o Elimina por entidad/sistema. Formato: Tabla con código de colores.",
@@ -140,8 +146,8 @@ const generarEntregables = (
 };
 
 // ============================================================================
-// Estados por proyecto (16 entregables cada uno)
-// Orden: AS-IS(6) + TO-BE(4) + BRECHAS(3) + ROADMAP(3) = 16
+// Estados por proyecto (19 entregables cada uno)
+// Orden: CUESTIONARIO(1) + AS_IS(6) + TO_BE(6) + BRECHAS(3) + ROADMAP(3) = 19
 // ============================================================================
 
 // Bancolombia: AS-IS en progreso
@@ -152,35 +158,39 @@ const ESTADOS_PROY_001: EstadoEntregable[] = [
   "PENDIENTE",    // 4. DFD AS-IS
   "PENDIENTE",    // 5. Matriz RACI / Roles
   "PENDIENTE",    // 6. Modelo Lógico de Datos AS-IS
-  "PENDIENTE",    // 7. Diagrama Conceptual TO-BE
-  "PENDIENTE",    // 8. Modelo Lógico de Datos TO-BE
-  "PENDIENTE",    // 9. Glosario de Negocio
-  "PENDIENTE",    // 10. DFD TO-BE
-  "PENDIENTE",    // 11. Matriz CRUD Comparativa
-  "PENDIENTE",    // 12. Reporte de Análisis de Brechas
-  "PENDIENTE",    // 13. Reglas de Integración y Calidad
-  "PENDIENTE",    // 14. Roadmap de Implementación
-  "PENDIENTE",    // 15. Estándares de Arquitectura
-  "PENDIENTE",    // 16. Dashboard de Métricas y KPIs
+  "PENDIENTE",    // 7. Glosario de Negocio AS-IS
+  "PENDIENTE",    // 8. Diagrama Conceptual TO-BE
+  "PENDIENTE",    // 9. Modelo Lógico de Datos TO-BE
+  "PENDIENTE",    // 10. Glosario de Negocio
+  "PENDIENTE",    // 11. DFD TO-BE
+  "PENDIENTE",    // 12. Inventario de Sistemas TO-BE
+  "PENDIENTE",    // 13. Matriz RACI / Roles TO-BE
+  "PENDIENTE",    // 14. Matriz CRUD Comparativa
+  "PENDIENTE",    // 15. Reporte de Análisis de Brechas
+  "PENDIENTE",    // 16. Reglas de Integración y Calidad
+  "PENDIENTE",    // 17. Roadmap de Implementación
+  "PENDIENTE",    // 18. Estándares de Arquitectura
+  "PENDIENTE",    // 19. Dashboard de Métricas y KPIs
 ];
 
 // EPM: AS-IS completo, TO-BE en progreso
 const ESTADOS_PROY_002: EstadoEntregable[] = [
-  "APROBADO", "APROBADO", "APROBADO", "APROBADO", "APROBADO", "APROBADO",  // AS-IS completo
-  "APROBADO", "EN_PROGRESO", "PENDIENTE", "PENDIENTE",                     // TO-BE en progreso
-  "PENDIENTE", "PENDIENTE", "PENDIENTE",                                   // Brechas pendiente
-  "PENDIENTE", "PENDIENTE", "PENDIENTE",                                   // Roadmap pendiente
+  "APROBADO", "APROBADO", "APROBADO", "APROBADO", "APROBADO", "APROBADO", "APROBADO",  // CUESTIONARIO + AS_IS completo
+  "APROBADO", "EN_PROGRESO", "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE",         // TO-BE en progreso
+  "PENDIENTE", "PENDIENTE", "PENDIENTE",                                                 // Brechas pendiente
+  "PENDIENTE", "PENDIENTE", "PENDIENTE",                                                 // Roadmap pendiente
 ];
 
 // Grupo Éxito: Proyecto completado
-const ESTADOS_PROY_003: EstadoEntregable[] = Array(16).fill("APROBADO") as EstadoEntregable[];
+const ESTADOS_PROY_003: EstadoEntregable[] = Array(19).fill("APROBADO") as EstadoEntregable[];
 
 // Nequi: Inicio del AS-IS
 const ESTADOS_PROY_004: EstadoEntregable[] = [
-  "EN_PROGRESO", "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE",  // AS-IS iniciando
-  "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE",                               // TO-BE pendiente
-  "PENDIENTE", "PENDIENTE", "PENDIENTE",                                            // Brechas pendiente
-  "PENDIENTE", "PENDIENTE", "PENDIENTE",                                            // Roadmap pendiente
+  "EN_PROGRESO",                                                                          // CUESTIONARIO iniciando
+  "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE",           // AS-IS pendiente
+  "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE", "PENDIENTE",           // TO-BE pendiente
+  "PENDIENTE", "PENDIENTE", "PENDIENTE",                                                  // Brechas pendiente
+  "PENDIENTE", "PENDIENTE", "PENDIENTE",                                                  // Roadmap pendiente
 ];
 
 export const MOCK_ENTREGABLES: Record<string, Entregable[]> = {

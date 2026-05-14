@@ -144,6 +144,30 @@ ARTIFACT_CATALOG: tuple[ArtifactDefinition, ...] = (
         block_order=6,
         order_index=16,
     ),
+    ArtifactDefinition(
+        code="ASIS_BUSINESS_GLOSSARY",
+        name="AS-IS Business Glossary",
+        description="Current-state standardized definitions of key business terms, entities, and attributes.",
+        block=ProjectBlock.AS_IS,
+        block_order=7,
+        order_index=17,
+    ),
+    ArtifactDefinition(
+        code="TOBE_SYSTEM_INVENTORY_MATRIX",
+        name="TO-BE System Inventory Matrix",
+        description="Target-state catalog of applications, databases, and platforms with their planned characteristics.",
+        block=ProjectBlock.TO_BE,
+        block_order=5,
+        order_index=18,
+    ),
+    ArtifactDefinition(
+        code="TOBE_RACI_MATRIX",
+        name="TO-BE RACI / Roles Matrix",
+        description="Target-state definition of responsibilities over data using a RACI structure.",
+        block=ProjectBlock.TO_BE,
+        block_order=6,
+        order_index=19,
+    ),
 )
 
 ARTIFACT_BY_CODE: dict[str, ArtifactDefinition] = {

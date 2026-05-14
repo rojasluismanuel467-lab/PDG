@@ -830,6 +830,8 @@ export default function EntregablePage() {
             isSaving={isSavingRaci}
             isGenerating={isGeneratingRaci}
             readOnly={entregable.estado === "APROBADO"}
+            artifactCode={entregable.code}
+            projectId={id}
           />
         </div>
       </div>
