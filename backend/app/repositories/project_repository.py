@@ -36,7 +36,9 @@ class ProjectRepository:
         return db.execute(stmt).scalar_one_or_none()
 
     @staticmethod
-    def list_projects_for_user(db: Session, *, user_id: uuid.UUID) -> list[Project]:
+    def list_projects_for_user(
+        db: Session, *, user_id: uuid.UUID, is_admin: bool = False
+    ) -> list[Project]:
         stmt: Select[tuple[Project]] = (
             select(Project)
             .options(
@@ -44,7 +46,10 @@ class ProjectRepository:
                 selectinload(Project.artifacts),
                 selectinload(Project.company),
             )
-            .where(
+            .order_by(Project.created_at.desc())
+        )
+        if not is_admin:
+            stmt = stmt.where(
                 (Project.manager_user_id == user_id)
                 | (
                     Project.id.in_(
@@ -54,8 +59,6 @@ class ProjectRepository:
                     )
                 )
             )
-            .order_by(Project.created_at.desc())
-        )
         return db.execute(stmt).scalars().unique().all()
 
     @staticmethod

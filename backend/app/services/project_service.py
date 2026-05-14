@@ -272,8 +272,12 @@ class ProjectService:
         db: Session,
         *,
         actor_user_id: uuid.UUID,
+        actor_user_type: UserType,
     ) -> ProjectListResponse:
-        projects = ProjectRepository.list_projects_for_user(db, user_id=actor_user_id)
+        is_admin = actor_user_type == UserType.ADMINISTRADOR
+        projects = ProjectRepository.list_projects_for_user(
+            db, user_id=actor_user_id, is_admin=is_admin
+        )
         items = [cls._project_response(project=project) for project in projects]
         return ProjectListResponse(total=len(items), items=items)
 
