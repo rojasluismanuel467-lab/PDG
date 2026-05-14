@@ -770,7 +770,30 @@ export default function DetalleProyectoPage() {
           ROADMAP: etapaHabilitada(ents, "ROADMAP"),
         };
       })
-      .catch(() => setError("Proyecto no encontrado"))
+      .catch((error) => {
+        console.error("Error cargando proyecto:", error);
+        const status =
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error &&
+          typeof (error as { response?: { status?: number } }).response?.status === "number"
+            ? (error as { response?: { status?: number } }).response?.status
+            : undefined;
+
+        if (status === 401) {
+          setError("Sesión expirada. Inicia sesión nuevamente.");
+          return;
+        }
+        if (status === 403) {
+          setError("No tienes permisos para ver este proyecto.");
+          return;
+        }
+        if (status === 404) {
+          setError("Proyecto no encontrado");
+          return;
+        }
+        setError("No se pudo cargar el proyecto. Intenta de nuevo.");
+      })
       .finally(() => setLoading(false));
   }, [id]);
 

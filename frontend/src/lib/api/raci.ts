@@ -9,7 +9,7 @@ export interface RaciAssignmentUpdatePayload {
 export const raciApi = {
   // Listar matrices por proyecto
   async listByProject(projectId: string): Promise<MatrizRaci[]> {
-    const { data } = await apiClient.get<MatrizRaci[]>("/raci-matrices", {
+    const { data } = await apiClient.get<MatrizRaci[]>("/raci-matrices/", {
       params: { project_id: projectId }
     });
     return data;
@@ -17,7 +17,7 @@ export const raciApi = {
 
   // Crear matriz inicial vacía
   async createMatrix(projectId: string, entregableId?: string): Promise<MatrizRaci> {
-    const { data } = await apiClient.post<MatrizRaci>("/raci-matrices", {
+    const { data } = await apiClient.post<MatrizRaci>("/raci-matrices/", {
       project_id: projectId,
       entregable_id: entregableId || null,
       nombre: "Matriz RACI Creada Automáticamente",

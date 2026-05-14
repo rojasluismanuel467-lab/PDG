@@ -39,7 +39,7 @@ def get_raci_service(db: Session = Depends(get_db)):
     return RaciService(db)
 
 
-@router.get("/", response_model=list[RaciMatrixResponse])
+@router.get("", response_model=list[RaciMatrixResponse])
 def list_raci_matrices(
     project_id: UUID | None = None,
     current_user=Depends(get_current_user),
@@ -54,7 +54,7 @@ def list_raci_matrices(
         raise HTTPException(status_code=400, detail=f"Error en list_matrices: {str(e)}")
 
 
-@router.post("/", response_model=RaciMatrixResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=RaciMatrixResponse, status_code=status.HTTP_201_CREATED)
 def create_raci_matrix(
     data: RaciMatrixCreate,
     current_user=Depends(get_current_user),
