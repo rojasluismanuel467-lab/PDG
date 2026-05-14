@@ -98,8 +98,9 @@ export const inventoryMatrixApi = {
     artifactId: string,
     comment: {
       referencia_id: string | null;
-      referencia_tipo: "sistema" | "general";
+      referencia_tipo: "sistema" | "general" | "celda";
       contenido: string;
+      campo?: string;
     },
   ): Promise<MatrizInventarioSistemas> {
     const { data } = await apiClient.post<InventoryMatrixApi>(
