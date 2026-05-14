@@ -838,29 +838,6 @@ export default function EntregablePage() {
     );
   }
 
-  // RACI type detected but data failed to load (e.g. backend error)
-  if (tipoEditor?.tipo === "matriz-raci" && !matrizRaci) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-10">
-        <Breadcrumb />
-        <div className="rounded-xl border border-red-200 dark:border-red-500/20 p-6 bg-red-50 dark:bg-red-500/10 mt-4">
-          <p className="text-sm font-medium text-red-700 dark:text-red-400 mb-1">
-            No se pudo cargar la Matriz RACI
-          </p>
-          <p className="text-xs text-red-600 dark:text-red-400/70 mb-4">
-            Verifica que el servidor esté disponible e intenta de nuevo.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // ── Render: Glosario de Negocio TO-BE ───────────────────────────────
   if (tipoEditor?.tipo === "glosario-negocio" && glosarioNegocio) {
     return (
@@ -876,29 +853,6 @@ export default function EntregablePage() {
             isGenerating={isGeneratingGlosario}
             readOnly={entregable.estado === "APROBADO"}
           />
-        </div>
-      </div>
-    );
-  }
-
-  // Glosario type detected but data failed to load (e.g. backend error)
-  if (tipoEditor?.tipo === "glosario-negocio" && !glosarioNegocio) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-10">
-        <Breadcrumb />
-        <div className="rounded-xl border border-red-200 dark:border-red-500/20 p-6 bg-red-50 dark:bg-red-500/10 mt-4">
-          <p className="text-sm font-medium text-red-700 dark:text-red-400 mb-1">
-            No se pudo cargar el Glosario de Negocio
-          </p>
-          <p className="text-xs text-red-600 dark:text-red-400/70 mb-4">
-            Verifica que el servidor esté disponible e intenta de nuevo.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors"
-          >
-            Reintentar
-          </button>
         </div>
       </div>
     );
@@ -1009,6 +963,42 @@ export default function EntregablePage() {
             isSaving={isSavingKpis}
             readOnly={entregable.estado === "APROBADO"}
           />
+        </div>
+      </div>
+    );
+  }
+
+  const missingEditorData =
+    (tipoEditor?.tipo === "modelo-er" && !modeloER) ||
+    (tipoEditor?.tipo === "modelo-logico" && !modeloLogico) ||
+    (tipoEditor?.tipo === "dfd" && !dfd) ||
+    (tipoEditor?.tipo === "matriz-inventario" && !matrizInventario) ||
+    (tipoEditor?.tipo === "matriz-raci" && !matrizRaci) ||
+    (tipoEditor?.tipo === "glosario-negocio" && !glosarioNegocio) ||
+    (tipoEditor?.tipo === "crud-matrix" && !crudMatrix) ||
+    (tipoEditor?.tipo === "gap-report" && !gapReport) ||
+    (tipoEditor?.tipo === "integration-quality-rules" && !integrationRules) ||
+    (tipoEditor?.tipo === "roadmap-implementation" && !roadmapImplementation) ||
+    (tipoEditor?.tipo === "architecture-standards" && !architectureStandards) ||
+    (tipoEditor?.tipo === "kpi-dashboard" && !kpiDashboard);
+
+  if (tipoEditor && missingEditorData) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-10">
+        <Breadcrumb />
+        <div className="rounded-xl border border-red-200 dark:border-red-500/20 p-6 bg-red-50 dark:bg-red-500/10 mt-4">
+          <p className="text-sm font-medium text-red-700 dark:text-red-400 mb-1">
+            No se pudo cargar {entregable.nombre}
+          </p>
+          <p className="text-xs text-red-600 dark:text-red-400/70 mb-4">
+            Verifica que el servidor esté disponible e intenta de nuevo.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors"
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );

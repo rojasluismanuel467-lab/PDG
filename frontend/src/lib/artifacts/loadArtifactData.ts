@@ -77,29 +77,29 @@ export async function loadArtifactEditorData({
     return baseData;
   }
 
-  switch (tipoEditor.tipo) {
-    case "modelo-er":
-      return {
-        ...baseData,
-        modeloER: await conceptualModelApi.getModel(projectId, artifact.id),
-      };
-    case "modelo-logico":
-      return {
-        ...baseData,
-        modeloLogico: await logicalModelApi.getModel(projectId, artifact.id),
-      };
-    case "dfd":
-      return {
-        ...baseData,
-        dfd: await dfdApi.getModel(projectId, artifact.id),
-      };
-    case "matriz-inventario":
-      return {
-        ...baseData,
-        matrizInventario: await inventoryMatrixApi.getMatrix(projectId, artifact.id),
-      };
-    case "matriz-raci": {
-      try {
+  try {
+    switch (tipoEditor.tipo) {
+      case "modelo-er":
+        return {
+          ...baseData,
+          modeloER: await conceptualModelApi.getModel(projectId, artifact.id),
+        };
+      case "modelo-logico":
+        return {
+          ...baseData,
+          modeloLogico: await logicalModelApi.getModel(projectId, artifact.id),
+        };
+      case "dfd":
+        return {
+          ...baseData,
+          dfd: await dfdApi.getModel(projectId, artifact.id),
+        };
+      case "matriz-inventario":
+        return {
+          ...baseData,
+          matrizInventario: await inventoryMatrixApi.getMatrix(projectId, artifact.id),
+        };
+      case "matriz-raci": {
         const matrices = await raciApi.listByProject(projectId);
         let matriz = matrices.find((item) => String(item.entregable_id) === String(artifact.id)) ?? null;
 
@@ -111,48 +111,44 @@ export async function loadArtifactEditorData({
           ...baseData,
           matrizRaci: matriz ? await raciApi.getGrid(matriz.id) : null,
         };
-      } catch {
-        return baseData;
       }
-    }
-    case "glosario-negocio":
-      try {
+      case "glosario-negocio":
         return {
           ...baseData,
           glosarioNegocio: await businessGlossaryApi.getGlossary(projectId, artifact.id),
         };
-      } catch {
-        return baseData;
-      }
-    case "crud-matrix":
-      return {
-        ...baseData,
-        crudMatrix: await brechasApi.getCRUDMatrix(projectId, artifact.id),
-      };
-    case "gap-report":
-      return {
-        ...baseData,
-        gapReport: await brechasApi.getGapReport(projectId, artifact.id),
-      };
-    case "integration-quality-rules":
-      return {
-        ...baseData,
-        integrationRules: await brechasApi.getIntegrationRules(projectId, artifact.id),
-      };
-    case "roadmap-implementation":
-      return {
-        ...baseData,
-        roadmapImplementation: await mockGetRoadmapImplementation(projectId),
-      };
-    case "architecture-standards":
-      return {
-        ...baseData,
-        architectureStandards: await mockGetArchitectureStandards(projectId),
-      };
-    case "kpi-dashboard":
-      return {
-        ...baseData,
-        kpiDashboard: await mockGetKPIDashboard(projectId),
-      };
+      case "crud-matrix":
+        return {
+          ...baseData,
+          crudMatrix: await brechasApi.getCRUDMatrix(projectId, artifact.id),
+        };
+      case "gap-report":
+        return {
+          ...baseData,
+          gapReport: await brechasApi.getGapReport(projectId, artifact.id),
+        };
+      case "integration-quality-rules":
+        return {
+          ...baseData,
+          integrationRules: await brechasApi.getIntegrationRules(projectId, artifact.id),
+        };
+      case "roadmap-implementation":
+        return {
+          ...baseData,
+          roadmapImplementation: await mockGetRoadmapImplementation(projectId),
+        };
+      case "architecture-standards":
+        return {
+          ...baseData,
+          architectureStandards: await mockGetArchitectureStandards(projectId),
+        };
+      case "kpi-dashboard":
+        return {
+          ...baseData,
+          kpiDashboard: await mockGetKPIDashboard(projectId),
+        };
+    }
+  } catch {
+    return baseData;
   }
 }
