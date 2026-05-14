@@ -20,7 +20,17 @@ def initialize_seed_data(db: Session) -> None:
         return
 
     admin = UserRepository.get_by_email(db, email="admin@arqdata.local")
-    created_by = admin.id if admin else None
+    if admin is None:
+        admin = User(
+            nombre="Administrador Inicial",
+            email="admin@arqdata.local",
+            tipo_usuario=UserType.ADMINISTRADOR,
+            estado=UserStatus.ACTIVO,
+            password_hash=hash_password("Admin12345!"),
+        )
+        admin = UserRepository.create(db, user=admin)
+
+    created_by = admin.id
 
     consultant = User(
         nombre="Consultor Demo",
