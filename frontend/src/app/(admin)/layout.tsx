@@ -4,6 +4,7 @@ import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import React from "react";
 
 export default function AdminLayout({
@@ -12,6 +13,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  useSessionTimeout();
 
   // Dynamic class for main content margin based on sidebar state
   const mainContentMargin = isMobileOpen
