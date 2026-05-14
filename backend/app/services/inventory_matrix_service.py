@@ -24,7 +24,10 @@ from app.services.project_permission_service import ProjectPermissionService
 
 
 class InventoryMatrixService:
-    ARTIFACT_CODE = "ASIS_SYSTEM_INVENTORY_MATRIX"
+    SUPPORTED_ARTIFACT_CODES = {
+        "ASIS_SYSTEM_INVENTORY_MATRIX",
+        "TOBE_SYSTEM_INVENTORY_MATRIX",
+    }
 
     @staticmethod
     def _version_label(version_number: int) -> str:
@@ -53,8 +56,9 @@ class InventoryMatrixService:
         )
         if artifact is None:
             raise NotFoundDomainError("Project artifact not found")
-        if artifact.code != cls.ARTIFACT_CODE:
-            raise ValidationDomainError(f"Artifact code mismatch. Expected {cls.ARTIFACT_CODE}")
+        if artifact.code not in cls.SUPPORTED_ARTIFACT_CODES:
+            expected = ", ".join(sorted(cls.SUPPORTED_ARTIFACT_CODES))
+            raise ValidationDomainError(f"Artifact code mismatch. Expected one of: {expected}")
         return artifact
 
     @staticmethod
