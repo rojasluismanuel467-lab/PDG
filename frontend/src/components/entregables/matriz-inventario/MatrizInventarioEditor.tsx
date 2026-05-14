@@ -671,7 +671,7 @@ export default function MatrizInventarioEditor({
                 </div>
               </div>
 
-              <div className="flex-1 overflow-auto px-3 pb-3">
+              <div className="flex-1 overflow-auto px-3 pt-3 pb-3">
               {matriz.sistemas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-6">
                   <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-white/[0.04] flex items-center justify-center">
