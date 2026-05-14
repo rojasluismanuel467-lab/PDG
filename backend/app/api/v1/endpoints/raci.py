@@ -143,7 +143,7 @@ def update_raci_matrix_bulk(
     service: RaciService = Depends(get_raci_service),
 ):
     try:
-        service.sync_bulk(matrix_id, data)
+        service.sync_bulk(matrix_id, data, actor_nombre=current_user.nombre)
         return {"detail": "Matrix successfully synced"}
     except NotFoundDomainError as e:
         raise HTTPException(status_code=404, detail=str(e))

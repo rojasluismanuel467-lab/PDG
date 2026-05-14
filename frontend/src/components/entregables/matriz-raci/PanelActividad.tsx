@@ -51,10 +51,10 @@ export const CATEGORIA_COLORS: Record<CategoriaActividad, string> = {
 };
 
 export const RACI_COLORS: Record<AsignacionRaci, string> = {
-  R: "bg-[#28b8d5] text-white",
-  A: "bg-purple-500 text-white",
-  C: "bg-amber-500 text-white",
-  I: "bg-gray-400 text-white dark:bg-white/20 dark:text-white/70",
+  R: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400",
+  A: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
+  C: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400",
+  I: "bg-gray-100 text-gray-600 dark:bg-white/[0.08] dark:text-white/40",
 };
 
 export const RACI_LABELS: Record<AsignacionRaci, string> = {

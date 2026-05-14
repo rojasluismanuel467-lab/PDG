@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.enums import RaciAssignmentType, RaciStatus
-from app.models.raci import RaciActivity, RaciAssignment, RaciComment, RaciMatrix, RaciRole
+from app.models.raci import RaciActivity, RaciAssignment, RaciComment, RaciMatrix, RaciRole, RaciVersionHistory
 from app.repositories.raci_repository import RaciRepository
 from app.schemas.raci import (
     RaciActivityCreate,
@@ -18,6 +18,7 @@ from app.schemas.raci import (
     RaciMatrixResponse,
     RaciRoleCreate,
     RaciRoleResponse,
+    RaciVersionHistoryResponse,
 )
 
 # Excepciones (Asumiendo que el proyecto tiene `NotFoundDomainError` y `ConflictDomainError` en app.exceptions.domain)
@@ -92,7 +93,9 @@ class RaciService:
 
         comentarios_resp = [RaciCommentResponse.model_validate(c) for c in matrix.comments]
 
-        # Faltaría histórico, devuelto vacío por ahora según tu prompt
+        history_sorted = sorted(matrix.history, key=lambda h: h.created_at)
+        history_resp = [RaciVersionHistoryResponse.model_validate(h) for h in history_sorted]
+
         return RaciGridResponse(
             id=matrix.id,
             proyecto_id=matrix.project_id,
@@ -105,7 +108,7 @@ class RaciService:
             roles=roles_resp,
             actividades=actividades_resp,
             comentarios=comentarios_resp,
-            historial_versiones=[],
+            historial_versiones=history_resp,
         )
 
     # ---------------- #
@@ -202,7 +205,7 @@ class RaciService:
         self.db.commit()
 
     # ---------------- #
-    def sync_bulk(self, matrix_id: UUID, data: RaciBulkUpdate):
+    def sync_bulk(self, matrix_id: UUID, data: RaciBulkUpdate, actor_nombre: str = "Usuario"):
         matrix = self.repo.get_matrix_with_relations(matrix_id)
         if not matrix:
             raise NotFoundDomainError("Matriz no encontrada")
@@ -293,6 +296,19 @@ class RaciService:
                 matrix.version_actual = f"{matrix.version_actual}.1"
         except (ValueError, AttributeError, IndexError):
             matrix.version_actual = "1.1"
+
+        # 5. Registrar entrada en el historial
+        history_entry = RaciVersionHistory(
+            matrix_id=matrix_id,
+            version=matrix.version_actual,
+            autor=actor_nombre,
+            descripcion_cambio=(
+                f"Guardado: {len(data.actividades)} actividades, {len(data.roles)} roles"
+            ),
+            total_actividades=len(data.actividades),
+            total_roles=len(data.roles),
+        )
+        self.db.add(history_entry)
 
         self.db.commit()
 
