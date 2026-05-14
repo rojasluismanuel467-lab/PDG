@@ -99,17 +99,21 @@ export async function loadArtifactEditorData({
         matrizInventario: await inventoryMatrixApi.getMatrix(projectId, artifact.id),
       };
     case "matriz-raci": {
-      const matrices = await raciApi.listByProject(projectId);
-      let matriz = matrices.find((item) => String(item.entregable_id) === String(artifact.id)) ?? null;
+      try {
+        const matrices = await raciApi.listByProject(projectId);
+        let matriz = matrices.find((item) => String(item.entregable_id) === String(artifact.id)) ?? null;
 
-      if (!matriz && createMissingRaciMatrix) {
-        matriz = await raciApi.createMatrix(projectId, artifact.id);
+        if (!matriz && createMissingRaciMatrix) {
+          matriz = await raciApi.createMatrix(projectId, artifact.id);
+        }
+
+        return {
+          ...baseData,
+          matrizRaci: matriz ? await raciApi.getGrid(matriz.id) : null,
+        };
+      } catch {
+        return baseData;
       }
-
-      return {
-        ...baseData,
-        matrizRaci: matriz ? await raciApi.getGrid(matriz.id) : null,
-      };
     }
     case "glosario-negocio":
       return {
