@@ -6,90 +6,183 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "../context/SidebarContext";
 import {
+  BoltIcon,
   BoxCubeIcon,
   ChevronDownIcon,
+  DocsIcon,
+  GridIcon,
+  GroupIcon,
   HorizontaLDots,
-  ListIcon,
-  TaskIcon,
+  PieChartIcon,
   UserCircleIcon,
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
 
-type MenuType = "main" | "others" | "components";
+type MenuType = "main" | "project" | "gestion" | "cuenta";
 
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: { name: string; path: string }[];
+};
+
+type SidebarSection = {
+  type: MenuType;
+  label: string;
+  items: NavItem[];
 };
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const { user } = useAuth();
   const pathname = usePathname();
+
   const currentProjectIdMatch = pathname.match(/\/consultor\/proyectos\/([^/]+)/);
   const currentProjectId = currentProjectIdMatch?.[1] ?? null;
-  const projectListPath = "/consultor/proyectos";
+  const projectBase = currentProjectId ? `/consultor/proyectos/${currentProjectId}` : null;
 
-  const navItems = useMemo<NavItem[]>(
-    () => [
-      {
-        icon: <BoxCubeIcon />,
-        name: "Mis Proyectos",
-        path: projectListPath,
-      },
-      {
-        icon: <ListIcon />,
-        name: "Agente IA",
-        path: currentProjectId
-          ? `/consultor/proyectos/${currentProjectId}/agente`
-          : projectListPath,
-      },
-    ],
-    [currentProjectId, projectListPath]
-  );
+  const sections = useMemo<SidebarSection[]>(() => {
+    const perfil = user?.perfil;
 
-  const componentsItems = useMemo<NavItem[]>(
-    () => [
-      ...(user?.perfil === "ADMIN"
-        ? [
+    const cuentaSection: SidebarSection = {
+      type: "cuenta",
+      label: "Cuenta",
+      items: [
+        {
+          icon: <UserCircleIcon />,
+          name: "Cuenta",
+          subItems: [
+            { name: "Perfil", path: "/profile" },
+            { name: "Cerrar Sesión", path: "/signin" },
+          ],
+        },
+      ],
+    };
+
+    // ── ADMIN ────────────────────────────────────────────────────────────────
+    if (perfil === "ADMIN") {
+      return [
+        {
+          type: "main",
+          label: "Gestión",
+          items: [
             {
-              icon: <UserCircleIcon />,
+              icon: <BoxCubeIcon />,
+              name: "Proyectos",
+              path: "/consultor/proyectos",
+            },
+            {
+              icon: <GroupIcon />,
               name: "Usuarios",
               path: "/usuarios",
             },
-          ]
-        : []),
+          ],
+        },
+        cuentaSection,
+      ];
+    }
+
+    // ── CONSULTOR ────────────────────────────────────────────────────────────
+    if (perfil === "CONSULTOR") {
+      const result: SidebarSection[] = [
+        {
+          type: "main",
+          label: "Menú",
+          items: [
+            {
+              icon: <BoxCubeIcon />,
+              name: "Mis Proyectos",
+              path: "/consultor/proyectos",
+            },
+          ],
+        },
+      ];
+
+      if (projectBase) {
+        result.push({
+          type: "project",
+          label: "Proyecto activo",
+          items: [
+            {
+              icon: <GridIcon />,
+              name: "Vista General",
+              path: projectBase,
+            },
+            {
+              icon: <BoltIcon />,
+              name: "Agente IA",
+              path: `${projectBase}/agente`,
+            },
+            {
+              icon: <PieChartIcon />,
+              name: "Cuestionario de Madurez",
+              path: `${projectBase}/cuestionario-madurez`,
+            },
+            {
+              icon: <DocsIcon />,
+              name: "Documentos",
+              path: `${projectBase}/documento/A`,
+            },
+          ],
+        });
+      }
+
+      result.push(
+        {
+          type: "gestion",
+          label: "Gestión",
+          items: [
+            {
+              icon: <GroupIcon />,
+              name: "Equipo",
+              path: "/consultor/usuarios",
+            },
+          ],
+        },
+        cuentaSection,
+      );
+
+      return result;
+    }
+
+    // ── EMPRESA ──────────────────────────────────────────────────────────────
+    const result: SidebarSection[] = [
       {
-        icon: <TaskIcon />,
-        name: "Cuestionario",
-        subItems: [
+        type: "main",
+        label: "Menú",
+        items: [
           {
-            name: "Cuestionario de Madurez",
-            path: currentProjectId
-              ? `/consultor/proyectos/${currentProjectId}/cuestionario-madurez`
-              : projectListPath,
+            icon: <BoxCubeIcon />,
+            name: "Mis Proyectos",
+            path: "/consultor/proyectos",
           },
         ],
       },
-    ],
-    [currentProjectId, projectListPath, user?.perfil]
-  );
+    ];
 
-  const othersItems = useMemo<NavItem[]>(
-    () => [
-      {
-        icon: <UserCircleIcon />,
-        name: "Cuenta",
-        subItems: [
-          { name: "Perfil", path: "/profile" },
-          { name: "Cerrar Sesión", path: "/signin" },
+    if (projectBase) {
+      result.push({
+        type: "project",
+        label: "Proyecto activo",
+        items: [
+          {
+            icon: <GridIcon />,
+            name: "Vista del Proyecto",
+            path: projectBase,
+          },
+          {
+            icon: <PieChartIcon />,
+            name: "Cuestionario de Madurez",
+            path: `${projectBase}/cuestionario-madurez`,
+          },
         ],
-      },
-    ],
-    []
-  );
+      });
+    }
+
+    result.push(cuentaSection);
+    return result;
+  }, [user?.perfil, projectBase]);
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: MenuType;
@@ -98,60 +191,40 @@ const AppSidebar: React.FC = () => {
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const isActive = useCallback((path: string) => path === pathname, [pathname]);
+  const isActive = useCallback(
+    (path: string) => pathname === path,
+    [pathname],
+  );
 
   useEffect(() => {
-    let submenuMatched = false;
     let matchedSubmenu: { type: MenuType; index: number } | null = null;
-    (["main", "others", "components"] as MenuType[]).forEach((menuType) => {
-      const items =
-        menuType === "main"
-          ? navItems
-          : menuType === "components"
-            ? componentsItems
-            : othersItems;
 
+    sections.forEach(({ type, items }) => {
       items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              matchedSubmenu = {
-                type: menuType,
-                index,
-              };
-              submenuMatched = true;
-            }
-          });
-        }
+        nav.subItems?.forEach((sub) => {
+          if (isActive(sub.path)) matchedSubmenu = { type, index };
+        });
       });
     });
 
-    const animationFrame = window.requestAnimationFrame(() => {
-      setOpenSubmenu((prevOpenSubmenu) => {
-        if (!submenuMatched) {
-          return prevOpenSubmenu === null ? prevOpenSubmenu : null;
-        }
-
-        if (
-          prevOpenSubmenu?.type === matchedSubmenu?.type &&
-          prevOpenSubmenu?.index === matchedSubmenu?.index
-        ) {
-          return prevOpenSubmenu;
-        }
-
+    const frame = window.requestAnimationFrame(() => {
+      setOpenSubmenu((prev) => {
+        if (!matchedSubmenu) return prev === null ? prev : null;
+        if (prev?.type === matchedSubmenu.type && prev?.index === matchedSubmenu.index)
+          return prev;
         return matchedSubmenu;
       });
     });
 
-    return () => window.cancelAnimationFrame(animationFrame);
-  }, [componentsItems, isActive, navItems, othersItems]);
+    return () => window.cancelAnimationFrame(frame);
+  }, [sections, isActive]);
 
   useEffect(() => {
     if (openSubmenu !== null) {
       const key = `${openSubmenu.type}-${openSubmenu.index}`;
       if (subMenuRefs.current[key]) {
-        setSubMenuHeight((prevHeights) => ({
-          ...prevHeights,
+        setSubMenuHeight((prev) => ({
+          ...prev,
           [key]: subMenuRefs.current[key]?.scrollHeight || 0,
         }));
       }
@@ -159,14 +232,8 @@ const AppSidebar: React.FC = () => {
   }, [openSubmenu]);
 
   const handleSubmenuToggle = (index: number, menuType: MenuType) => {
-    setOpenSubmenu((prevOpenSubmenu) => {
-      if (
-        prevOpenSubmenu &&
-        prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
-      ) {
-        return null;
-      }
+    setOpenSubmenu((prev) => {
+      if (prev?.type === menuType && prev?.index === index) return null;
       return { type: menuType, index };
     });
   };
@@ -178,7 +245,7 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group  ${
+              className={`menu-item group ${
                 openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
                   : "menu-item-inactive"
@@ -187,11 +254,11 @@ const AppSidebar: React.FC = () => {
               }`}
             >
               <span
-                className={` ${
+                className={
                   openSubmenu?.type === menuType && openSubmenu?.index === index
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
-                }`}
+                }
               >
                 {nav.icon}
               </span>
@@ -217,9 +284,9 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 <span
-                  className={`${
+                  className={
                     isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"
-                  }`}
+                  }
                 >
                   {nav.icon}
                 </span>
@@ -254,30 +321,6 @@ const AppSidebar: React.FC = () => {
                       }`}
                     >
                       {subItem.name}
-                      <span className="ml-auto flex items-center gap-1">
-                        {subItem.new && (
-                          <span
-                            className={`menu-dropdown-badge ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            }`}
-                          >
-                            new
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span
-                            className={`menu-dropdown-badge ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            }`}
-                          >
-                            pro
-                          </span>
-                        )}
-                      </span>
                     </Link>
                   </li>
                 ))}
@@ -289,23 +332,22 @@ const AppSidebar: React.FC = () => {
     </ul>
   );
 
+  const logoHref =
+    user?.perfil === "ADMIN" ? "/usuarios" : "/consultor/proyectos";
+
   return (
     <aside
       className={`fixed left-0 top-0 z-50 mt-16 flex h-screen flex-col border-r border-white/[0.06] bg-[#050505] px-5 text-gray-300 transition-all duration-300 ease-in-out lg:mt-0
-        ${
-          isExpanded || isMobileOpen
-            ? "w-[290px]"
-            : isHovered
-              ? "w-[290px]"
-              : "w-[90px]"
-        }
+        ${isExpanded || isMobileOpen ? "w-[290px]" : isHovered ? "w-[290px]" : "w-[90px]"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
-        <Link href="/consultor">
+      <div
+        className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}
+      >
+        <Link href={logoHref}>
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <Image
@@ -333,44 +375,25 @@ const AppSidebar: React.FC = () => {
           )}
         </Link>
       </div>
+
       <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
-            <div>
-              <h2
-                className={`mb-4 flex text-xs uppercase leading-[20px] text-gray-500 ${
-                  !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? "Menu" : <HorizontaLDots />}
-              </h2>
-              {renderMenuItems(navItems, "main")}
-            </div>
-
-            <div>
-              <h2
-                className={`mb-4 flex text-xs uppercase leading-[20px] text-gray-500 ${
-                  !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? "Componentes" : <HorizontaLDots />}
-              </h2>
-              {renderMenuItems(componentsItems, "components")}
-            </div>
-
-            <div>
-              <h2
-                className={`mb-4 flex text-xs uppercase leading-[20px] text-gray-500 ${
-                  !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? "Cuenta" : <HorizontaLDots />}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div>
+            {sections.map(({ type, label, items }) => (
+              <div key={type}>
+                <h2
+                  className={`mb-4 flex text-xs uppercase leading-[20px] text-gray-500 ${
+                    !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                  }`}
+                >
+                  {isExpanded || isHovered || isMobileOpen ? label : <HorizontaLDots />}
+                </h2>
+                {renderMenuItems(items, type)}
+              </div>
+            ))}
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
+        {(isExpanded || isHovered || isMobileOpen) && <SidebarWidget />}
       </div>
     </aside>
   );
