@@ -1,20 +1,51 @@
 from datetime import date
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.artifact_catalog import ARTIFACT_CATALOG
 from app.core.database import engine
-from app.core.enums import ProjectStatus, UserStatus, UserType
+from app.core.enums import ProjectArtifactStatus, ProjectStatus, UserStatus, UserType
 from app.core.security import hash_password
 from app.models.company import Company
 from app.models.project import Project
+from app.models.project_artifact import ProjectArtifact
 from app.models.user import User
-from app.repositories.company_repository import CompanyRepository
 from app.repositories.project_membership_repository import ProjectMembershipRepository
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.user_repository import UserRepository
 
 
+def _ensure_demo_project_artifacts(db: Session) -> None:
+    consultant = UserRepository.get_by_email(db, email="consultor@test.com")
+    if consultant is None:
+        return
+    project = db.execute(
+        select(Project).where(Project.nombre == "Proyecto Demo")
+    ).scalar_one_or_none()
+    if project is None or project.artifacts:
+        return
+    artifacts = [
+        ProjectArtifact(
+            project_id=project.id,
+            code=definition.code,
+            name=definition.name,
+            description=definition.description,
+            block=definition.block,
+            order_index=definition.order_index,
+            block_order=definition.block_order,
+            status=ProjectArtifactStatus.PENDING,
+            is_applicable=True,
+        )
+        for definition in ARTIFACT_CATALOG
+    ]
+    ProjectRepository.create_artifacts(db, artifacts=artifacts)
+    db.commit()
+
+
 def initialize_seed_data(db: Session) -> None:
+    _ensure_demo_project_artifacts(db)
+
     existing_consultant = UserRepository.get_by_email(db, email="consultor@test.com")
     if existing_consultant is not None:
         return
@@ -72,6 +103,22 @@ def initialize_seed_data(db: Session) -> None:
         manager_user_id=consultant.id,
     )
     project = ProjectRepository.create_project(db, project=project)
+
+    artifacts = [
+        ProjectArtifact(
+            project_id=project.id,
+            code=definition.code,
+            name=definition.name,
+            description=definition.description,
+            block=definition.block,
+            order_index=definition.order_index,
+            block_order=definition.block_order,
+            status=ProjectArtifactStatus.PENDING,
+            is_applicable=True,
+        )
+        for definition in ARTIFACT_CATALOG
+    ]
+    ProjectRepository.create_artifacts(db, artifacts=artifacts)
 
     ProjectRepository.create_manager_membership(
         db,
