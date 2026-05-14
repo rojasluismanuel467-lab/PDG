@@ -409,13 +409,15 @@ export default function EntregablePage() {
   const handleAddCommentMatrizInventario = useCallback(
     async (
       referenciaId: string | null,
-      referenciaTipo: "sistema" | "general",
+      referenciaTipo: "sistema" | "general" | "celda",
       contenido: string,
+      campo?: string | null,
     ) => {
       const actualizado = await inventoryMatrixApi.addComment(id, entregableId, {
         referencia_id: referenciaId,
         referencia_tipo: referenciaTipo,
         contenido,
+        ...(campo ? { campo } : {}),
       });
       setMatrizInventario(actualizado);
     },
