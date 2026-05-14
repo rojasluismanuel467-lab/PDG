@@ -607,10 +607,13 @@ export default function GlosarioNegocioEditor({
     + columnasDinamicas.length + 2; // +2 for # and Término
 
   return (
-    <div className="flex flex-col h-full" onClick={() => { setShowColumnMenu(false); setShowAddCol(false); }}>
+    <div
+      className="flex h-full flex-col rounded-2xl border border-[#d8e8ef] bg-gradient-to-b from-[#edf5f9] via-[#f5f9fc] to-[#f9fcff] shadow-[0_14px_40px_rgba(11,59,84,0.08)] dark:border-white/[0.08] dark:bg-gradient-to-b dark:from-[#0a1118] dark:via-[#0a0f16] dark:to-[#070c12]"
+      onClick={() => { setShowColumnMenu(false); setShowAddCol(false); }}
+    >
 
       {/* ── Toolbar ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111] shrink-0">
+      <div className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-2.5 shadow-[0_4px_16px_rgba(15,54,78,0.08)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-[#111]/95 dark:shadow-black/35 shrink-0">
         <div className="flex items-center gap-2.5">
           {/* Tabs */}
           <div className="flex rounded-lg bg-gray-100 dark:bg-white/[0.04] p-0.5">
@@ -803,15 +806,15 @@ export default function GlosarioNegocioEditor({
       </div>
 
       {/* ── Main content ──────────────────────────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
 
         {/* ── Tab: Tabla ────────────────────────────────────────────────────── */}
         {tabActiva === "tabla" && (
           <>
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden">
 
               {/* Search bar */}
-              <div className="px-4 py-2 border-b border-gray-100 dark:border-white/[0.05] bg-gray-50/70 dark:bg-[#0d0d0d] shrink-0">
+              <div className="shrink-0 border-b border-gray-100 bg-white/60 px-4 py-2 backdrop-blur-sm dark:border-white/[0.05] dark:bg-[#0d1218]/80">
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1 max-w-sm">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
@@ -855,10 +858,10 @@ export default function GlosarioNegocioEditor({
               </div>
 
               {/* Table */}
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 overflow-auto px-3 pb-3">
                 {glosario.terminos.length === 0 ? (
                   // ── Empty state ──────────────────────────────────────────
-                  <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
+                  <div className="flex h-full flex-col items-center justify-center gap-4 rounded-2xl border border-[#dbe8ef] bg-white/90 px-6 text-center shadow-[0_10px_26px_rgba(17,54,77,0.08)] dark:border-white/[0.08] dark:bg-[#0f151c]/85 dark:shadow-black/25">
                     <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-white/[0.05] flex items-center justify-center shadow-inner">
                       <BookOpen className="w-7 h-7 text-gray-300 dark:text-white/20" />
                     </div>
@@ -890,7 +893,7 @@ export default function GlosarioNegocioEditor({
                   </div>
                 ) : terminosOrdenados.length === 0 ? (
                   // ── No results ────────────────────────────────────────────
-                  <div className="flex flex-col items-center justify-center h-full gap-2">
+                  <div className="flex h-full flex-col items-center justify-center gap-2 rounded-2xl border border-[#dbe8ef] bg-white/90 shadow-[0_10px_26px_rgba(17,54,77,0.08)] dark:border-white/[0.08] dark:bg-[#0f151c]/85 dark:shadow-black/25">
                     <p className="text-sm text-gray-500 dark:text-white/40">
                       Sin resultados para &ldquo;{busqueda}&rdquo;
                     </p>
@@ -900,9 +903,10 @@ export default function GlosarioNegocioEditor({
                   </div>
                 ) : (
                   // ── Table ─────────────────────────────────────────────────
-                  <table className="w-full text-sm border-collapse min-w-[640px]">
-                    <thead>
-                      <tr className="border-b-2 border-gray-200 dark:border-white/[0.08] divide-x divide-gray-200 dark:divide-white/[0.06]">
+                  <div className="overflow-hidden rounded-2xl border border-[#dbe8ef] bg-white/95 shadow-[0_12px_30px_rgba(17,54,77,0.1)] dark:border-white/[0.08] dark:bg-[#0f151c]/90 dark:shadow-black/35">
+                    <table className="min-w-[640px] w-full border-collapse text-sm">
+                      <thead>
+                        <tr className="divide-x divide-gray-200 border-b-2 border-gray-200 dark:divide-white/[0.06] dark:border-white/[0.08]">
                         {/* # */}
                         <th className="sticky top-0 z-20 bg-gray-50 dark:bg-[#111] px-3 py-2.5 text-left text-[10px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-wide w-10 select-none">
                           #
@@ -939,8 +943,8 @@ export default function GlosarioNegocioEditor({
                           </th>
                         ))}
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
                       {agrupacion === "alfabetico" && terminosAgrupados
                         ? Object.entries(terminosAgrupados)
                             .sort(([a], [b]) => a.localeCompare(b))
@@ -967,8 +971,9 @@ export default function GlosarioNegocioEditor({
                             ))
                         : terminosOrdenados.map((t, i) => renderRow(t, i))
                       }
-                    </tbody>
-                  </table>
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             </div>
@@ -993,11 +998,11 @@ export default function GlosarioNegocioEditor({
 
         {/* ── Tab: Comentarios ──────────────────────────────────────────────── */}
         {tabActiva === "comentarios" && (
-          <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto w-full">
+          <div className="mx-auto w-full max-w-3xl flex-1 overflow-y-auto p-6">
             <h3 className="text-sm font-bold text-gray-800 dark:text-white/90 mb-4">
               Comentarios generales del glosario
             </h3>
-            <div className="space-y-3 mb-6">
+            <div className="mb-6 space-y-3 rounded-2xl border border-[#dbe8ef] bg-white/85 p-4 shadow-[0_10px_24px_rgba(17,54,77,0.08)] dark:border-white/[0.08] dark:bg-[#0f151c]/80 dark:shadow-black/30">
               {comentariosGenerales.length === 0 && (
                 <p className="text-sm text-gray-400 dark:text-white/30 italic">No hay comentarios generales aún.</p>
               )}
@@ -1041,9 +1046,9 @@ export default function GlosarioNegocioEditor({
 
         {/* ── Tab: Versiones ────────────────────────────────────────────────── */}
         {tabActiva === "versiones" && (
-          <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto w-full">
+          <div className="mx-auto w-full max-w-3xl flex-1 overflow-y-auto p-6">
             <h3 className="text-sm font-bold text-gray-800 dark:text-white/90 mb-4">Historial de Versiones</h3>
-            <div className="space-y-0">
+            <div className="space-y-0 rounded-2xl border border-[#dbe8ef] bg-white/85 p-4 shadow-[0_10px_24px_rgba(17,54,77,0.08)] dark:border-white/[0.08] dark:bg-[#0f151c]/80 dark:shadow-black/30">
               {[...glosario.historial_versiones].reverse().map((v, i) => (
                 <div key={v.version} className="flex gap-4">
                   <div className="flex flex-col items-center">
@@ -1076,7 +1081,7 @@ export default function GlosarioNegocioEditor({
       </div>
 
       {/* ── Footer ────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-white/[0.08] bg-gray-50/70 dark:bg-[#0a0a0a] shrink-0">
+      <div className="flex items-center justify-between border-t border-gray-200 bg-white/85 px-4 py-2 shadow-[0_-6px_16px_rgba(20,57,79,0.06)] dark:border-white/[0.08] dark:bg-[#0a0f15]/90 shrink-0">
         <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-white/35">
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#28b8d5]" />

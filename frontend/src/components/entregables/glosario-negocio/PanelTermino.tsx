@@ -102,11 +102,11 @@ export default function PanelTermino({
 
   return (
     <div
-      className="w-80 flex flex-col border-l border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111] h-full overflow-hidden shrink-0"
-      style={{ boxShadow: "-4px 0 24px rgba(0,0,0,0.07)" }}
+      className="w-80 flex flex-col border-l border-gray-200 dark:border-white/[0.08] bg-gradient-to-b from-white via-[#fbfdff] to-[#f3f8fc] dark:from-[#111822] dark:via-[#0f151e] dark:to-[#0b1017] h-full overflow-hidden shrink-0"
+      style={{ boxShadow: "-10px 0 30px rgba(6, 36, 56, 0.14)" }}
     >
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between px-4 py-3 border-b border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111] shrink-0">
+      <div className="flex items-start justify-between px-4 py-3 border-b border-gray-200 dark:border-white/[0.08] bg-white/90 dark:bg-[#111822]/90 shadow-[0_4px_12px_rgba(11,53,77,0.08)] shrink-0">
         <div className="flex-1 min-w-0 pr-2">
           {estadoCfg && (
             <div className="flex items-center gap-1.5 mb-1">
@@ -169,7 +169,7 @@ export default function PanelTermino({
       )}
 
       {/* ── Form ───────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/45 dark:bg-transparent">
 
         {/* Término */}
         <div>
