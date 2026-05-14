@@ -455,9 +455,9 @@ export default function MatrizInventarioEditor({
   return (
     <div className="flex flex-col h-full">
       {/* ── Toolbar superior ────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111111]">
-        <div className="flex items-center gap-3">
-          {/* Tabs */}
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111111]">
+        {/* Izquierda: navegación + estado */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="flex rounded-xl bg-gray-100 dark:bg-white/[0.04] p-0.5">
             {(["tabla", "comentarios", "versiones"] as TabActiva[]).map((tab) => (
               <button
@@ -476,9 +476,8 @@ export default function MatrizInventarioEditor({
             ))}
           </div>
 
-          {/* Indicadores */}
           {!readOnly && hasChanges && (
-            <span className="text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
+            <span className="hidden sm:inline-flex text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
               Cambios sin guardar
             </span>
           )}
@@ -489,9 +488,10 @@ export default function MatrizInventarioEditor({
           )}
         </div>
 
+        {/* Derecha: acciones */}
         {!readOnly && (
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {/* Utility actions (low emphasis) */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Utilidad: + Columna (énfasis bajo) */}
             {showAddCol ? (
               <div className="flex items-center gap-1.5">
                 <input
@@ -504,7 +504,7 @@ export default function MatrizInventarioEditor({
                     if (e.key === "Escape") { setShowAddCol(false); setNuevaColLabel(""); }
                   }}
                   placeholder="Nombre de columna"
-                  className="w-40 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] px-2.5 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5]"
+                  className="w-36 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] px-2.5 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5]"
                 />
                 <button
                   onClick={handleAddColumn}
@@ -514,35 +514,41 @@ export default function MatrizInventarioEditor({
                 </button>
                 <button
                   onClick={() => { setShowAddCol(false); setNuevaColLabel(""); }}
-                  className="px-2.5 py-1.5 rounded-lg text-xs text-gray-500 dark:text-white/40 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
                 >
-                  ✕
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setShowAddCol(true)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.02] text-xs font-medium text-gray-600 dark:text-white/55 hover:bg-gray-50 dark:hover:bg-white/[0.06] transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
               >
                 + Columna
               </button>
             )}
 
+            {/* Separador visual */}
+            <div className="w-px h-4 bg-gray-200 dark:bg-white/[0.1] shrink-0" />
+
+            {/* IA Generate (énfasis medio-accent) */}
             <button
               onClick={onGenerateIA}
               disabled={isGenerating}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#28b8d5]/25 bg-[#28b8d5]/5 text-[#28b8d5] text-xs font-semibold hover:bg-[#28b8d5]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#28b8d5]/25 bg-[#28b8d5]/5 text-[#28b8d5] text-xs font-semibold hover:bg-[#28b8d5]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isGenerating ? (
                 <>
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                  <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
                   </svg>
                   Generando...
                 </>
               ) : (
                 <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                   </svg>
                   Generar con IA
@@ -550,33 +556,33 @@ export default function MatrizInventarioEditor({
               )}
             </button>
 
-            {/* Data action (secondary) */}
+            {/* Agregar sistema (énfasis secundario) */}
             <button
               onClick={handleAddSistema}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-300 dark:border-white/[0.14] bg-white dark:bg-white/[0.03] text-xs font-semibold text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/[0.08] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-white/[0.14] bg-white dark:bg-white/[0.03] text-xs font-semibold text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/[0.08] transition-colors"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
               Agregar sistema
             </button>
 
-            {/* Primary action */}
+            {/* Guardar (énfasis primario) */}
             <button
               onClick={handleSave}
               disabled={isSaving || !hasChanges}
-              className="min-w-[118px] flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#0f3f74] text-white text-xs font-semibold hover:bg-[#0d3563] disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-[#1b7ca5] dark:hover:bg-[#186d92]"
+              className="flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#0f3f74] text-white text-xs font-semibold hover:bg-[#0d3563] disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-[#1b7ca5] dark:hover:bg-[#186d92] whitespace-nowrap"
             >
               {isSaving ? (
                 <>
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                  <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
                   </svg>
                   Guardando...
                 </>
               ) : (
-                "Guardar"
+                "Guardar cambios"
               )}
             </button>
           </div>
@@ -590,18 +596,14 @@ export default function MatrizInventarioEditor({
           <>
             {/* Tabla de sistemas */}
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 dark:border-white/[0.06] bg-white/70 dark:bg-[#101010]">
+              <div className="px-4 py-2.5 border-b border-gray-100 dark:border-white/[0.06] bg-white/70 dark:bg-[#101010]">
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="relative min-w-[220px] flex-1 max-w-sm">
+                  {/* Buscador */}
+                  <div className="relative min-w-[200px] flex-1 max-w-xs">
                     <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/25"
+                      width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="2" strokeLinecap="round"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/25 pointer-events-none"
                     >
                       <circle cx="11" cy="11" r="8" />
                       <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -610,15 +612,23 @@ export default function MatrizInventarioEditor({
                       type="text"
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
-                      placeholder="Buscar sistema, tecnología o propietario..."
-                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
+                      placeholder="Buscar sistema, tecnología..."
+                      className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
                     />
                   </div>
 
+                  {/* Separador */}
+                  <div className="w-px h-4 bg-gray-200 dark:bg-white/[0.08] shrink-0" />
+
+                  {/* Filtros select */}
                   <select
                     value={filtroTipo}
                     onChange={(e) => setFiltroTipo(e.target.value as TipoSistema | "todos")}
-                    className="px-2.5 py-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70"
+                    className={`px-2.5 py-1.5 rounded-lg border text-xs transition-colors ${
+                      filtroTipo !== "todos"
+                        ? "border-[#28b8d5]/40 bg-[#28b8d5]/5 text-[#28b8d5] dark:border-[#28b8d5]/30"
+                        : "border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-gray-700 dark:text-white/70"
+                    }`}
                   >
                     <option value="todos">Tipo: todos</option>
                     {Object.entries(TIPO_LABELS).map(([key, label]) => (
@@ -629,7 +639,11 @@ export default function MatrizInventarioEditor({
                   <select
                     value={filtroCriticidad}
                     onChange={(e) => setFiltroCriticidad(e.target.value as NivelCriticidad | "todos")}
-                    className="px-2.5 py-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70"
+                    className={`px-2.5 py-1.5 rounded-lg border text-xs transition-colors ${
+                      filtroCriticidad !== "todos"
+                        ? "border-[#28b8d5]/40 bg-[#28b8d5]/5 text-[#28b8d5] dark:border-[#28b8d5]/30"
+                        : "border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-gray-700 dark:text-white/70"
+                    }`}
                   >
                     <option value="todos">Criticidad: todas</option>
                     {Object.entries(CRITICIDAD_LABELS).map(([key, label]) => (
@@ -640,7 +654,11 @@ export default function MatrizInventarioEditor({
                   <select
                     value={filtroEstado}
                     onChange={(e) => setFiltroEstado(e.target.value as EstadoSistema | "todos")}
-                    className="px-2.5 py-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-xs text-gray-700 dark:text-white/70"
+                    className={`px-2.5 py-1.5 rounded-lg border text-xs transition-colors ${
+                      filtroEstado !== "todos"
+                        ? "border-[#28b8d5]/40 bg-[#28b8d5]/5 text-[#28b8d5] dark:border-[#28b8d5]/30"
+                        : "border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-gray-700 dark:text-white/70"
+                    }`}
                   >
                     <option value="todos">Estado: todos</option>
                     {Object.entries(ESTADO_LABELS).map(([key, label]) => (
@@ -648,23 +666,25 @@ export default function MatrizInventarioEditor({
                     ))}
                   </select>
 
-                  <button
-                    onClick={resetFiltros}
-                    className="px-2.5 py-2 rounded-lg text-xs text-gray-500 dark:text-white/45 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
-                  >
-                    Limpiar
-                  </button>
-                </div>
-
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-500 dark:text-white/35">
-                  <span>
-                    Mostrando {sistemasFiltrados.length} de {matriz.sistemas.length} sistemas
-                  </span>
+                  {/* Limpiar filtros — sólo visible cuando hay filtros activos */}
                   {(busqueda || filtroTipo !== "todos" || filtroCriticidad !== "todos" || filtroEstado !== "todos") && (
-                    <span className="px-1.5 py-0.5 rounded bg-[#28b8d5]/10 text-[#28b8d5] font-medium">
-                      Filtros activos
-                    </span>
+                    <button
+                      onClick={resetFiltros}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#28b8d5] hover:bg-[#28b8d5]/10 transition-colors"
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                      Limpiar
+                    </button>
                   )}
+
+                  {/* Conteo */}
+                  <span className="ml-auto text-[11px] text-gray-400 dark:text-white/30 whitespace-nowrap">
+                    {sistemasFiltrados.length === matriz.sistemas.length
+                      ? `${matriz.sistemas.length} sistemas`
+                      : `${sistemasFiltrados.length} de ${matriz.sistemas.length}`}
+                  </span>
                 </div>
               </div>
 

@@ -140,16 +140,23 @@ export default function PanelSistema({
   return (
     <div className="w-80 flex flex-col border-l border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111111] h-full overflow-hidden shrink-0">
       {/* Header */}
-      <div className="flex items-start justify-between px-4 py-3 border-b border-gray-200 dark:border-white/[0.08]">
+      <div className="flex items-start justify-between px-4 py-3 border-b border-gray-200 dark:border-white/[0.08] bg-gray-50/50 dark:bg-white/[0.02]">
         <div className="flex-1 min-w-0 pr-2">
-          <p className="text-[10px] font-medium text-gray-400 dark:text-white/30 uppercase tracking-wide mb-0.5">
-            {TIPO_LABELS[sistema.tipo]}
-          </p>
-          <h3 className="text-sm font-bold text-gray-800 dark:text-white/90 truncate">
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-[10px] font-medium text-gray-400 dark:text-white/30 uppercase tracking-wide">
+              {TIPO_LABELS[sistema.tipo]}
+            </p>
+            {sistema.criticidad && (
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${CRITICIDAD_COLORS[sistema.criticidad]}`}>
+                {CRITICIDAD_LABELS[sistema.criticidad]}
+              </span>
+            )}
+          </div>
+          <h3 className="text-sm font-bold text-gray-800 dark:text-white/90 truncate leading-tight">
             {sistema.nombre}
           </h3>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {!readOnly && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
@@ -200,389 +207,366 @@ export default function PanelSistema({
       )}
 
       {/* Form */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* Nombre */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-            Nombre
-          </label>
-          <input
-            type="text"
-            value={form.nombre}
-            onChange={(e) => update({ nombre: e.target.value })}
-            disabled={readOnly}
-            className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-sm text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60 disabled:cursor-not-allowed"
-          />
-        </div>
+      <div className="flex-1 overflow-y-auto">
+        {/* ── Sección: Identificación ──────────────────────────────────── */}
+        <div className="p-4 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Identificación
+          </p>
 
-        {/* Tipo + Criticidad en fila */}
-        <div className="grid grid-cols-2 gap-3">
+          {/* Nombre */}
           <div>
             <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-              Tipo
-            </label>
-            <select
-              value={form.tipo}
-              onChange={(e) => update({ tipo: e.target.value as TipoSistema })}
-              disabled={readOnly}
-              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-2 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
-            >
-              {(Object.keys(TIPO_LABELS) as TipoSistema[]).map((t) => (
-                <option key={t} value={t}>
-                  {TIPO_LABELS[t]}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-              Criticidad
-            </label>
-            <select
-              value={form.criticidad || ""}
-              onChange={(e) => update({ criticidad: (e.target.value as NivelCriticidad) || undefined })}
-              disabled={readOnly}
-              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-2 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
-            >
-              <option value="">No especificada</option>
-              {(Object.keys(CRITICIDAD_LABELS) as NivelCriticidad[]).map((c) => (
-                <option key={c} value={c}>
-                  {CRITICIDAD_LABELS[c]}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Tecnología + Estado */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-              Tecnología
+              Nombre
             </label>
             <input
               type="text"
-              value={form.tecnologia || ""}
-              onChange={(e) => update({ tecnologia: e.target.value || undefined })}
+              value={form.nombre}
+              onChange={(e) => update({ nombre: e.target.value })}
               disabled={readOnly}
-              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-2 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-sm text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          {/* Tipo + Criticidad */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+                Tipo
+              </label>
+              <select
+                value={form.tipo}
+                onChange={(e) => update({ tipo: e.target.value as TipoSistema })}
+                disabled={readOnly}
+                className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+              >
+                {(Object.keys(TIPO_LABELS) as TipoSistema[]).map((t) => (
+                  <option key={t} value={t}>{TIPO_LABELS[t]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+                Criticidad
+              </label>
+              <select
+                value={form.criticidad || ""}
+                onChange={(e) => update({ criticidad: (e.target.value as NivelCriticidad) || undefined })}
+                disabled={readOnly}
+                className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+              >
+                <option value="">Sin especificar</option>
+                {(Object.keys(CRITICIDAD_LABELS) as NivelCriticidad[]).map((c) => (
+                  <option key={c} value={c}>{CRITICIDAD_LABELS[c]}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Tecnología + Estado */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+                Tecnología
+              </label>
+              <input
+                type="text"
+                value={form.tecnologia || ""}
+                onChange={(e) => update({ tecnologia: e.target.value || undefined })}
+                disabled={readOnly}
+                className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+                Estado
+              </label>
+              <select
+                value={form.estado || ""}
+                onChange={(e) => update({ estado: (e.target.value as EstadoSistema) || undefined })}
+                disabled={readOnly}
+                className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+              >
+                <option value="">Sin especificar</option>
+                {(Object.keys(ESTADO_LABELS) as EstadoSistema[]).map((e) => (
+                  <option key={e} value={e}>{ESTADO_LABELS[e]}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Sección: Versión / Proveedor ─────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Versión y proveedor
+          </p>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+                Versión
+              </label>
+              <input
+                type="text"
+                value={form.version ?? ""}
+                onChange={(e) => update({ version: e.target.value || undefined })}
+                disabled={readOnly}
+                placeholder="ej. 11.2"
+                className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+                Proveedor
+              </label>
+              <input
+                type="text"
+                value={form.proveedor ?? ""}
+                onChange={(e) => update({ proveedor: e.target.value || undefined })}
+                disabled={readOnly}
+                placeholder="ej. Oracle"
+                className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Sección: Responsables ─────────────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Responsables
+          </p>
+          <div>
+            <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+              Propietario Negocio
+            </label>
+            <input
+              type="text"
+              value={form.propietario_negocio ?? ""}
+              onChange={(e) => update({ propietario_negocio: e.target.value || undefined })}
+              disabled={readOnly}
+              placeholder="ej. Vicepresidencia Comercial"
+              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] disabled:opacity-60"
             />
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-              Estado
+              Propietario Técnico (TI)
             </label>
-            <select
-              value={form.estado || ""}
-              onChange={(e) => update({ estado: (e.target.value as EstadoSistema) || undefined })}
+            <input
+              type="text"
+              value={form.propietario_tecnico ?? ""}
+              onChange={(e) => update({ propietario_tecnico: e.target.value || undefined })}
               disabled={readOnly}
-              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-2 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
-            >
-              <option value="">No especificado</option>
-              {(Object.keys(ESTADO_LABELS) as EstadoSistema[]).map((e) => (
-                <option key={e} value={e}>
-                  {ESTADO_LABELS[e]}
-                </option>
+              placeholder="ej. Gerencia de Datos"
+              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+            />
+          </div>
+        </div>
+
+        {/* ── Sección: Contexto ─────────────────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Contexto
+          </p>
+
+          {/* Descripción */}
+          <div>
+            <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+              Descripción
+            </label>
+            <textarea
+              value={form.descripcion}
+              onChange={(e) => update({ descripcion: e.target.value })}
+              disabled={readOnly}
+              rows={3}
+              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] resize-none disabled:opacity-60"
+            />
+          </div>
+
+          {/* Áreas Estratégicas */}
+          <div>
+            <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+              Áreas Estratégicas / Procesos
+            </label>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {(form.areas_estrategicas || []).map((area) => (
+                <span
+                  key={area}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                >
+                  {area}
+                  {!readOnly && (
+                    <button onClick={() => handleRemoveArea(area)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                  )}
+                </span>
               ))}
-            </select>
+            </div>
+            {!readOnly && (
+              <div className="flex gap-1.5">
+                <input
+                  type="text" value={nuevoArea} onChange={(e) => setNuevoArea(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddArea()}
+                  placeholder="ej. Gestión Humana"
+                  className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
+                />
+                <button onClick={handleAddArea} disabled={!nuevoArea.trim()}
+                  className="px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors">
+                  +
+                </button>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Versión + Proveedor */}
-        <div className="grid grid-cols-2 gap-3">
+          {/* Ambientes */}
           <div>
             <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-              Versión
+              Ambientes
             </label>
-            <input
-              type="text"
-              value={form.version ?? ""}
-              onChange={(e) => update({ version: e.target.value || undefined })}
-              disabled={readOnly}
-              placeholder="ej. 11.2"
-              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-2 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] disabled:opacity-60"
-            />
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {form.ambientes.map((amb) => (
+                <span key={amb} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#28b8d5]/10 text-[#28b8d5]">
+                  {amb}
+                  {!readOnly && (
+                    <button onClick={() => handleRemoveAmbiente(amb)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                  )}
+                </span>
+              ))}
+            </div>
+            {!readOnly && (
+              <div className="flex gap-1.5">
+                <input
+                  type="text" value={nuevoAmbiente} onChange={(e) => setNuevoAmbiente(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddAmbiente()}
+                  placeholder="ej. Producción"
+                  className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
+                />
+                <button onClick={handleAddAmbiente} disabled={!nuevoAmbiente.trim()}
+                  className="px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors">
+                  +
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Datos que maneja */}
           <div>
             <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-              Proveedor
+              Datos que maneja
             </label>
-            <input
-              type="text"
-              value={form.proveedor ?? ""}
-              onChange={(e) => update({ proveedor: e.target.value || undefined })}
-              disabled={readOnly}
-              placeholder="ej. Oracle"
-              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-2 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] disabled:opacity-60"
-            />
-          </div>
-        </div>
-
-        {/* Propietario Negocio */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-            Propietario Negocio
-          </label>
-          <input
-            type="text"
-            value={form.propietario_negocio ?? ""}
-            onChange={(e) => update({ propietario_negocio: e.target.value || undefined })}
-            disabled={readOnly}
-            placeholder="ej. Vicepresidencia Comercial"
-            className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] disabled:opacity-60"
-          />
-        </div>
-
-        {/* Propietario Técnico */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-            Propietario Técnico
-          </label>
-          <input
-            type="text"
-            value={form.propietario_tecnico ?? ""}
-            onChange={(e) => update({ propietario_tecnico: e.target.value || undefined })}
-            disabled={readOnly}
-            placeholder="ej. Gerencia de Datos"
-            className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] disabled:opacity-60"
-          />
-        </div>
-
-        {/* Descripción */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-            Descripción
-          </label>
-          <textarea
-            value={form.descripcion}
-            onChange={(e) => update({ descripcion: e.target.value })}
-            disabled={readOnly}
-            rows={3}
-            className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] resize-none disabled:opacity-60"
-          />
-        </div>
-
-        {/* Áreas Estratégicas / Procesos que apoya */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-            Áreas Estratégicas / Procesos
-          </label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {(form.areas_estrategicas || []).map((area) => (
-              <span
-                key={area}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-              >
-                {area}
-                {!readOnly && (
-                  <button
-                    onClick={() => handleRemoveArea(area)}
-                    className="ml-0.5 hover:text-red-500 transition-colors"
-                  >
-                    ×
-                  </button>
-                )}
-              </span>
-            ))}
-          </div>
-          {!readOnly && (
-            <div className="flex gap-1.5">
-              <input
-                type="text"
-                value={nuevoArea}
-                onChange={(e) => setNuevoArea(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddArea()}
-                placeholder="ej. Gestión Humana"
-                className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
-              />
-              <button
-                onClick={handleAddArea}
-                disabled={!nuevoArea.trim()}
-                className="px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors"
-              >
-                +
-              </button>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {form.datos_que_maneja.map((dato) => (
+                <span key={dato} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400">
+                  {dato}
+                  {!readOnly && (
+                    <button onClick={() => handleRemoveDato(dato)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                  )}
+                </span>
+              ))}
             </div>
-          )}
-        </div>
-
-        {/* Ambientes */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-            Ambientes
-          </label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {form.ambientes.map((amb) => (
-              <span
-                key={amb}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#28b8d5]/10 text-[#28b8d5]"
-              >
-                {amb}
-                {!readOnly && (
-                  <button
-                    onClick={() => handleRemoveAmbiente(amb)}
-                    className="ml-0.5 hover:text-red-500 transition-colors"
-                  >
-                    ×
-                  </button>
-                )}
-              </span>
-            ))}
+            {!readOnly && (
+              <div className="flex gap-1.5">
+                <input
+                  type="text" value={nuevoDato} onChange={(e) => setNuevoDato(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddDato()}
+                  placeholder="ej. Datos personales"
+                  className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
+                />
+                <button onClick={handleAddDato} disabled={!nuevoDato.trim()}
+                  className="px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors">
+                  +
+                </button>
+              </div>
+            )}
           </div>
-          {!readOnly && (
-            <div className="flex gap-1.5">
-              <input
-                type="text"
-                value={nuevoAmbiente}
-                onChange={(e) => setNuevoAmbiente(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddAmbiente()}
-                placeholder="ej. Producción"
-                className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
-              />
-              <button
-                onClick={handleAddAmbiente}
-                disabled={!nuevoAmbiente.trim()}
-                className="px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors"
-              >
-                +
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Datos que maneja */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-            Datos que maneja
-          </label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {form.datos_que_maneja.map((dato) => (
-              <span
-                key={dato}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400"
-              >
-                {dato}
-                {!readOnly && (
-                  <button
-                    onClick={() => handleRemoveDato(dato)}
-                    className="ml-0.5 hover:text-red-500 transition-colors"
-                  >
-                    ×
-                  </button>
-                )}
-              </span>
-            ))}
-          </div>
-          {!readOnly && (
-            <div className="flex gap-1.5">
-              <input
-                type="text"
-                value={nuevoDato}
-                onChange={(e) => setNuevoDato(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddDato()}
-                placeholder="ej. Datos personales"
-                className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
-              />
-              <button
-                onClick={handleAddDato}
-                disabled={!nuevoDato.trim()}
-                className="px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors"
-              >
-                +
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Notas */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+        {/* ── Sección: Notas ────────────────────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
             Notas
-          </label>
+          </p>
           <textarea
             value={form.notas ?? ""}
             onChange={(e) => update({ notas: e.target.value || undefined })}
             disabled={readOnly}
-            rows={2}
+            rows={3}
             placeholder="Observaciones adicionales..."
             className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5] resize-none disabled:opacity-60"
           />
         </div>
 
-        {/* Columnas dinámicas */}
-        {columnasDinamicas.map((col) => (
-          <div key={col.id}>
-            <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
-              {col.label}
-            </label>
-            <input
-              type="text"
-              value={(form as any)[col.id] || ""}
-              onChange={(e) => update({ [col.id]: e.target.value } as any)}
-              disabled={readOnly}
-              className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
-            />
-          </div>
-        ))}
-
-        {/* Comentarios del sistema */}
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-2">
-            Comentarios ({comentariosSistema.length})
-          </label>
-          <div className="space-y-2 mb-2">
-            {comentariosSistema.length === 0 && (
-              <p className="text-[11px] text-gray-400 dark:text-white/25 italic">
-                Sin comentarios.
-              </p>
-            )}
-            {comentariosSistema.map((c) => (
-              <div
-                key={c.id}
-                className="rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02] p-2.5"
-              >
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-[10px] font-semibold text-gray-600 dark:text-white/60">
-                    {c.autor_nombre}
-                  </span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium">
-                    {c.autor_perfil === "CONSULTOR" ? "Consultor" : "Empresa"}
-                  </span>
-                </div>
-                <p className="text-[11px] text-gray-700 dark:text-white/60">{c.contenido}</p>
+        {/* ── Sección: Columnas adicionales ────────────────────────────── */}
+        {columnasDinamicas.length > 0 && (
+          <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-3">
+            <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+              Campos adicionales
+            </p>
+            {columnasDinamicas.map((col) => (
+              <div key={col.id}>
+                <label className="block text-[10px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wide mb-1">
+                  {col.label}
+                </label>
+                <input
+                  type="text"
+                  value={(form as any)[col.id] || ""}
+                  onChange={(e) => update({ [col.id]: e.target.value } as any)}
+                  disabled={readOnly}
+                  className="w-full rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-1.5 text-xs text-gray-800 dark:text-white/80 outline-none focus:border-[#28b8d5] disabled:opacity-60"
+                />
               </div>
             ))}
           </div>
+        )}
+
+        {/* ── Sección: Comentarios ──────────────────────────────────────── */}
+        <div className="border-t border-gray-100 dark:border-white/[0.05] px-4 py-3 space-y-2">
+          <p className="text-[9px] font-semibold text-gray-400 dark:text-white/25 uppercase tracking-widest">
+            Comentarios ({comentariosSistema.length})
+          </p>
+          {comentariosSistema.length === 0 && (
+            <p className="text-[11px] text-gray-400 dark:text-white/25 italic">Sin comentarios.</p>
+          )}
+          {comentariosSistema.map((c) => (
+            <div key={c.id} className="rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02] p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[10px] font-semibold text-gray-600 dark:text-white/60">{c.autor_nombre}</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#28b8d5]/10 text-[#28b8d5] font-medium">
+                  {c.autor_perfil === "CONSULTOR" ? "Consultor" : "Empresa"}
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-700 dark:text-white/60">{c.contenido}</p>
+            </div>
+          ))}
           {!readOnly && (
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 pt-1">
               <input
-                type="text"
-                value={nuevoComentario}
-                onChange={(e) => setNuevoComentario(e.target.value)}
+                type="text" value={nuevoComentario} onChange={(e) => setNuevoComentario(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
                 placeholder="Agregar comentario..."
                 className="flex-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-2 py-1.5 text-xs text-gray-800 dark:text-white/80 placeholder-gray-400 outline-none focus:border-[#28b8d5]"
               />
-              <button
-                onClick={handleAddComment}
-                disabled={!nuevoComentario.trim()}
-                className="px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors"
-              >
+              <button onClick={handleAddComment} disabled={!nuevoComentario.trim()}
+                className="px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-600 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/[0.1] disabled:opacity-40 transition-colors">
                 +
               </button>
             </div>
           )}
         </div>
+
+        {/* Espaciado inferior para no quedar pegado al footer */}
+        <div className="h-2" />
       </div>
 
-      {/* Footer: botón guardar */}
-      {!readOnly && hasChanges && (
-        <div className="px-4 py-3 border-t border-gray-200 dark:border-white/[0.08]">
+      {/* Footer: botón guardar — siempre visible en modo edición */}
+      {!readOnly && (
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#111111]">
           <button
             onClick={handleSave}
-            className="w-full py-2 rounded-xl bg-gray-900 dark:bg-white/[0.1] text-white text-xs font-semibold hover:bg-gray-800 dark:hover:bg-white/[0.15] transition-colors"
+            disabled={!hasChanges}
+            className="w-full py-2 rounded-xl bg-[#0f3f74] dark:bg-[#1b7ca5] text-white text-xs font-semibold hover:bg-[#0d3563] dark:hover:bg-[#186d92] disabled:opacity-35 disabled:cursor-not-allowed transition-all"
           >
-            Aplicar cambios
+            {hasChanges ? "Aplicar cambios" : "Sin cambios pendientes"}
           </button>
         </div>
       )}
