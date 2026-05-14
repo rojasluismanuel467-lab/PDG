@@ -1,9 +1,23 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import type { RolRaci } from "@/lib/types/matriz-raci.types";
+import type { RolRaci, ActividadRaci, AsignacionRaci } from "@/lib/types/matriz-raci.types";
+
+const RACI_BADGE: Record<AsignacionRaci, string> = {
+  R: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400",
+  A: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
+  C: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400",
+  I: "bg-gray-100 text-gray-600 dark:bg-white/[0.08] dark:text-white/40",
+};
+const RACI_LABEL: Record<AsignacionRaci, string> = {
+  R: "Responsable",
+  A: "Aprobador",
+  C: "Consultado",
+  I: "Informado",
+};
 
 interface PanelRolProps {
   rol: RolRaci;
+  actividades: ActividadRaci[];
   onUpdate: (updated: RolRaci) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
@@ -12,6 +26,7 @@ interface PanelRolProps {
 
 export default function PanelRol({
   rol,
+  actividades,
   onUpdate,
   onDelete,
   onClose,
@@ -20,6 +35,15 @@ export default function PanelRol({
   const [form, setForm] = useState<RolRaci>(rol);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const stats = (["R", "A", "C", "I"] as AsignacionRaci[]).reduce(
+    (acc, type) => {
+      acc[type] = actividades.filter((a) => a.asignaciones[rol.id] === type).length;
+      return acc;
+    },
+    {} as Record<AsignacionRaci, number>
+  );
+  const assignedActivities = actividades.filter((a) => a.asignaciones[rol.id] !== undefined);
 
   useEffect(() => {
     setForm(rol);
@@ -80,6 +104,39 @@ export default function PanelRol({
               placeholder="Ej. Tecnología, Operaciones..."
               className="w-full bg-transparent border border-gray-200 dark:border-white/[0.08] rounded px-2 py-1.5 text-gray-800 dark:text-white/80 placeholder-gray-300 dark:placeholder-white/20 focus:outline-none focus:border-[#28b8d5]/50 text-xs"
             />
+          )}
+        </div>
+
+        {/* Assignment summary */}
+        <div>
+          <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-white/30 mb-2">
+            Participación ({assignedActivities.length} actividades)
+          </label>
+          <div className="grid grid-cols-4 gap-1.5">
+            {(["R", "A", "C", "I"] as AsignacionRaci[]).map((type) => (
+              <div
+                key={type}
+                className={`flex flex-col items-center rounded py-1.5 ${RACI_BADGE[type]}`}
+              >
+                <span className="text-base font-bold leading-none">{stats[type]}</span>
+                <span className="text-[9px] font-semibold mt-0.5 opacity-80">{RACI_LABEL[type].slice(0, 4)}</span>
+              </div>
+            ))}
+          </div>
+          {assignedActivities.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {assignedActivities.map((a) => {
+                const asig = a.asignaciones[rol.id] as AsignacionRaci;
+                return (
+                  <div key={a.id} className="flex items-center gap-2">
+                    <span className={`w-5 h-5 flex-shrink-0 rounded text-[10px] font-bold flex items-center justify-center ${RACI_BADGE[asig]}`}>
+                      {asig}
+                    </span>
+                    <span className="text-[11px] text-gray-600 dark:text-white/50 truncate">{a.nombre}</span>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 

@@ -16,7 +16,6 @@ interface PanelActividadProps {
   actividad: ActividadRaci;
   roles: RolRaci[];
   comentarios: ComentarioMatrizRaci[];
-  columnasDinamicas?: { id: string; label: string }[];
   onUpdate: (updated: ActividadRaci) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
@@ -75,7 +74,6 @@ export default function PanelActividad({
   onClose,
   onAddComment,
   readOnly = false,
-  columnasDinamicas = [],
 }: PanelActividadProps) {
   const [form, setForm] = useState<ActividadRaci>(actividad);
   const [nuevoComentario, setNuevoComentario] = useState("");
@@ -249,25 +247,6 @@ export default function PanelActividad({
             />
           )}
         </div>
-
-        {/* Columnas dinámicas */}
-        {columnasDinamicas.map((col) => (
-          <div key={col.id}>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-white/30 mb-1">
-              {col.label}
-            </label>
-            {readOnly ? (
-              <p className="text-gray-600 dark:text-white/50 leading-relaxed text-xs">{(form as any)[col.id] || "—"}</p>
-            ) : (
-              <input
-                type="text"
-                value={(form as any)[col.id] || ""}
-                onChange={(e) => update({ [col.id]: e.target.value } as any)}
-                className="w-full bg-transparent border border-gray-200 dark:border-white/[0.08] rounded px-2 py-1.5 text-gray-800 dark:text-white/80 focus:outline-none focus:border-[#28b8d5]/50 text-xs"
-              />
-            )}
-          </div>
-        ))}
 
         {/* Comentarios */}
         <div>
