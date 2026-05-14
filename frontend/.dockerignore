@@ -1,0 +1,46 @@
+# Dependencies (installed fresh in the build stage)
+node_modules
+.pnp
+.pnp.js
+
+# Build output (generated during Docker build)
+.next
+out
+build
+
+# Test artifacts
+coverage
+playwright-report
+test-results
+
+# Local env files (secrets must be injected at runtime)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Version control
+.git
+.gitignore
+
+# Editor / OS artifacts
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tsbuildinfo
+next-env.d.ts
+bun.lock
+README.md
+CONTRIBUTING.md
+MEMORY.md
+TECH_STACK_REPORT.md
+MATURITY_ASSESSMENT_README.md
+frontend_ai_context.md
+instructions.md
+docs
