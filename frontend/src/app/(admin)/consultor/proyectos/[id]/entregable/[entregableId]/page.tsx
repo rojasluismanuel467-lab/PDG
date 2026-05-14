@@ -881,6 +881,29 @@ export default function EntregablePage() {
     );
   }
 
+  // Glosario type detected but data failed to load (e.g. backend error)
+  if (tipoEditor?.tipo === "glosario-negocio" && !glosarioNegocio) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-10">
+        <Breadcrumb />
+        <div className="rounded-xl border border-red-200 dark:border-red-500/20 p-6 bg-red-50 dark:bg-red-500/10 mt-4">
+          <p className="text-sm font-medium text-red-700 dark:text-red-400 mb-1">
+            No se pudo cargar el Glosario de Negocio
+          </p>
+          <p className="text-xs text-red-600 dark:text-red-400/70 mb-4">
+            Verifica que el servidor esté disponible e intenta de nuevo.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (tipoEditor?.tipo === "crud-matrix" && crudMatrix) {
     return (
       <div className="flex flex-col h-[calc(100vh-64px)]">

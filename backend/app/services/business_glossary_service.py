@@ -22,7 +22,7 @@ from app.services.project_permission_service import ProjectPermissionService
 
 
 class BusinessGlossaryService:
-    ARTIFACT_CODE = "TOBE_BUSINESS_GLOSSARY"
+    SUPPORTED_ARTIFACT_CODES = {"ASIS_BUSINESS_GLOSSARY", "TOBE_BUSINESS_GLOSSARY"}
 
     @staticmethod
     def _version_label(version_number: int) -> str:
@@ -51,8 +51,9 @@ class BusinessGlossaryService:
         )
         if artifact is None:
             raise NotFoundDomainError("Project artifact not found")
-        if artifact.code != cls.ARTIFACT_CODE:
-            raise ValidationDomainError(f"Artifact code mismatch. Expected {cls.ARTIFACT_CODE}")
+        if artifact.code not in cls.SUPPORTED_ARTIFACT_CODES:
+            expected = ", ".join(sorted(cls.SUPPORTED_ARTIFACT_CODES))
+            raise ValidationDomainError(f"Artifact code mismatch. Expected one of: {expected}")
         return artifact
 
     @staticmethod
@@ -111,17 +112,22 @@ class BusinessGlossaryService:
         )
 
     @classmethod
-    def _generate_payload(cls, db: Session, *, project_id: uuid.UUID) -> dict:
+    def _generate_payload(cls, db: Session, *, project_id: uuid.UUID, artifact_code: str) -> dict:
         project = BusinessGlossaryRepository.get_project(db, project_id=project_id)
         if project is None:
             raise NotFoundDomainError("Project not found")
 
+        is_asis = artifact_code == "ASIS_BUSINESS_GLOSSARY"
+        conceptual_code = "ASIS_CONCEPTUAL_DIAGRAM" if is_asis else "TOBE_CONCEPTUAL_DIAGRAM"
+        logical_code = "ASIS_LOGICAL_DATA_MODEL" if is_asis else "TOBE_LOGICAL_DATA_MODEL"
+        stage_label = "AS-IS" if is_asis else "TO-BE"
+
         terms: list[dict] = []
         seen_names: set[str] = set()
 
-        # Try TO-BE conceptual model entities
+        # Try conceptual model entities from the same stage (AS-IS / TO-BE)
         tobe_artifact = BusinessGlossaryRepository.get_artifact_by_code(
-            db, project_id=project_id, code="TOBE_CONCEPTUAL_DIAGRAM"
+            db, project_id=project_id, code=conceptual_code
         )
         if tobe_artifact:
             conceptual = BusinessGlossaryRepository.get_conceptual_model_by_artifact(
@@ -140,7 +146,7 @@ class BusinessGlossaryService:
                             "termino": entity.name,
                             "definicion": (
                                 f"Entidad de negocio que representa {entity.name} en la arquitectura "
-                                f"TO-BE. Define su estructura, atributos clave y relaciones dentro del "
+                                f"{stage_label}. Define su estructura, atributos clave y relaciones dentro del "
                                 f"ecosistema de datos objetivo."
                             ),
                             "propietario": "Gerencia de Arquitectura de Datos",
@@ -153,7 +159,7 @@ class BusinessGlossaryService:
         # Supplement with logical model tables if available
         if len(terms) < 5:
             logical_artifact = BusinessGlossaryRepository.get_artifact_by_code(
-                db, project_id=project_id, code="TOBE_LOGICAL_DATA_MODEL"
+                db, project_id=project_id, code=logical_code
             )
             if logical_artifact:
                 logical = BusinessGlossaryRepository.get_logical_model_by_artifact(
@@ -169,10 +175,10 @@ class BusinessGlossaryService:
                             {
                                 "id": f"ter-log-{i + 1}",
                                 "termino": name,
-                                "definicion": (
-                                    f"Concepto de negocio representado por la tabla {name} en el "
-                                    f"modelo lógico TO-BE."
-                                ),
+                            "definicion": (
+                                f"Concepto de negocio representado por la tabla {name} en el "
+                                f"modelo lógico {stage_label}."
+                            ),
                                 "propietario": "Gerencia de Arquitectura de Datos",
                                 "entidades_relacionadas": [],
                                 "sinonimos": [],
@@ -184,11 +190,11 @@ class BusinessGlossaryService:
             terms = cls._fallback_terms(project.nombre)
 
         description = (
-            f"Diccionario estandarizado de términos de negocio para la arquitectura TO-BE de "
+            f"Diccionario estandarizado de términos de negocio para la arquitectura {stage_label} de "
             f"{project.client_company_name}. Generado automáticamente como punto de partida."
         )
         return {
-            "nombre": f"Glosario de Negocio TO-BE — {project.client_company_name}",
+            "nombre": f"Glosario de Negocio {stage_label} — {project.client_company_name}",
             "descripcion": description,
             "terminos": terms,
         }
@@ -275,6 +281,7 @@ class BusinessGlossaryService:
         *,
         project_id: uuid.UUID,
         artifact_id: uuid.UUID,
+        artifact_code: str,
         actor_user_id: uuid.UUID,
         actor_user_email: str,
     ) -> BusinessGlossary:
@@ -284,7 +291,7 @@ class BusinessGlossaryService:
         if model is not None:
             return model
 
-        payload = cls._generate_payload(db, project_id=project_id)
+        payload = cls._generate_payload(db, project_id=project_id, artifact_code=artifact_code)
         now = datetime.now(UTC)
         model = BusinessGlossaryRepository.create_glossary(
             db,
@@ -340,6 +347,7 @@ class BusinessGlossaryService:
             db,
             project_id=project_id,
             artifact_id=artifact_id,
+            artifact_code=artifact.code,
             actor_user_id=actor_user_id,
             actor_user_email=actor_user_email,
         )
@@ -370,6 +378,7 @@ class BusinessGlossaryService:
             db,
             project_id=project_id,
             artifact_id=artifact_id,
+            artifact_code=artifact.code,
             actor_user_id=actor_user_id,
             actor_user_email=actor_user_email,
         )
@@ -423,10 +432,13 @@ class BusinessGlossaryService:
             db,
             project_id=project_id,
             artifact_id=artifact_id,
+            artifact_code=artifact.code,
             actor_user_id=actor_user_id,
             actor_user_email=actor_user_email,
         )
-        generated = cls._generate_payload(db, project_id=project_id)
+        generated = cls._generate_payload(
+            db, project_id=project_id, artifact_code=artifact.code
+        )
         model.name = generated["nombre"]
         model.description = generated["descripcion"]
         model.terms = generated["terminos"]
@@ -440,7 +452,7 @@ class BusinessGlossaryService:
                 glossary_id=model.id,
                 version_number=model.current_version_number,
                 snapshot=generated,
-                change_summary="Generated glossary from TO-BE context.",
+                change_summary=f"Generated glossary from {artifact.code} context.",
                 created_by_user_id=actor_user_id,
                 created_by_user_email=actor_user_email,
             ),

@@ -116,10 +116,14 @@ export async function loadArtifactEditorData({
       }
     }
     case "glosario-negocio":
-      return {
-        ...baseData,
-        glosarioNegocio: await businessGlossaryApi.getGlossary(projectId, artifact.id),
-      };
+      try {
+        return {
+          ...baseData,
+          glosarioNegocio: await businessGlossaryApi.getGlossary(projectId, artifact.id),
+        };
+      } catch {
+        return baseData;
+      }
     case "crud-matrix":
       return {
         ...baseData,
