@@ -858,7 +858,7 @@ export default function GlosarioNegocioEditor({
               </div>
 
               {/* Table */}
-              <div className="flex-1 overflow-auto px-3 pb-3">
+              <div className="flex-1 overflow-auto px-3 pt-3 pb-3">
                 {glosario.terminos.length === 0 ? (
                   // ── Empty state ──────────────────────────────────────────
                   <div className="flex h-full flex-col items-center justify-center gap-4 rounded-2xl border border-[#dbe8ef] bg-white/90 px-6 text-center shadow-[0_10px_26px_rgba(17,54,77,0.08)] dark:border-white/[0.08] dark:bg-[#0f151c]/85 dark:shadow-black/25">
