@@ -21,7 +21,12 @@ class Settings(BaseSettings):
             return v  # Pydantic v2 maneja la conversión a lista de un string JSON internamente
         raise ValueError(v)
 
-    DATABASE_URL: str = "sqlite:///./demo.db"
+    # Primary DB URL (e.g. Railway reference variable in production).
+    DATABASE_URL: str | None = None
+    # Local fallback for developer machines when primary DB is unavailable.
+    LOCAL_DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5434/arqdata"
+    # Enables automatic fallback from DATABASE_URL -> LOCAL_DATABASE_URL.
+    DB_FALLBACK_ENABLED: bool = True
     ADMIN_SEED_EMAIL: str = "admin@arqdata.local"
     ADMIN_SEED_NAME: str = "Administrador Inicial"
     JWT_SECRET_KEY: str = "change-this-secret-in-production"
