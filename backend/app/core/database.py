@@ -14,12 +14,17 @@ def _engine_kwargs_for_url(database_url: str) -> dict:
     return kwargs
 
 
+SQLITE_FALLBACK_URL = "sqlite:///./demo.db"
+
+
 def _candidate_database_urls() -> list[str]:
     candidates: list[str] = []
     if settings.DATABASE_URL:
         candidates.append(settings.DATABASE_URL)
     if settings.DB_FALLBACK_ENABLED and settings.LOCAL_DATABASE_URL:
         candidates.append(settings.LOCAL_DATABASE_URL)
+    # SQLite as last resort so the app always starts.
+    candidates.append(SQLITE_FALLBACK_URL)
     # Deduplicate while preserving order.
     return list(dict.fromkeys(candidates))
 
