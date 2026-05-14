@@ -15,6 +15,7 @@ import PanelActividad, {
 } from "./PanelActividad";
 import PanelRol from "./PanelRol";
 import CeldaCommentPopover from "./CeldaCommentPopover";
+import ContextMenuRaci, { type ContextMenuRaciState } from "./ContextMenuRaci";
 import { v4 as uuidv4 } from "uuid";
 
 interface MatrizRACIEditorProps {
@@ -91,6 +92,16 @@ export default function MatrizRACIEditor({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
+  // Right-click context menu
+  const [contextMenu, setContextMenu] = useState<ContextMenuRaciState | null>(null);
+
+  const openContextMenu = useCallback((e: React.MouseEvent, target: ContextMenuRaciState["target"]) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, target });
+    setCeldaPopover(null);
+  }, []);
+
   // Cell comment popover state
   const [celdaPopover, setCeldaPopover] = useState<{
     actividadId: string;
@@ -127,6 +138,25 @@ export default function MatrizRACIEditor({
       return next;
     });
   };
+
+  // ── Cell direct assign (from context menu) ───────────────────────────────
+  const handleSetAsig = useCallback(
+    (actividadId: string, rolId: string, asig: AsignacionRaci | null) => {
+      if (readOnly) return;
+      setMatriz((prev) => {
+        const actividades = prev.actividades.map((a) => {
+          if (a.id !== actividadId) return a;
+          const nuevas = { ...a.asignaciones };
+          if (asig === null) delete nuevas[rolId];
+          else nuevas[rolId] = asig;
+          return { ...a, asignaciones: nuevas };
+        });
+        return { ...prev, actividades };
+      });
+      setHasChanges(true);
+    },
+    [readOnly]
+  );
 
   // ── Cell cycle ────────────────────────────────────────────────────────────
   const handleCellCycle = useCallback(
@@ -290,7 +320,7 @@ export default function MatrizRACIEditor({
   return (
     <div
       className="flex flex-col h-full bg-white dark:bg-[#0f0f0f]"
-      onClick={() => setShowMoreMenu(false)}
+      onClick={() => { setShowMoreMenu(false); setContextMenu(null); }}
     >
       {/* ── Toolbar ──────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-200 dark:border-white/[0.07] bg-white dark:bg-[#0f0f0f] flex-shrink-0 shadow-sm dark:shadow-none">
@@ -570,6 +600,7 @@ export default function MatrizRACIEditor({
                             <th
                               key={rol.id}
                               className="px-2 py-2 text-center min-w-[110px] max-w-[140px] border-l border-gray-100 dark:border-white/[0.05]"
+                              onContextMenu={(e) => openContextMenu(e, { type: "rol", rolId: rol.id, rolNombre: rol.nombre })}
                             >
                               <button
                                 onClick={() => {
@@ -709,6 +740,15 @@ export default function MatrizRACIEditor({
                                       setRolSeleccionado(null);
                                       setActividadSeleccionada(isSelected ? null : actividad);
                                     }}
+                                    onContextMenu={(e) =>
+                                      openContextMenu(e, {
+                                        type: "actividad",
+                                        actividadId: actividad.id,
+                                        actividadNombre: actividad.nombre,
+                                        globalIdx,
+                                        totalActividades: matriz.actividades.length,
+                                      })
+                                    }
                                   >
                                     <div className="flex items-center gap-2">
                                       {/* Up/down reorder */}
@@ -810,6 +850,16 @@ export default function MatrizRACIEditor({
                                       <td
                                         key={rol.id}
                                         className="px-2 text-center border-l border-gray-100 dark:border-white/[0.04]"
+                                        onContextMenu={(e) =>
+                                          openContextMenu(e, {
+                                            type: "celda",
+                                            actividadId: actividad.id,
+                                            actividadNombre: actividad.nombre,
+                                            rolId: rol.id,
+                                            rolNombre: rol.nombre,
+                                            currentAsig: asig,
+                                          })
+                                        }
                                       >
                                         <div className="relative inline-flex items-center justify-center group/cell">
                                           <button
@@ -1001,6 +1051,42 @@ export default function MatrizRACIEditor({
         <div className="flex-1" />
         <span>Actualizado {new Date(matriz.updated_at).toLocaleDateString("es-CO")}</span>
       </div>
+
+      {/* ── Right-click context menu ─────────────────────────────────────── */}
+      {contextMenu && (
+        <ContextMenuRaci
+          {...contextMenu}
+          readOnly={readOnly}
+          onClose={() => setContextMenu(null)}
+          onSetAsig={handleSetAsig}
+          onCommentCell={(actividadId, rolId, x, y) => {
+            setCeldaPopover({ actividadId, rolId, x, y });
+          }}
+          onEditActividad={(id) => {
+            const a = matriz.actividades.find((a) => a.id === id);
+            if (a) { setRolSeleccionado(null); setActividadSeleccionada(a); }
+          }}
+          onDuplicateActividad={(id) => {
+            const a = matriz.actividades.find((a) => a.id === id);
+            if (a) handleDuplicateActividad(a);
+          }}
+          onMoveActividad={handleMoveActividad}
+          onCommentActividad={(id) => {
+            const a = matriz.actividades.find((a) => a.id === id);
+            if (a) { setRolSeleccionado(null); setActividadSeleccionada(a); }
+          }}
+          onDeleteActividad={(id) => {
+            if (confirm("¿Eliminar esta actividad y sus asignaciones?")) handleDeleteActividad(id);
+          }}
+          onEditRol={(id) => {
+            const r = matriz.roles.find((r) => r.id === id);
+            if (r) { setActividadSeleccionada(null); setRolSeleccionado(r); }
+          }}
+          onDeleteRol={(id) => {
+            if (confirm("¿Eliminar este rol y todas sus asignaciones en la matriz?")) handleDeleteRol(id);
+          }}
+        />
+      )}
 
       {/* ── Cell comment popover (Google Docs style) ─────────────────────── */}
       {celdaPopover && (() => {
