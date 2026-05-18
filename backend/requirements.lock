@@ -111,7 +111,6 @@ typing-inspection==0.4.2
     # via pydantic-settings
 uvicorn==0.42.0
     # via arqdata-backend
-uvloop==0.22.1
     # via uvicorn
 watchfiles==1.1.1
     # via uvicorn
