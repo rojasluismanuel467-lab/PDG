@@ -33,7 +33,19 @@ Backend `.env` (for local Postgres development):
 DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5434/arqdata
 JWT_SECRET_KEY=your-dev-secret
 ALLOWED_ORIGINS=["http://localhost:3000"]
+
+# AI layer (optional — set AI_ENABLED=false to skip entirely)
+LLM_PROVIDER=groq          # openai | anthropic | google | groq
+LLM_MODEL=llama-3.3-70b-versatile
+LLM_API_KEY=your-api-key
+LLM_TEMPERATURE=0.2
+
+# Embeddings — Groq/Anthropic have no embeddings API; use huggingface (local, no key needed)
+EMBEDDING_PROVIDER=huggingface
+# EMBEDDING_MODEL=sentence-transformers/all-mpnet-base-v2  # default for huggingface
 ```
+
+`DB_FALLBACK_ENABLED=true` (default) auto-falls back from `DATABASE_URL` to `LOCAL_DATABASE_URL` if the primary is unreachable.
 
 For demo/SQLite mode, omit `.env` — defaults in `app/core/config.py` apply (`sqlite:///./demo.db`).
 
@@ -140,6 +152,52 @@ Project managers always hold level 5 in all blocks. Permission logic lives in `a
 - Constants: `UPPER_SNAKE_CASE`
 - Line length: 80 characters, double quotes, semicolons, 2-space indent
 - Tailwind classes are auto-sorted by Prettier on commit
+
+## AI Layer (`app/ai/`)
+
+Active branch: `feat/ai-layer`. All AI endpoints require `Depends(require_admin_or_consultant)` and respect `AI_ENABLED` — set it `false` to disable without removing code.
+
+### Module layout
+
+```
+app/ai/
+├── llm.py            # get_llm() — LRU-cached, LLM_PROVIDER-driven factory
+├── embeddings.py     # get_embeddings() — Groq/Anthropic fall back to HuggingFace local
+├── prompt_store.py   # get_prompt_store() — loads ChatPromptTemplate from PROMPTS dict
+├── chains/           # async generate_* functions using LangChain structured output
+│   ├── asis.py       # generate_asis_inventory(), generate_asis_conceptual()
+│   └── tobe.py       # generate_tobe_inventory(), generate_tobe_conceptual()
+├── schemas/          # Pydantic output schemas per artefact (AIInventorySuggestion, etc.)
+├── prompts/
+│   └── _defaults.py  # PROMPTS dict — {id: {system, human, version}}. Edit here to tune prompts.
+└── chat/
+    ├── chain.py      # stream_chat() — SSE streaming + SUGGEST_MARKER detection
+    └── history.py    # DBArtifactChatHistory, maybe_compact() (summarizes after N messages)
+```
+
+### Chain pattern
+
+Every artifact generation follows the same shape: `get_llm().with_structured_output(Schema)` piped with a `ChatPromptTemplate` from `get_prompt_store()`. Add a new artifact by:
+1. Adding a Pydantic schema to `app/ai/schemas/`.
+2. Adding a prompt entry to `app/ai/prompts/_defaults.py`.
+3. Adding a `generate_*` async function to the appropriate chain file.
+
+### Chat / SSE streaming
+
+`stream_chat()` yields SSE events: `token` | `generating_artifact` | `artifact` | `done` | `error`. The LLM embeds `<SUGGEST_UPDATE/>` in its reply when it intends to modify the artefact; the chain detects this marker, stops token streaming, and calls the appropriate structured-output chain to produce the artifact JSON. Supported artifact codes: `ASIS_CONCEPTUAL_DIAGRAM`, `TOBE_CONCEPTUAL_DIAGRAM`, `ASIS_SYSTEM_INVENTORY_MATRIX`, `TOBE_SYSTEM_INVENTORY_MATRIX`.
+
+Frontend: `useArtifactChat` hook (`src/hooks/useArtifactChat.ts`) drives `ArtifactChatPanel` and `ArtifactDiffViewer` components.
+
+- **Chat history (ChatGPT-style threads):** sessions are persisted in Postgres (`artifact_chat_sessions`/`artifact_chat_messages`) and exposed via `/ai/chat/{artifact_code}/sessions/*`. UI supports create/rename/delete + search by title; session IDs are persisted per `(projectId, artifactCode)` in `localStorage`.
+- **Review gate in the UI:** when an SSE `artifact` arrives it becomes `pendingArtifact` and the panel shows a pinned preview card with **Aceptar/Descartar**. The app never auto-applies changes.
+- **Apply vs preview:** editors receive `onPreviewArtifact` for inline preview, and `onApplyArtifact` to persist; `ModeloEREditor` sanitizes AI payloads (missing IDs/positions + relation endpoint remapping) before saving to avoid ReactFlow key collisions and backend 422s.
+
+### AI business rules (non-negotiable)
+
+- AI writes drafts with `status=IN_PROGRESS, ai_generated=True` — never `APPROVED` automatically.
+- AI writes to the relational DB only through existing services, never directly.
+- Documents are vectorized isolated by `project_id` — never shared across projects.
+- Reviewer retries structured output max 3 times before raising an error.
 
 ## Commit Convention
 

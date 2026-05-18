@@ -311,18 +311,37 @@ export default function EntregablePage() {
         ? "TOBE_CONCEPTUAL_DIAGRAM"
         : "ASIS_CONCEPTUAL_DIAGRAM";
 
+      // En modo "complete", añade el contenido actual como contexto adicional.
+      const enrichedParams = params.mode === "complete" && (
+        modeloER.entidades.length > 0 || modeloER.relaciones.length > 0
+      ) ? {
+        ...params,
+        contextText: [
+          params.contextText,
+          `\n--- CONTENIDO EXISTENTE (no eliminar, solo completar/mejorar) ---\n` +
+          `Entidades actuales: ${modeloER.entidades.map(e => e.nombre).join(", ")}\n` +
+          `Relaciones actuales: ${modeloER.relaciones.map(r => `${r.entidad_origen_id} → ${r.entidad_destino_id} (${r.nombre})`).join(", ")}`,
+        ].filter(Boolean).join("\n"),
+        consultantNote: [
+          params.consultantNote,
+          "IMPORTANTE: El consultor ya tiene contenido creado. Completa o mejora lo existente; NO elimines entidades ni relaciones que ya están definidas.",
+        ].filter(Boolean).join(" "),
+      } : params;
+
       const resp = artifactCode.startsWith("TOBE")
-        ? await aiApi.generateTobe(id, artifactCode, params)
-        : await aiApi.generateAsis(id, artifactCode, params);
+        ? await aiApi.generateTobe(id, artifactCode, enrichedParams)
+        : await aiApi.generateAsis(id, artifactCode, enrichedParams);
 
       const { entidades, relaciones } = mapAIConceptualToER(
         resp.suggestion as AIConceptualSuggestion,
       );
-      setModeloER((prev) =>
-        prev ? { ...prev, entidades, relaciones } : prev,
-      );
+      const newModelo = { ...modeloER, entidades, relaciones };
+      setModeloER(newModelo);
+      // Guarda inmediatamente — el auto-save no dispara porque hasChanges
+      // queda en false tras la sincronización vía prop del editor.
+      await handleSaveModeloER(newModelo);
     },
-    [id, entregable?.code, modeloER],
+    [id, entregable?.code, modeloER, handleSaveModeloER],
   );
 
   const handleAddComment = useCallback(
@@ -510,19 +529,36 @@ export default function EntregablePage() {
           ? "TOBE_SYSTEM_INVENTORY_MATRIX"
           : "ASIS_SYSTEM_INVENTORY_MATRIX";
 
+        const enrichedParams = params.mode === "complete" &&
+          matrizInventario.sistemas.length > 0 ? {
+          ...params,
+          contextText: [
+            params.contextText,
+            `\n--- SISTEMAS YA REGISTRADOS (no eliminar, solo completar) ---\n` +
+            matrizInventario.sistemas.map(s => `- ${s.nombre} (${s.tipo}): ${s.descripcion ?? ""}`).join("\n"),
+          ].filter(Boolean).join("\n"),
+          consultantNote: [
+            params.consultantNote,
+            "IMPORTANTE: El consultor ya tiene sistemas registrados. Añade sistemas faltantes; NO elimines los existentes.",
+          ].filter(Boolean).join(" "),
+        } : params;
+
         const resp = artifactCode.startsWith("TOBE")
-          ? await aiApi.generateTobe(id, artifactCode, params)
-          : await aiApi.generateAsis(id, artifactCode, params);
+          ? await aiApi.generateTobe(id, artifactCode, enrichedParams)
+          : await aiApi.generateAsis(id, artifactCode, enrichedParams);
 
         const sistemas = mapAIInventoryToSistemas(
           resp.suggestion as AIInventorySuggestion,
         );
-        setMatrizInventario((prev) => (prev ? { ...prev, sistemas } : prev));
+        const newMatriz = { ...matrizInventario, sistemas };
+        setMatrizInventario(newMatriz);
+        // Guarda inmediatamente igual que en el diagrama conceptual.
+        await handleSaveMatrizInventario(newMatriz);
       } finally {
         setIsGeneratingMatriz(false);
       }
     },
-    [id, entregable?.code, matrizInventario],
+    [id, entregable?.code, matrizInventario, handleSaveMatrizInventario],
   );
 
   const handleAddCommentMatrizInventario = useCallback(
@@ -863,6 +899,13 @@ export default function EntregablePage() {
             onAddComment={handleAddComment}
             onPreviewVersion={handlePreviewVersion}
             onRestoreVersion={handleRestoreVersion}
+            artifactCode={
+              !esSoloLectura
+                ? entregable.code?.startsWith("TOBE")
+                  ? "TOBE_CONCEPTUAL_DIAGRAM"
+                  : "ASIS_CONCEPTUAL_DIAGRAM"
+                : undefined
+            }
           />
         </div>
       </div>
@@ -927,6 +970,13 @@ export default function EntregablePage() {
             isSaving={isSavingMatriz}
             isGenerating={isGeneratingMatriz}
             readOnly={entregable.estado === "APROBADO"}
+            artifactCode={
+              entregable.estado !== "APROBADO"
+                ? entregable.code?.startsWith("TOBE")
+                  ? "TOBE_SYSTEM_INVENTORY_MATRIX"
+                  : "ASIS_SYSTEM_INVENTORY_MATRIX"
+                : undefined
+            }
           />
         </div>
         <AvatarAsistente mensajes={MENSAJES_INVENTARIO} />

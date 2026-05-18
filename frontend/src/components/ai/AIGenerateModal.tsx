@@ -37,6 +37,8 @@ interface AIGenerateModalProps {
   onGenerate: (params: AIGenerateParams) => Promise<void>;
   projectId: string;
   artifactLabel?: string;
+  /** Cuando hay contenido ya creado, se muestra el selector replace/complete. */
+  hasExistingContent?: boolean;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -47,10 +49,12 @@ export default function AIGenerateModal({
   onGenerate,
   projectId,
   artifactLabel = "artefacto",
+  hasExistingContent = false,
 }: AIGenerateModalProps) {
   const [contextText, setContextText]     = useState("");
   const [consultantNote, setConsultantNote] = useState("");
   const [docLanguage, setDocLanguage]     = useState("");
+  const [mode, setMode]                   = useState<"replace" | "complete">("replace");
   const [generating, setGenerating]       = useState(false);
   const [error, setError]                 = useState<string | null>(null);
 
@@ -106,6 +110,7 @@ export default function AIGenerateModal({
       setContextText("");
       setConsultantNote("");
       setDocLanguage("");
+      setMode("replace");
       setError(null);
       setGenerating(false);
     }
@@ -151,7 +156,7 @@ export default function AIGenerateModal({
     setError(null);
     setGenerating(true);
     try {
-      await onGenerate({ contextText, consultantNote, docLanguage });
+      await onGenerate({ contextText, consultantNote, docLanguage, mode });
       onClose();
     } catch (err: unknown) {
       const msg =
@@ -233,6 +238,45 @@ export default function AIGenerateModal({
             />
           </div>
         </div>
+
+        {/* Mode selector — solo si ya hay contenido */}
+        {hasExistingContent && (
+          <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/[0.06] p-3 space-y-2">
+            <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+              Ya existe contenido en este artefacto
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="ai-mode"
+                  value="replace"
+                  checked={mode === "replace"}
+                  onChange={() => setMode("replace")}
+                  className="accent-[#28b8d5]"
+                />
+                <span className="text-[11px] text-gray-700 dark:text-white/70">
+                  <span className="font-medium">Reemplazar todo</span>
+                  <span className="text-gray-400 dark:text-white/35"> — la IA genera desde cero</span>
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="ai-mode"
+                  value="complete"
+                  checked={mode === "complete"}
+                  onChange={() => setMode("complete")}
+                  className="accent-[#28b8d5]"
+                />
+                <span className="text-[11px] text-gray-700 dark:text-white/70">
+                  <span className="font-medium">Completar lo existente</span>
+                  <span className="text-gray-400 dark:text-white/35"> — la IA añade o mejora sin borrar</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        )}
 
         {/* Divider */}
         <div className="flex items-center gap-3">

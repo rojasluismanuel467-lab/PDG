@@ -6,6 +6,8 @@ export interface AIGenerateParams {
   contextText: string;
   consultantNote: string;
   docLanguage: string;
+  /** "replace" = genera desde cero (default). "complete" = completa lo existente. */
+  mode?: "replace" | "complete";
 }
 
 // ── AI response types ────────────────────────────────────────────────────────

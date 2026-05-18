@@ -11,6 +11,7 @@ export interface EntidadNodeData {
   comentariosCount: number;
   onContextMenu: (id: string, x: number, y: number) => void;
   onCommentPinClick?: (id: string, x: number, y: number) => void;
+  diffStatus?: "added" | "removed";
 }
 
 // Estilos compartidos de handle — visible siempre, animado en hover del nodo
@@ -52,10 +53,31 @@ function AtributoRow({ attr }: { attr: AtributoER }) {
 }
 
 function EntidadNodeComponent({ data }: NodeProps) {
-  const { entidad, seleccionada, onSelect, comentariosCount, onContextMenu, onCommentPinClick } = data as unknown as EntidadNodeData;
+  const { entidad, seleccionada, onSelect, comentariosCount, onContextMenu, onCommentPinClick, diffStatus } = data as unknown as EntidadNodeData;
   const [hovered, setHovered] = useState(false);
 
   const handleCls = `${HANDLE_BASE} ${hovered ? HANDLE_HOVER : HANDLE_IDLE}`;
+
+  const borderClass =
+    diffStatus === "added"
+      ? "border-emerald-400 dark:border-emerald-400 border-dashed shadow-lg shadow-emerald-400/20"
+      : diffStatus === "removed"
+      ? "border-red-400 dark:border-red-400 border-dashed opacity-50"
+      : seleccionada
+      ? "border-[#28b8d5] shadow-lg shadow-[#28b8d5]/10 ring-2 ring-[#28b8d5]/20"
+      : "border-gray-200 dark:border-white/[0.08] hover:border-[#28b8d5]/50 hover:shadow-md";
+
+  const headerBg =
+    diffStatus === "added"
+      ? "#22c55e18"
+      : diffStatus === "removed"
+      ? "#ef444418"
+      : entidad.color ? `${entidad.color}15` : "#28b8d515";
+
+  const dotColor =
+    diffStatus === "added" ? "#22c55e"
+    : diffStatus === "removed" ? "#ef4444"
+    : entidad.color ?? "#28b8d5";
 
   return (
     <div
@@ -66,10 +88,7 @@ function EntidadNodeComponent({ data }: NodeProps) {
       className={`
         rounded-xl border-2 bg-white dark:bg-[#111111] shadow-sm min-w-[220px] max-w-[280px]
         cursor-pointer transition-all duration-200 select-none
-        ${seleccionada
-          ? "border-[#28b8d5] shadow-lg shadow-[#28b8d5]/10 ring-2 ring-[#28b8d5]/20"
-          : "border-gray-200 dark:border-white/[0.08] hover:border-[#28b8d5]/50 hover:shadow-md"
-        }
+        ${borderClass}
       `}
     >
       {/* Handles múltiples por lado (3 por lado) para conexiones más precisas */}
@@ -149,16 +168,26 @@ function EntidadNodeComponent({ data }: NodeProps) {
       {/* Cabecera */}
       <div
         className="px-3 py-2 rounded-t-[10px] flex items-center justify-between gap-2"
-        style={{ backgroundColor: entidad.color ? `${entidad.color}15` : "#28b8d515" }}
+        style={{ backgroundColor: headerBg }}
       >
         <div className="flex items-center gap-2 min-w-0">
           <div
             className="w-2.5 h-2.5 rounded-full shrink-0"
-            style={{ backgroundColor: entidad.color ?? "#28b8d5" }}
+            style={{ backgroundColor: dotColor }}
           />
           <h4 className="text-sm font-bold text-gray-800 dark:text-white/90 truncate">
             {entidad.nombre}
           </h4>
+          {diffStatus === "added" && (
+            <span className="shrink-0 text-[9px] font-bold px-1 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+              + Nueva
+            </span>
+          )}
+          {diffStatus === "removed" && (
+            <span className="shrink-0 text-[9px] font-bold px-1 py-0.5 rounded bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400">
+              − Eliminar
+            </span>
+          )}
         </div>
         {(hovered || comentariosCount > 0) && (
           <button

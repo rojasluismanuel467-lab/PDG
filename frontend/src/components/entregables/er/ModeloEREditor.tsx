@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useAutoSave } from "@/hooks/useAutoSave";
-import AIGenerateModal from "@/components/ai/AIGenerateModal";
+import { ArtifactChatPanel } from "@/components/ai/chat/ArtifactChatPanel";
 import type { AIGenerateParams } from "@/lib/api/ai";
 import axios from "axios";
 import {
@@ -29,6 +29,7 @@ import type {
   RelacionER,
   ComentarioER,
   Cardinalidad,
+  TipoDato,
 } from "@/lib/types/modelo-er.types";
 import ERCanvas from "./ERCanvas";
 import PanelEntidad from "./PanelEntidad";
@@ -58,6 +59,7 @@ interface ModeloEREditorProps {
   readOnly?: boolean;
   allowGenerate?: boolean;
   allowComments?: boolean;
+  artifactCode?: string;
 }
 
 type PanelActivo =
@@ -87,6 +89,22 @@ function parseVersionNumber(value: string | number): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function normalizeTipoDato(value: string): TipoDato {
+  const v = value.trim().toLowerCase();
+  if (!v) return "VARCHAR";
+  if (v.includes("uuid")) return "UUID";
+  if (v.includes("json")) return "JSON";
+  if (v.includes("bool")) return "BOOLEAN";
+  if (v.includes("date") || v.includes("fecha")) return v.includes("time") ? "DATETIME" : "DATE";
+  if (v.includes("time")) return "DATETIME";
+  if (v.includes("decimal") || v.includes("float") || v.includes("double")) return "DECIMAL";
+  if (v.includes("bigint") || v.includes("long")) return "BIGINT";
+  if (v.includes("int") || v.includes("numero") || v.includes("número")) return "INT";
+  if (v.includes("text") || v.includes("texto") || v.includes("string")) return "TEXT";
+  if (v.includes("blob") || v.includes("binary") || v.includes("bytes")) return "BLOB";
+  return "VARCHAR";
+}
+
 export default function ModeloEREditor({
   modelo: modeloInicial,
   onSave,
@@ -99,6 +117,7 @@ export default function ModeloEREditor({
   readOnly = false,
   allowGenerate = true,
   allowComments = true,
+  artifactCode,
 }: ModeloEREditorProps) {
   const [modelo, setModelo] = useState<ModeloER>(modeloInicial);
 
@@ -111,7 +130,11 @@ export default function ModeloEREditor({
     }));
   }, [modeloInicial.entidades, modeloInicial.relaciones]);
 
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [previewProposed, setPreviewProposed] = useState<{
+    entidades: EntidadER[];
+    relaciones: RelacionER[];
+  } | null>(null);
   const [panelActivo, setPanelActivo] = useState<PanelActivo>(null);
   const [tabActiva, setTabActiva] = useState<TabActiva>("diagrama");
   const [nuevoComentarioGeneral, setNuevoComentarioGeneral] = useState("");
@@ -462,6 +485,134 @@ export default function ModeloEREditor({
     enabled: !readOnly,
   });
 
+  const handleApplyArtifact = useCallback(
+    async (artifact: Record<string, unknown>) => {
+      const rawEntidades = (artifact.entidades ?? []) as Record<string, unknown>[];
+      const rawRelaciones = (artifact.relaciones ?? []) as Record<string, unknown>[];
+
+      // Map AI-generated entity identifiers → real UUIDs.
+      // AI schema uses `client_id` (snake_case temp ID); standard schema uses `id`.
+      const aiIdToRealId = new Map<string, string>();
+      const cols = 4;
+      const entidades: EntidadER[] = rawEntidades.map((e, ei) => {
+        const nombre = (e.nombre as string) ?? "";
+        const aiTempId = (e.client_id as string) ?? (e.id as string) ?? "";
+        const existing = modelo.entidades.find(
+          (ex) => ex.nombre.toLowerCase() === nombre.toLowerCase()
+        );
+        const realId = existing?.id ?? crypto.randomUUID();
+        if (aiTempId) aiIdToRealId.set(aiTempId, realId);
+        // Name-based fallback so relations using names instead of IDs still resolve
+        aiIdToRealId.set(nombre.toLowerCase(), realId);
+
+        const rawAtributos = (e.atributos as Record<string, unknown>[]) ?? [];
+        return {
+          id: realId,
+          nombre,
+          descripcion: (e.descripcion as string) ?? "",
+          color: e.color as string | undefined,
+          posicion_x: existing?.posicion_x ?? (e.posicion_x as number) ?? 120 + (ei % cols) * 280,
+          posicion_y: existing?.posicion_y ?? (e.posicion_y as number) ?? 80 + Math.floor(ei / cols) * 200,
+          atributos: rawAtributos.map((a, ai) => ({
+            id: (a.id as string) ?? crypto.randomUUID(),
+            nombre: (a.nombre as string) ?? "",
+            // AI sends free-text tipo_dato; normalize to our enum values
+            tipo_dato: normalizeTipoDato((a.tipo_dato as string) ?? ""),
+            // AI uses `es_clave` for PK; standard schema uses `es_pk`
+            es_pk: (a.es_pk as boolean) ?? (a.es_clave as boolean) ?? false,
+            es_fk: (a.es_fk as boolean) ?? false,
+            es_nullable: (a.es_nullable as boolean) ?? true,
+            descripcion: (a.descripcion as string) ?? undefined,
+          })),
+        };
+      });
+
+      const entityIds = new Set(entidades.map((e) => e.id));
+
+      const resolveEntityId = (aiRef: string | undefined): string => {
+        if (!aiRef) return "";
+        return aiIdToRealId.get(aiRef) ?? aiIdToRealId.get(aiRef.toLowerCase()) ?? aiRef;
+      };
+
+      // AI schema uses `desde`/`hacia`/`etiqueta`; standard schema uses the full field names
+      const relaciones: RelacionER[] = rawRelaciones.map((r) => ({
+        id: (r.id as string) ?? crypto.randomUUID(),
+        nombre: (r.etiqueta as string) ?? (r.nombre as string) ?? "",
+        entidad_origen_id: resolveEntityId((r.desde as string) ?? (r.entidad_origen_id as string)),
+        entidad_destino_id: resolveEntityId((r.hacia as string) ?? (r.entidad_destino_id as string)),
+        cardinalidad: ((r.cardinalidad as string) ?? "1:N") as Cardinalidad,
+        descripcion: (r.descripcion as string) ?? "",
+      })).filter((r) => entityIds.has(r.entidad_origen_id) && entityIds.has(r.entidad_destino_id));
+
+      const newModelo = { ...modelo, entidades, relaciones };
+      setModelo(newModelo);
+      setPreviewProposed(null);
+      const updated = await onSave(newModelo);
+      if (updated) setModelo(updated as ModeloER);
+    },
+    [modelo, onSave],
+  );
+
+  const currentArtifactMemo = useMemo<Record<string, unknown>>(
+    () => ({ entidades: modelo.entidades, relaciones: modelo.relaciones }),
+    [modelo.entidades, modelo.relaciones],
+  );
+
+  const handlePreviewArtifact = useCallback(
+    (artifact: Record<string, unknown> | null) => {
+      if (!artifact) { setPreviewProposed(null); return; }
+      // Normalize AI schema fields → frontend schema before storing for preview
+      const rawEntidades = (artifact.entidades ?? []) as Record<string, unknown>[];
+      const rawRelaciones = (artifact.relaciones ?? []) as Record<string, unknown>[];
+      // Build a name→client_id map so ERCanvas can resolve relation endpoints
+      const nameToClientId = new Map<string, string>();
+      const entidades = rawEntidades.map((e, ei) => {
+        const nombre = (e.nombre as string) ?? "";
+        const aiId = (e.client_id as string) ?? (e.id as string) ?? `preview-entity-${ei}`;
+        nameToClientId.set(nombre.toLowerCase(), aiId);
+        return {
+          id: aiId,
+          nombre,
+          descripcion: (e.descripcion as string) ?? "",
+          color: e.color as string | undefined,
+          posicion_x: (e.posicion_x as number) ?? 0,
+          posicion_y: (e.posicion_y as number) ?? 0,
+          atributos: ((e.atributos as Record<string, unknown>[]) ?? []).map((a, ai) => ({
+            id: (a.id as string) ?? `attr-${ei}-${ai}`,
+            nombre: (a.nombre as string) ?? "",
+            tipo_dato: normalizeTipoDato((a.tipo_dato as string) ?? ""),
+            es_pk: (a.es_pk as boolean) ?? (a.es_clave as boolean) ?? false,
+            es_fk: (a.es_fk as boolean) ?? false,
+            es_nullable: (a.es_nullable as boolean) ?? true,
+          })),
+        } satisfies EntidadER;
+      });
+      const relaciones = rawRelaciones.map((r, ri) => {
+        const fromRef = (r.desde as string) ?? (r.entidad_origen_id as string) ?? "";
+        const toRef = (r.hacia as string) ?? (r.entidad_destino_id as string) ?? "";
+        return {
+          id: (r.id as string) ?? `preview-rel-${ri}`,
+          nombre: (r.etiqueta as string) ?? (r.nombre as string) ?? "",
+          entidad_origen_id: nameToClientId.get(fromRef.toLowerCase()) ?? fromRef,
+          entidad_destino_id: nameToClientId.get(toRef.toLowerCase()) ?? toRef,
+          cardinalidad: ((r.cardinalidad as string) ?? "1:N") as Cardinalidad,
+          descripcion: (r.descripcion as string) ?? "",
+        } satisfies RelacionER;
+      });
+      setPreviewProposed({ entidades, relaciones });
+    },
+    [],
+  );
+
+  const handleAcceptPreview = useCallback(async () => {
+    if (!previewProposed) return;
+    const newModelo = { ...modelo, ...previewProposed };
+    setModelo(newModelo);
+    setPreviewProposed(null);
+    const updated = await onSave(newModelo);
+    if (updated) setModelo(updated as ModeloER);
+  }, [previewProposed, modelo, onSave]);
+
   const handlePreviewVersion = useCallback(
     async (versionNumber: number) => {
       if (!onPreviewVersion) return;
@@ -653,9 +804,9 @@ export default function ModeloEREditor({
                 </>
               )}
 
-              {allowGenerate && onGenerateIA && (
+              {allowGenerate && (onGenerateIA || artifactCode) && (
                 <button
-                  onClick={() => setShowGenerateModal(true)}
+                  onClick={() => setChatOpen(true)}
                   disabled={isGenerating}
                   title="Generar diagrama con inteligencia artificial"
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#28b8d5] to-[#1e9bb5] text-white text-xs font-semibold hover:from-[#23a7c2] hover:to-[#1a8da5] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
@@ -769,8 +920,11 @@ export default function ModeloEREditor({
         </div>
       </div>
 
-      {/* ── Contenido principal ───────────────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* ── Fila principal: contenido + panel IA ─────────────────────── */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+
+      {/* ── Contenido ──────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Tab: Diagrama */}
         {tabActiva === "diagrama" && (
           <>
@@ -789,6 +943,8 @@ export default function ModeloEREditor({
                 edgeRouting={edgeRouting}
                 onContextMenu={readOnly ? undefined : handleContextMenu}
                 onCommentPinClick={handleCommentPinClick}
+                previewEntidades={previewProposed?.entidades}
+                previewRelaciones={previewProposed?.relaciones}
               />
 
               {/* ── Empty state ─────────────────────────────────── */}
@@ -1131,6 +1287,20 @@ export default function ModeloEREditor({
         )}
       </div>
 
+      {/* Panel IA */}
+      {artifactCode && (
+        <ArtifactChatPanel
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          projectId={modelo.proyecto_id}
+          artifactCode={artifactCode}
+          currentArtifact={currentArtifactMemo}
+          onApplyArtifact={handleApplyArtifact}
+          onPreviewArtifact={handlePreviewArtifact}
+        />
+      )}
+      </div>{/* flex-row principal */}
+
       {/* ── Footer: Resumen del modelo ────────────────────────────────── */}
       {previewModelo && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-4">
@@ -1308,15 +1478,6 @@ export default function ModeloEREditor({
         />
       )}
 
-      {showGenerateModal && onGenerateIA && (
-        <AIGenerateModal
-          isOpen={showGenerateModal}
-          onClose={() => setShowGenerateModal(false)}
-          onGenerate={onGenerateIA}
-          projectId={modelo.proyecto_id}
-          artifactLabel="modelo conceptual"
-        />
-      )}
     </div>
   );
 }

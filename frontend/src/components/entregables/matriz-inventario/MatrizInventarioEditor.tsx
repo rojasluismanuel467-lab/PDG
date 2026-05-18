@@ -11,7 +11,7 @@ import type {
   NivelCriticidad,
   EstadoSistema,
 } from "@/lib/types/matriz-inventario.types";
-import AIGenerateModal from "@/components/ai/AIGenerateModal";
+import { ArtifactChatPanel } from "@/components/ai/chat/ArtifactChatPanel";
 import type { AIGenerateParams } from "@/lib/api/ai";
 import PanelSistema, {
   CRITICIDAD_COLORS,
@@ -39,6 +39,7 @@ interface MatrizInventarioEditorProps {
   isSaving: boolean;
   isGenerating: boolean;
   readOnly?: boolean;
+  artifactCode?: string;
 }
 
 type TabActiva = "tabla" | "comentarios" | "versiones";
@@ -269,6 +270,7 @@ export default function MatrizInventarioEditor({
   isSaving,
   isGenerating,
   readOnly = false,
+  artifactCode,
 }: MatrizInventarioEditorProps) {
   const [matriz, setMatriz] = useState<MatrizInventarioSistemas>(matrizInicial);
 
@@ -277,7 +279,8 @@ export default function MatrizInventarioEditor({
     setMatriz((prev) => ({ ...prev, sistemas: matrizInicial.sistemas }));
   }, [matrizInicial.sistemas]);
 
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [previewSistemas, setPreviewSistemas] = useState<SistemaInventario[] | null>(null);
   const [sistemaSeleccionadoId, setSistemaSeleccionadoId] = useState<string | null>(null);
   const [tabActiva, setTabActiva] = useState<TabActiva>("tabla");
   const [nuevoComentarioGeneral, setNuevoComentarioGeneral] = useState("");
@@ -458,6 +461,32 @@ export default function MatrizInventarioEditor({
     onSave: handleSave,
     enabled: !readOnly,
   });
+
+  const handleApplyArtifact = useCallback(
+    async (artifact: Record<string, unknown>) => {
+      const sistemas = (artifact.sistemas ?? []) as SistemaInventario[];
+      const newMatriz = { ...matriz, sistemas };
+      setMatriz(newMatriz);
+      setPreviewSistemas(null);
+      await onSave(newMatriz);
+    },
+    [matriz, onSave],
+  );
+
+  const handlePreviewArtifact = useCallback(
+    (artifact: Record<string, unknown> | null) => {
+      setPreviewSistemas(artifact ? (artifact.sistemas ?? []) as SistemaInventario[] : null);
+    },
+    [],
+  );
+
+  const handleAcceptPreview = useCallback(async () => {
+    if (!previewSistemas) return;
+    const newMatriz = { ...matriz, sistemas: previewSistemas };
+    setMatriz(newMatriz);
+    setPreviewSistemas(null);
+    await onSave(newMatriz);
+  }, [previewSistemas, matriz, onSave]);
 
   // ── Conteos ──────────────────────────────────────────────────────────────
   const conteos = {
@@ -717,6 +746,30 @@ export default function MatrizInventarioEditor({
     }
   };
 
+  // ── Preview diff ──────────────────────────────────────────────────────────
+  const diffStatusMap = useMemo<Map<string, "added" | "removed">>(() => {
+    if (!previewSistemas) return new Map();
+    const previewNames = new Set(previewSistemas.map((s) => s.nombre.toLowerCase()));
+    const currentNames = new Set(matriz.sistemas.map((s) => s.nombre.toLowerCase()));
+    const map = new Map<string, "added" | "removed">();
+    for (const s of matriz.sistemas) {
+      if (!previewNames.has(s.nombre.toLowerCase())) map.set(s.id, "removed");
+    }
+    for (const s of previewSistemas) {
+      if (!currentNames.has(s.nombre.toLowerCase())) map.set(s.id, "added");
+    }
+    return map;
+  }, [previewSistemas, matriz.sistemas]);
+
+  const displaySistemas = useMemo(() => {
+    if (!previewSistemas) return sistemasFiltrados;
+    const currentNames = new Set(matriz.sistemas.map((s) => s.nombre.toLowerCase()));
+    const addedSistemas = previewSistemas.filter(
+      (s) => !currentNames.has(s.nombre.toLowerCase()),
+    );
+    return [...sistemasFiltrados, ...addedSistemas];
+  }, [previewSistemas, sistemasFiltrados, matriz.sistemas]);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full">
@@ -807,7 +860,7 @@ export default function MatrizInventarioEditor({
 
             {/* IA Generate (énfasis medio-accent) */}
             <button
-              onClick={() => setShowGenerateModal(true)}
+              onClick={() => setChatOpen(true)}
               disabled={isGenerating}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#28b8d5]/25 bg-[#28b8d5]/5 text-[#28b8d5] text-xs font-semibold hover:bg-[#28b8d5]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -861,8 +914,11 @@ export default function MatrizInventarioEditor({
         )}
       </div>
 
-      {/* ── Contenido principal ─────────────────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* ── Fila principal: contenido + panel IA ───────────────────────── */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+
+      {/* ── Contenido ──────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Tab: Tabla */}
         {tabActiva === "tabla" && (
           <>
@@ -1049,15 +1105,24 @@ export default function MatrizInventarioEditor({
                     </tr>
                   </thead>
                   <tbody>
-                    {sistemasFiltrados.map((sistema, idx) => {
+                    {displaySistemas.map((sistema, idx) => {
+                      const diffStatus = diffStatusMap.get(sistema.id);
                       const isSelected = sistemaSeleccionadoId === sistema.id;
-                      const rowBase = isSelected
+                      const rowBase = diffStatus === "added"
+                        ? "bg-emerald-50/70 dark:bg-emerald-500/[0.07]"
+                        : diffStatus === "removed"
+                        ? "bg-red-50/60 dark:bg-red-500/[0.06] opacity-60"
+                        : isSelected
                         ? "bg-[#28b8d5]/5 dark:bg-[#28b8d5]/10"
                         : idx % 2 === 0
                         ? "bg-white dark:bg-transparent"
                         : "bg-gray-50/70 dark:bg-white/[0.02]";
                       const tdBase = "px-4 py-3 border border-gray-200 dark:border-white/[0.08]";
-                      const stickyCellBg = isSelected
+                      const stickyCellBg = diffStatus === "added"
+                        ? "bg-emerald-50 dark:bg-emerald-500/[0.07]"
+                        : diffStatus === "removed"
+                        ? "bg-red-50 dark:bg-red-500/[0.06]"
+                        : isSelected
                         ? "bg-[#eefafe] dark:bg-[#102530]"
                         : idx % 2 === 0
                         ? "bg-white dark:bg-[#0f0f10]"
@@ -1065,13 +1130,19 @@ export default function MatrizInventarioEditor({
                       return (
                         <tr
                           key={sistema.id}
-                          onClick={() => setSistemaSeleccionadoId(isSelected ? null : sistema.id)}
+                          onClick={() => diffStatus !== "added" && setSistemaSeleccionadoId(isSelected ? null : sistema.id)}
                           className={`cursor-pointer transition-colors hover:brightness-95 dark:hover:bg-white/[0.04] ${rowBase}`}
                           style={rowHeights[sistema.id] ? { height: rowHeights[sistema.id] } : undefined}
                         >
                           {/* # */}
                           <td className={`${tdBase} sticky left-0 z-20 ${stickyCellBg} text-[11px] font-mono text-gray-400 dark:text-white/25 whitespace-nowrap relative`}>
-                            {String(idx + 1).padStart(2, "0")}
+                            {diffStatus === "added" ? (
+                              <span className="text-emerald-500">+</span>
+                            ) : diffStatus === "removed" ? (
+                              <span className="text-red-400">−</span>
+                            ) : (
+                              String(idx + 1).padStart(2, "0")
+                            )}
                             <div className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-[#28b8d5]/40 z-10 transition-colors" onMouseDown={(e) => handleRowResizeStart(e, sistema.id, 44)} onClick={(e) => e.stopPropagation()} />
                           </td>
 
@@ -1085,12 +1156,22 @@ export default function MatrizInventarioEditor({
                             className={`${tdBase} sticky left-10 z-10 ${stickyCellBg}`}
                           >
                             <div className="flex items-center gap-2 overflow-hidden">
-                              {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#28b8d5] shrink-0" />}
-                              <span className="text-sm font-medium text-gray-800 dark:text-white/80 truncate">
+                              {isSelected && !diffStatus && <div className="w-1.5 h-1.5 rounded-full bg-[#28b8d5] shrink-0" />}
+                              <span className={`text-sm font-medium truncate ${diffStatus === "removed" ? "line-through text-red-400" : "text-gray-800 dark:text-white/80"}`}>
                                 {sistema.nombre}
                               </span>
+                              {diffStatus === "added" && (
+                                <span className="shrink-0 text-[9px] font-bold px-1 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                                  + Nuevo
+                                </span>
+                              )}
+                              {diffStatus === "removed" && (
+                                <span className="shrink-0 text-[9px] font-bold px-1 py-0.5 rounded bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400">
+                                  − Eliminar
+                                </span>
+                              )}
                             </div>
-                            {sistema.version && (
+                            {sistema.version && !diffStatus && (
                               <span className="text-[10px] text-gray-400 dark:text-white/25 font-mono">
                                 v{sistema.version}
                               </span>
@@ -1262,6 +1343,22 @@ export default function MatrizInventarioEditor({
         )}
       </div>
 
+      {/* Panel IA */}
+      {artifactCode && (
+        <ArtifactChatPanel
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          projectId={matriz.proyecto_id}
+          artifactCode={artifactCode}
+          currentArtifact={
+            { sistemas: matriz.sistemas } as Record<string, unknown>
+          }
+          onApplyArtifact={handleApplyArtifact}
+          onPreviewArtifact={handlePreviewArtifact}
+        />
+      )}
+      </div>{/* flex-row principal */}
+
       {/* ── Footer: Resumen ─────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-[#0a0a0a]">
         <div className="flex items-center gap-4 text-[11px] text-gray-500 dark:text-white/35">
@@ -1310,15 +1407,6 @@ export default function MatrizInventarioEditor({
         </span>
       </div>
 
-      {showGenerateModal && (
-        <AIGenerateModal
-          isOpen={showGenerateModal}
-          onClose={() => setShowGenerateModal(false)}
-          onGenerate={onGenerateIA}
-          projectId={matriz.proyecto_id}
-          artifactLabel="inventario de sistemas"
-        />
-      )}
     </div>
   );
 }
