@@ -48,6 +48,15 @@ engine = _create_working_engine()
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, class_=Session)
 
 
+def get_active_db_url() -> str:
+    """Return the active database connection URL (with password) as a string."""
+    return engine.url.render_as_string(hide_password=False)
+
+
+def is_postgres() -> bool:
+    return str(engine.url).startswith("postgresql")
+
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:

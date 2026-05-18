@@ -2,6 +2,7 @@
 import React, {
   useState, useCallback, useEffect, useRef, useMemo,
 } from "react";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import {
   Pencil, Copy, Trash2, MessageSquare, ClipboardCopy,
   ChevronUp, ChevronDown, ChevronsUpDown,
@@ -445,6 +446,13 @@ export default function GlosarioNegocioEditor({
     setHasChanges(false);
   };
 
+  useAutoSave({
+    state: glosario,
+    hasChanges,
+    onSave: handleSave,
+    enabled: !readOnly,
+  });
+
   // ── Drag handlers ─────────────────────────────────────────────────────────
 
   const handleColDragStart = (e: React.DragEvent, colId: string) => {
@@ -781,7 +789,12 @@ export default function GlosarioNegocioEditor({
             ))}
           </div>
 
-          {!readOnly && hasChanges && (
+          {!readOnly && isSaving && (
+            <svg className="animate-spin w-3.5 h-3.5 text-[#28b8d5]" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+            </svg>
+          )}
+          {!readOnly && hasChanges && !isSaving && (
             <span className="hidden sm:inline-flex text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
               Cambios sin guardar
             </span>

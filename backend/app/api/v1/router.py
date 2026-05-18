@@ -12,6 +12,8 @@ from app.api.v1.endpoints.maturity_questionnaire import router as maturity_quest
 from app.api.v1.endpoints.project_memberships import router as project_memberships_router
 from app.api.v1.endpoints.projects import router as projects_router
 from app.api.v1.endpoints.raci import router as raci_router
+from app.api.v1.endpoints.ai import router as ai_router
+from app.api.v1.endpoints.ai_documents import router as ai_documents_router
 from app.api.v1.endpoints.users import router as users_router
 
 router = APIRouter()
@@ -29,6 +31,8 @@ router.include_router(dfd_router)
 router.include_router(inventory_matrix_router)
 router.include_router(business_glossary_router)
 router.include_router(logical_data_model_router)
+router.include_router(ai_router)
+router.include_router(ai_documents_router)
 
 
 @router.get("/ping")

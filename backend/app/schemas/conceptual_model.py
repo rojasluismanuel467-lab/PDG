@@ -13,7 +13,7 @@ COMMENT_STATUS_VALUES = {"open", "resolved"}
 
 
 class ConceptualAttributePayload(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     id: str = Field(min_length=1, max_length=120)
     name: str = Field(min_length=1, max_length=255)
@@ -27,7 +27,7 @@ class ConceptualAttributePayload(BaseModel):
 
 
 class ConceptualEntityPayload(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     id: str = Field(min_length=1, max_length=120)
     name: str = Field(min_length=1, max_length=255)
@@ -39,7 +39,7 @@ class ConceptualEntityPayload(BaseModel):
 
 
 class ConceptualRelationPayload(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     id: str = Field(min_length=1, max_length=120)
     name: str = Field(min_length=1, max_length=255)

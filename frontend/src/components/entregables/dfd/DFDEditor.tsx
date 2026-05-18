@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import axios from "axios";
 import type { Connection } from "@xyflow/react";
 import type {
@@ -389,6 +390,13 @@ export default function DFDEditor({
     }
   };
 
+  useAutoSave({
+    state: dfd,
+    hasChanges,
+    onSave: handleSave,
+    enabled: !readOnly,
+  });
+
   const handleAddComentarioGeneral = async () => {
     setFeedbackMessage("Los comentarios generales están deshabilitados. Comenta directamente sobre nodos o flujos.");
   };
@@ -437,7 +445,12 @@ export default function DFDEditor({
           <span className="text-[10px] font-medium text-gray-400 dark:text-white/30 bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded-full">
             Nivel {dfd.nivel}
           </span>
-          {!readOnly && hasChanges && (
+          {!readOnly && isSaving && (
+            <svg className="animate-spin w-3.5 h-3.5 text-[#28b8d5]" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+            </svg>
+          )}
+          {!readOnly && hasChanges && !isSaving && (
             <span className="text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
               Cambios sin guardar
             </span>
@@ -465,7 +478,16 @@ export default function DFDEditor({
               disabled={isSaving || !hasChanges}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-white/[0.1] dark:hover:bg-white/[0.15]"
             >
-              {isSaving ? "Guardando..." : "Guardar"}
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+                  </svg>
+                  Guardando...
+                </>
+              ) : (
+                "Guardar"
+              )}
             </button>
           </div>
         )}

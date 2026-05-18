@@ -15,6 +15,7 @@ from app.models.conceptual_model import ConceptualModel, ConceptualModelVersion
 from app.models.conceptual_relation import ConceptualRelation
 from app.models.project_artifact import ProjectArtifact
 from app.repositories.conceptual_model_repository import ConceptualModelRepository
+from app.services.project_permission_service import ProjectPermissionService
 from app.schemas.conceptual_model import (
     CARDINALITY_VALUES,
     COMMENT_STATUS_VALUES,
@@ -107,40 +108,13 @@ class ConceptualModelService:
         actor_user_id: uuid.UUID,
         minimum_level: PermissionLevel,
     ) -> None:
-        project = ConceptualModelRepository.get_project_by_id(db, project_id=artifact.project_id)
-        if project is None:
-            raise NotFoundDomainError("Project not found")
-        if project.manager_user_id == actor_user_id:
-            return
-
-        membership = ConceptualModelRepository.get_membership(
+        ProjectPermissionService.resolve_artifact_level(
             db,
             project_id=artifact.project_id,
-            user_id=actor_user_id,
+            actor_user_id=actor_user_id,
+            artifact=artifact,
+            minimum_level=minimum_level,
         )
-        if membership is None:
-            raise ForbiddenDomainError("You are not a member of this project")
-
-        artifact_permission = ConceptualModelRepository.get_artifact_permission(
-            db,
-            artifact_id=artifact.id,
-            user_id=actor_user_id,
-        )
-        if artifact_permission is not None:
-            current_level = int(artifact_permission.permission_level)
-        elif artifact.block == ProjectBlock.AS_IS and membership.nivel_asis is not None:
-            current_level = int(membership.nivel_asis)
-        elif artifact.block == ProjectBlock.TO_BE and membership.nivel_tobe is not None:
-            current_level = int(membership.nivel_tobe)
-        elif membership.project_permission_level is not None:
-            current_level = int(membership.project_permission_level)
-        else:
-            current_level = int(PermissionLevel.SIN_ACCESO)
-
-        if current_level < int(minimum_level):
-            raise ForbiddenDomainError(
-                f"Insufficient permission for conceptual diagram: required {int(minimum_level)}, current {current_level}"
-            )
 
     @classmethod
     def _default_name_for_artifact(cls, *, artifact: ProjectArtifact) -> str:

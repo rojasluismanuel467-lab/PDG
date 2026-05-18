@@ -17,6 +17,19 @@ dependencies = [
     "python-multipart>=0.0.22",
     "python-docx>=1.1.2",
     "reportlab>=4.2.5",
+    "langchain>=0.3",
+    "langchain-core>=0.3",
+    "langchain-openai>=0.2",
+    "langchain-anthropic>=0.3",
+    "langchain-postgres>=0.0.12",
+    "langgraph>=0.2",
+    "pgvector>=0.3",
+    "pypdf>=4.0",
+    "langchain-text-splitters>=1.1.2",
+    "langchain-google-genai>=4.2.2",
+    "langchain-groq>=1.1.2",
+    "langchain-huggingface>=1.2.2",
+    "sentence-transformers>=5.5.0",
 ]
 
 [project.optional-dependencies]

@@ -1,5 +1,6 @@
 from app.models.audit_log import AuditLog
 from app.models.base import Base
+from app.models.business_glossary import BusinessGlossary, BusinessGlossaryVersion
 from app.models.company import Company
 from app.models.conceptual_attribute import ConceptualAttribute
 from app.models.conceptual_comment import ConceptualComment
@@ -15,6 +16,7 @@ from app.models.integration_quality_rules import (
     IntegrationQualityRules,
     IntegrationQualityRulesVersion,
 )
+from app.models.inventory_matrix import InventoryMatrix, InventoryMatrixVersion
 from app.models.invitation import Invitation
 from app.models.logical_data_model import LogicalDataModel
 from app.models.logical_data_model_comment import LogicalDataModelComment
@@ -26,6 +28,7 @@ from app.models.maturity_questionnaire import MaturityQuestionnaire
 from app.models.maturity_response import MaturityResponse
 from app.models.maturity_subdomain import MaturitySubdomain
 from app.models.project import Project
+from app.models.project_document import ProjectDocument
 from app.models.project_artifact import ProjectArtifact
 from app.models.project_artifact_permission import ProjectArtifactPermission
 from app.models.project_membership import ProjectMembership
@@ -73,6 +76,11 @@ __all__ = [
     "MaturityQuestion",
     "MaturityResponse",
     "MaturityAnswer",
+    "BusinessGlossary",
+    "BusinessGlossaryVersion",
+    "InventoryMatrix",
+    "InventoryMatrixVersion",
+    "ProjectDocument",
     "ProjectArtifact",
     "ProjectArtifactPermission",
     "RaciMatrix",

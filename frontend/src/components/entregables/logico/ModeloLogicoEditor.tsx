@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useMemo, useState } from "react";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import {
   Table2, Link2, Save, Sparkles, LayoutGrid, AlignLeft, History, FileText,
   Database, MessageSquare as MsgSq, Plus,
@@ -417,6 +418,13 @@ export default function ModeloLogicoEditor({
     setHasChanges(false);
   }, [modelo, onSave]);
 
+  useAutoSave({
+    state: modelo,
+    hasChanges,
+    onSave: handleGuardar,
+    enabled: !readOnly,
+  });
+
   const handleGenerateIA = useCallback(async () => {
     if (!onGenerateIA) return;
     const generated = await onGenerateIA();
@@ -740,6 +748,11 @@ export default function ModeloLogicoEditor({
               </div>
             )}
 
+            {!readOnly && isSaving && (
+              <svg className="animate-spin w-3.5 h-3.5 text-[#28b8d5]" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+              </svg>
+            )}
             {!readOnly && (
               <button
                 onClick={handleGuardar}
@@ -748,7 +761,13 @@ export default function ModeloLogicoEditor({
                   hasChanges ? "bg-[#28b8d5] hover:bg-[#23a7c2] ring-2 ring-[#28b8d5]/30" : "bg-[#28b8d5]/70 hover:bg-[#28b8d5]"
                 }`}
               >
-                <Save className="h-3.5 w-3.5" />
+                {isSaving ? (
+                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <Save className="h-3.5 w-3.5" />
+                )}
                 {isSaving ? "Guardando..." : hasChanges ? "Guardar *" : "Guardar"}
               </button>
             )}

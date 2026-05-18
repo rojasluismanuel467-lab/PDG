@@ -11,10 +11,12 @@ from app.core.permissions import QUESTIONNAIRE_ARTIFACT_CODE
 from app.exceptions.domain import ForbiddenDomainError, NotFoundDomainError
 from app.models.project import Project
 from app.models.project_artifact import ProjectArtifact
+from app.core.enums import UserStatus
 from app.repositories.company_repository import CompanyRepository
 from app.repositories.maturity_questionnaire_repository import MaturityQuestionnaireRepository
 from app.repositories.project_membership_repository import ProjectMembershipRepository
 from app.repositories.project_repository import ProjectRepository
+from app.repositories.user_repository import UserRepository
 from app.schemas.project import (
     ArtifactReviewRequest,
     CreateProjectRequest,
@@ -184,6 +186,21 @@ class ProjectService:
             project_id=project.id,
             user_id=actor_user_id,
         )
+
+        # All ADMINISTRADOR users get full membership on every project automatically
+        admin_users, _ = UserRepository.list_users(
+            db, tipo_usuario=UserType.ADMINISTRADOR, estado=UserStatus.ACTIVO
+        )
+        for admin in admin_users:
+            if admin.id == actor_user_id:
+                continue  # already added as manager above
+            existing = ProjectMembershipRepository.get_membership(
+                db, project_id=project.id, user_id=admin.id
+            )
+            if existing is None:
+                ProjectRepository.create_manager_membership(
+                    db, project_id=project.id, user_id=admin.id
+                )
 
         empresa_users = CompanyRepository.get_empresa_users_by_company(
             db, company_id=company.id

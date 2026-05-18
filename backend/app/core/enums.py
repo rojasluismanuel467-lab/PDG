@@ -81,3 +81,10 @@ class RaciStatus(StrEnum):
     DRAFT = "DRAFT"
     ACTIVE = "ACTIVE"
     ARCHIVED = "ARCHIVED"
+
+
+class DocumentStatus(StrEnum):
+    PENDING = "PENDING"          # uploaded, not yet vectorized
+    PROCESSING = "PROCESSING"    # vectorization in progress
+    READY = "READY"              # vectorized and searchable
+    ERROR = "ERROR"              # vectorization failed

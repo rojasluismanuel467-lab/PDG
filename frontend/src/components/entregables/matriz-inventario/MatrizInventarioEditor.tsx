@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { GripVertical } from "lucide-react";
 import ReactDOM from "react-dom";
 import type {
@@ -10,6 +11,8 @@ import type {
   NivelCriticidad,
   EstadoSistema,
 } from "@/lib/types/matriz-inventario.types";
+import AIGenerateModal from "@/components/ai/AIGenerateModal";
+import type { AIGenerateParams } from "@/lib/api/ai";
 import PanelSistema, {
   CRITICIDAD_COLORS,
   CRITICIDAD_LABELS,
@@ -26,7 +29,7 @@ import PanelSistema, {
 interface MatrizInventarioEditorProps {
   matriz: MatrizInventarioSistemas;
   onSave: (matriz: MatrizInventarioSistemas) => Promise<void>;
-  onGenerateIA: () => Promise<void>;
+  onGenerateIA: (params: AIGenerateParams) => Promise<void>;
   onAddComment: (
     referenciaId: string | null,
     referenciaTipo: "sistema" | "general" | "celda",
@@ -268,6 +271,13 @@ export default function MatrizInventarioEditor({
   readOnly = false,
 }: MatrizInventarioEditorProps) {
   const [matriz, setMatriz] = useState<MatrizInventarioSistemas>(matrizInicial);
+
+  // Sync sistemas when parent updates them (e.g. after AI generation)
+  useEffect(() => {
+    setMatriz((prev) => ({ ...prev, sistemas: matrizInicial.sistemas }));
+  }, [matrizInicial.sistemas]);
+
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [sistemaSeleccionadoId, setSistemaSeleccionadoId] = useState<string | null>(null);
   const [tabActiva, setTabActiva] = useState<TabActiva>("tabla");
   const [nuevoComentarioGeneral, setNuevoComentarioGeneral] = useState("");
@@ -441,6 +451,13 @@ export default function MatrizInventarioEditor({
     await onSave(matriz);
     setHasChanges(false);
   };
+
+  useAutoSave({
+    state: matriz,
+    hasChanges,
+    onSave: handleSave,
+    enabled: !readOnly,
+  });
 
   // ── Conteos ──────────────────────────────────────────────────────────────
   const conteos = {
@@ -725,7 +742,12 @@ export default function MatrizInventarioEditor({
             ))}
           </div>
 
-          {!readOnly && hasChanges && (
+          {!readOnly && isSaving && (
+            <svg className="animate-spin w-3.5 h-3.5 text-[#28b8d5]" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+            </svg>
+          )}
+          {!readOnly && hasChanges && !isSaving && (
             <span className="hidden sm:inline-flex text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
               Cambios sin guardar
             </span>
@@ -785,7 +807,7 @@ export default function MatrizInventarioEditor({
 
             {/* IA Generate (énfasis medio-accent) */}
             <button
-              onClick={onGenerateIA}
+              onClick={() => setShowGenerateModal(true)}
               disabled={isGenerating}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#28b8d5]/25 bg-[#28b8d5]/5 text-[#28b8d5] text-xs font-semibold hover:bg-[#28b8d5]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -1287,6 +1309,16 @@ export default function MatrizInventarioEditor({
           })}
         </span>
       </div>
+
+      {showGenerateModal && (
+        <AIGenerateModal
+          isOpen={showGenerateModal}
+          onClose={() => setShowGenerateModal(false)}
+          onGenerate={onGenerateIA}
+          projectId={matriz.proyecto_id}
+          artifactLabel="inventario de sistemas"
+        />
+      )}
     </div>
   );
 }

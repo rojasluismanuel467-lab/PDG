@@ -1,0 +1,106 @@
+DOCUMENTO DE CONTEXTO TECNOLÓGICO — RetailTech S.A.S.
+Versión: 1.0 | Fecha: Mayo 2025 | Preparado por: Equipo TI
+
+=== DESCRIPCIÓN DE LA EMPRESA ===
+
+RetailTech S.A.S. es una empresa colombiana del sector retail/e-commerce con sede en Cali.
+Opera 12 puntos de venta físicos en Cali, Bogotá y Medellín, y una tienda en línea activa
+desde 2019. Cuenta con aproximadamente 150 empleados y procesa entre 4.000 y 6.000 pedidos
+al mes entre canales físico y digital.
+
+Categorías de producto: electrónica de consumo, accesorios tecnológicos, electrodomésticos.
+
+=== ECOSISTEMA TECNOLÓGICO ACTUAL ===
+
+1. SISTEMA DE PUNTO DE VENTA (POS)
+   - Software: Siigo POS (versión 2021)
+   - Instalado en: 12 tiendas físicas
+   - Base de datos: SQL Server 2016 (local por tienda)
+   - Integración con inventario: Exportación CSV diaria manual
+   - Problemas conocidos: Sincronización de inventario retrasada 24h entre tiendas
+
+2. PLATAFORMA E-COMMERCE
+   - Software: WooCommerce sobre WordPress
+   - Hosting: servidor compartido DigitalOcean (Droplet 4GB)
+   - Base de datos: MySQL 5.7
+   - Procesamiento de pagos: PayU Colombia, PSE
+   - Problemas conocidos: Caídas frecuentes en temporadas altas (Black Friday, Navidad)
+
+3. ERP
+   - Software: Siigo Nube (ERP en la nube)
+   - Módulos activos: Contabilidad, Facturación electrónica, Nómina
+   - Integración con POS: Manual (el contador descarga informes y los sube)
+   - Integración con e-commerce: No existe. Los pedidos online se ingresan manualmente
+
+4. CRM
+   - Software: No existe CRM formal.
+   - Gestión de clientes: Hoja de cálculo Excel compartida en Google Drive
+   - Segmentación: Ninguna automatizada
+   - Marketing: Mailchimp con listas cargadas manualmente desde Excel
+
+5. GESTIÓN DE INVENTARIO
+   - Software: Módulo propio desarrollado en PHP (2016, sin soporte activo)
+   - Base de datos: PostgreSQL 9.6 en servidor físico propio (en desuso parcial)
+   - Problemas: Sistema desactualizado, sin integración con POS ni e-commerce
+   - Inventario real: Se lleva en Excel por bodegueros
+
+6. REPORTES Y ANALÍTICA
+   - Herramienta: Microsoft Excel + Power BI Desktop (licencia personal del gerente)
+   - Fuentes de datos: Exportaciones manuales de Siigo, WooCommerce y POS
+   - Frecuencia de reportes: Semanal (consolidado manual los lunes)
+   - Sin pipeline de datos automatizado
+
+7. INFRAESTRUCTURA
+   - Servidor físico en oficina principal: Dell PowerEdge R330 (8 años de antigüedad)
+   - Almacenamiento: 2TB HDD, RAID 1
+   - Backup: Disco externo USB (manual, semanal)
+   - Conectividad tiendas: VPN site-to-site (Fortinet)
+   - Nube: DigitalOcean para e-commerce; Google Workspace para correo y Drive
+
+=== PROCESOS DE DATOS CRÍTICOS ===
+
+1. CIERRE DE CAJA DIARIO
+   - Cada tienda exporta CSV del POS al cierre
+   - El administrador regional los consolida en Excel
+   - Se envía por correo al contador para ingreso manual en Siigo
+
+2. CONTROL DE INVENTARIO
+   - Conteo físico mensual manual
+   - Diferencias frecuentes entre sistema y realidad (>5% en promedio)
+   - Sin trazabilidad de movimientos de inventario en tiempo real
+
+3. GESTIÓN DE PEDIDOS ONLINE
+   - Pedido en WooCommerce → Notificación por correo → Bodeguero verifica Excel → Despacho
+   - Tiempo de procesamiento: 2-4 horas en horario laboral
+   - Sin confirmación automática al cliente hasta despacho
+
+4. REPORTES GERENCIALES
+   - Consolidación manual semanal (~6 horas de trabajo)
+   - Alta probabilidad de error humano
+   - Sin datos en tiempo real para toma de decisiones
+
+=== PROBLEMAS PRINCIPALES IDENTIFICADOS ===
+
+- Silos de datos: cada sistema tiene su propia BD sin integración
+- Duplicidad de clientes: el mismo cliente puede existir en WooCommerce, Excel-CRM y Siigo con datos distintos
+- Inventario desactualizado: diferencias frecuentes entre sistemas y realidad
+- Dependencia de procesos manuales: integraciones hechas con exportaciones CSV y correo electrónico
+- Falta de trazabilidad: no hay historial unificado de interacciones con clientes
+- Escalabilidad: el servidor físico está al límite de capacidad
+- Sin gobierno de datos: no hay responsables definidos para la calidad de cada dato
+- Sin diccionario de datos: cada área usa nombres distintos para los mismos conceptos
+
+=== EQUIPO DE TECNOLOGÍA ===
+
+- 1 Administrador de sistemas (IT Manager)
+- 1 Desarrollador web (mantiene WooCommerce)
+- 1 Analista de datos (consolida reportes en Excel/Power BI)
+- Soporte ERP: tercerizado a proveedor Siigo
+
+=== MÉTRICAS CLAVE ===
+
+- Pedidos/mes: ~5.000 (60% físico, 40% online)
+- SKUs activos: ~3.500 productos
+- Clientes registrados: ~45.000 (estimado, con alta duplicidad)
+- Facturación anual: ~COP 18.000 millones
+- Empleados: 150 (30 en logística/bodega, 80 en tiendas, 20 en administración, 20 en TI y soporte)

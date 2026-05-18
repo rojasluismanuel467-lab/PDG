@@ -1,5 +1,8 @@
 "use client";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import AIGenerateModal from "@/components/ai/AIGenerateModal";
+import type { AIGenerateParams } from "@/lib/api/ai";
 import axios from "axios";
 import {
   ArrowLeftRight,
@@ -42,7 +45,7 @@ import CommentPopover, { type CommentPopoverState } from "./CommentPopover";
 interface ModeloEREditorProps {
   modelo: ModeloER;
   onSave: (modelo: ModeloER) => Promise<ModeloER | void>;
-  onGenerateIA?: () => Promise<void>;
+  onGenerateIA?: (params: AIGenerateParams) => Promise<void>;
   onPreviewVersion?: (versionNumber: number) => Promise<ModeloER>;
   onRestoreVersion?: (versionNumber: number) => Promise<ModeloER>;
   onAddComment?: (
@@ -98,6 +101,17 @@ export default function ModeloEREditor({
   allowComments = true,
 }: ModeloEREditorProps) {
   const [modelo, setModelo] = useState<ModeloER>(modeloInicial);
+
+  // Sync entidades/relaciones when parent updates them (e.g. after AI generation)
+  useEffect(() => {
+    setModelo((prev) => ({
+      ...prev,
+      entidades: modeloInicial.entidades,
+      relaciones: modeloInicial.relaciones,
+    }));
+  }, [modeloInicial.entidades, modeloInicial.relaciones]);
+
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [panelActivo, setPanelActivo] = useState<PanelActivo>(null);
   const [tabActiva, setTabActiva] = useState<TabActiva>("diagrama");
   const [nuevoComentarioGeneral, setNuevoComentarioGeneral] = useState("");
@@ -441,6 +455,13 @@ export default function ModeloEREditor({
     setHasChanges(false);
   };
 
+  useAutoSave({
+    state: modelo,
+    hasChanges,
+    onSave: handleSave,
+    enabled: !readOnly,
+  });
+
   const handlePreviewVersion = useCallback(
     async (versionNumber: number) => {
       if (!onPreviewVersion) return;
@@ -555,8 +576,13 @@ export default function ModeloEREditor({
             ))}
           </div>
 
-          {/* Indicador de cambios */}
-          {!readOnly && hasChanges && (
+          {/* Indicador de cambios / auto-guardado */}
+          {!readOnly && isSaving && (
+            <svg className="animate-spin w-3.5 h-3.5 text-[#28b8d5]" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+            </svg>
+          )}
+          {!readOnly && hasChanges && !isSaving && (
             <span className="text-[10px] font-medium text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
               Cambios sin guardar
             </span>
@@ -629,7 +655,7 @@ export default function ModeloEREditor({
 
               {allowGenerate && onGenerateIA && (
                 <button
-                  onClick={onGenerateIA}
+                  onClick={() => setShowGenerateModal(true)}
                   disabled={isGenerating}
                   title="Generar diagrama con inteligencia artificial"
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#28b8d5] to-[#1e9bb5] text-white text-xs font-semibold hover:from-[#23a7c2] hover:to-[#1a8da5] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
@@ -1279,6 +1305,16 @@ export default function ModeloEREditor({
           onAddComment={handleAddCommentFromPopover}
           onResolve={handleResolveComment}
           onReopen={handleReopenComment}
+        />
+      )}
+
+      {showGenerateModal && onGenerateIA && (
+        <AIGenerateModal
+          isOpen={showGenerateModal}
+          onClose={() => setShowGenerateModal(false)}
+          onGenerate={onGenerateIA}
+          projectId={modelo.proyecto_id}
+          artifactLabel="modelo conceptual"
         />
       )}
     </div>

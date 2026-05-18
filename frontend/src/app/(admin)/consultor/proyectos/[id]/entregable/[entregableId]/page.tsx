@@ -16,6 +16,14 @@ import { raciApi } from "@/lib/api/raci";
 import { inventoryMatrixApi } from "@/lib/api/inventory-matrix";
 import { businessGlossaryApi } from "@/lib/api/business-glossary";
 import {
+  aiApi,
+  type AIGenerateParams,
+  type AIInventorySuggestion,
+  type AIConceptualSuggestion,
+} from "@/lib/api/ai";
+import type { SistemaInventario } from "@/lib/types/matriz-inventario.types";
+import type { EntidadER, RelacionER, AtributoER, TipoDato } from "@/lib/types/modelo-er.types";
+import {
   mockGuardarRoadmapImplementation,
 } from "@/lib/mocks/roadmap-implementation.mock";
 import {
@@ -71,6 +79,80 @@ import {
   ArchitectureStandardsEditor,
   KPIDashboardEditor,
 } from "@/components/entregables/roadmap";
+
+// ── AI response mappers ──────────────────────────────────────────────────────
+
+const TIPO_SISTEMA_VALID = new Set([
+  "aplicacion", "base_de_datos", "plataforma", "servicio_externo", "infraestructura",
+]);
+const CRITICIDAD_VALID = new Set(["critico", "alto", "medio", "bajo"]);
+const ESTADO_VALID = new Set(["produccion", "desarrollo", "mantenimiento", "legado", "deprecado"]);
+
+function mapAIInventoryToSistemas(
+  suggestion: AIInventorySuggestion,
+): SistemaInventario[] {
+  return suggestion.sistemas.map((s) => ({
+    id: s.id || crypto.randomUUID(),
+    nombre: s.nombre,
+    tipo: (TIPO_SISTEMA_VALID.has(s.tipo) ? s.tipo : "aplicacion") as SistemaInventario["tipo"],
+    descripcion: s.descripcion,
+    tecnologia: s.tecnologia ?? undefined,
+    proveedor: s.proveedor ?? undefined,
+    propietario_negocio: s.propietario_negocio ?? undefined,
+    propietario_tecnico: undefined,
+    criticidad: (s.criticidad && CRITICIDAD_VALID.has(s.criticidad)
+      ? s.criticidad
+      : undefined) as SistemaInventario["criticidad"],
+    estado: (s.estado && ESTADO_VALID.has(s.estado)
+      ? s.estado
+      : undefined) as SistemaInventario["estado"],
+    ambientes: [],
+    datos_que_maneja: s.datos_que_maneja ?? [],
+    areas_estrategicas: undefined,
+    notas: s.razon_inclusion || undefined,
+  }));
+}
+
+const TIPO_DATO_VALID = new Set([
+  "VARCHAR", "INT", "BIGINT", "DECIMAL", "BOOLEAN",
+  "DATE", "DATETIME", "TEXT", "BLOB", "UUID", "JSON",
+]);
+
+function mapAIConceptualToER(
+  suggestion: AIConceptualSuggestion,
+): { entidades: EntidadER[]; relaciones: RelacionER[] } {
+  const entidades: EntidadER[] = suggestion.entidades.map((e, idx) => ({
+    id: e.client_id || crypto.randomUUID(),
+    nombre: e.nombre,
+    descripcion: e.descripcion,
+    posicion_x: (idx % 3) * 320 + 80,
+    posicion_y: Math.floor(idx / 3) * 260 + 80,
+    atributos: e.atributos.map((a): AtributoER => ({
+      id: crypto.randomUUID(),
+      nombre: a.nombre,
+      tipo_dato: (TIPO_DATO_VALID.has(a.tipo_dato.toUpperCase())
+        ? a.tipo_dato.toUpperCase()
+        : "VARCHAR") as TipoDato,
+      es_pk: a.es_clave,
+      es_fk: false,
+      es_nullable: !a.es_clave,
+      descripcion: a.descripcion || undefined,
+    })),
+  }));
+
+  const relaciones: RelacionER[] = suggestion.relaciones.map((r) => ({
+    id: crypto.randomUUID(),
+    nombre: r.etiqueta,
+    entidad_origen_id: r.desde,
+    entidad_destino_id: r.hacia,
+    cardinalidad: r.cardinalidad,
+    descripcion: r.descripcion || undefined,
+  }));
+
+  return { entidades, relaciones };
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function EntregablePage() {
   const { id, entregableId } = useParams<{ id: string; entregableId: string }>();
@@ -220,6 +302,27 @@ export default function EntregablePage() {
       }
     },
     [entregableId, id]
+  );
+
+  const handleGenerateIAModeloER = useCallback(
+    async (params: AIGenerateParams) => {
+      if (!modeloER) return;
+      const artifactCode = entregable?.code?.startsWith("TOBE")
+        ? "TOBE_CONCEPTUAL_DIAGRAM"
+        : "ASIS_CONCEPTUAL_DIAGRAM";
+
+      const resp = artifactCode.startsWith("TOBE")
+        ? await aiApi.generateTobe(id, artifactCode, params)
+        : await aiApi.generateAsis(id, artifactCode, params);
+
+      const { entidades, relaciones } = mapAIConceptualToER(
+        resp.suggestion as AIConceptualSuggestion,
+      );
+      setModeloER((prev) =>
+        prev ? { ...prev, entidades, relaciones } : prev,
+      );
+    },
+    [id, entregable?.code, modeloER],
   );
 
   const handleAddComment = useCallback(
@@ -398,15 +501,29 @@ export default function EntregablePage() {
     [id, entregableId],
   );
 
-  const handleGenerateIAMatrizInventario = useCallback(async () => {
-    setIsGeneratingMatriz(true);
-    try {
-      const generado = await inventoryMatrixApi.generateMatrix(id, entregableId);
-      setMatrizInventario(generado);
-    } finally {
-      setIsGeneratingMatriz(false);
-    }
-  }, [id, entregableId]);
+  const handleGenerateIAMatrizInventario = useCallback(
+    async (params: AIGenerateParams) => {
+      if (!matrizInventario) return;
+      setIsGeneratingMatriz(true);
+      try {
+        const artifactCode = entregable?.code?.startsWith("TOBE")
+          ? "TOBE_SYSTEM_INVENTORY_MATRIX"
+          : "ASIS_SYSTEM_INVENTORY_MATRIX";
+
+        const resp = artifactCode.startsWith("TOBE")
+          ? await aiApi.generateTobe(id, artifactCode, params)
+          : await aiApi.generateAsis(id, artifactCode, params);
+
+        const sistemas = mapAIInventoryToSistemas(
+          resp.suggestion as AIInventorySuggestion,
+        );
+        setMatrizInventario((prev) => (prev ? { ...prev, sistemas } : prev));
+      } finally {
+        setIsGeneratingMatriz(false);
+      }
+    },
+    [id, entregable?.code, matrizInventario],
+  );
 
   const handleAddCommentMatrizInventario = useCallback(
     async (
@@ -739,9 +856,10 @@ export default function EntregablePage() {
             onSave={handleSaveModeloER}
             isSaving={isSaving}
             isGenerating={false}
-            allowGenerate={false}
+            allowGenerate={!esSoloLectura}
             allowComments={!esSoloLectura}
             readOnly={esSoloLectura}
+            onGenerateIA={!esSoloLectura ? handleGenerateIAModeloER : undefined}
             onAddComment={handleAddComment}
             onPreviewVersion={handlePreviewVersion}
             onRestoreVersion={handleRestoreVersion}
