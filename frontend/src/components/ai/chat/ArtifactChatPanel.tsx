@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   MessageSquarePlus,
+  Paperclip,
   Pencil,
   Search,
   Send,
@@ -21,6 +22,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useArtifactChat } from "@/hooks/useArtifactChat";
+import { aiChatApi } from "@/lib/api/ai-chat";
 import { ArtifactDiffViewer, computeArtifactDiffSummary } from "./ArtifactDiffViewer";
 
 // ── Inline markdown renderer ──────────────────────────────────────────────────
@@ -268,9 +270,15 @@ export function ArtifactChatPanel({
     | { kind: "discard"; artifact: Record<string, unknown> }
     | null
   >(null);
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "done" | "error"
+  >("idle");
+  const [uploadFileName, setUploadFileName] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const undoTimerRef = useRef<number | null>(null);
+  const uploadStatusTimerRef = useRef<number | null>(null);
 
   const {
     sessions,
@@ -352,6 +360,34 @@ export function ArtifactChatPanel({
       setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [isOpen]);
+
+  const handleFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !sessionId) return;
+
+      e.target.value = "";
+      setUploadFileName(file.name);
+      setUploadStatus("uploading");
+      if (uploadStatusTimerRef.current) {
+        window.clearTimeout(uploadStatusTimerRef.current);
+      }
+
+      try {
+        await aiChatApi.uploadFile(projectId, artifactCode, sessionId, file);
+        setUploadStatus("done");
+      } catch {
+        setUploadStatus("error");
+      } finally {
+        uploadStatusTimerRef.current = window.setTimeout(() => {
+          setUploadStatus("idle");
+          setUploadFileName("");
+          uploadStatusTimerRef.current = null;
+        }, 4000);
+      }
+    },
+    [sessionId, projectId, artifactCode],
+  );
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -1062,7 +1098,23 @@ export function ArtifactChatPanel({
 
 	        {/* Input */}
 	        <div className="flex-shrink-0 border-t border-gray-100 dark:border-white/[0.06] p-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.webp"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
           <div className="flex items-end gap-2 bg-gray-50 dark:bg-white/[0.04] rounded-xl border border-gray-200 dark:border-white/[0.08] px-3 py-2 focus-within:border-[#28b8d5]/40 dark:focus-within:border-[#28b8d5]/30 transition-colors">
+            <button
+              type="button"
+              title="Adjuntar documento"
+              disabled={!sessionId || !!connectionError || uploadStatus === "uploading"}
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 dark:text-white/25 hover:text-[#28b8d5] hover:bg-[#28b8d5]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400"
+            >
+              <Paperclip size={13} />
+            </button>
             <textarea
               ref={inputRef}
               value={input}
@@ -1093,9 +1145,36 @@ export function ArtifactChatPanel({
               )}
             </button>
           </div>
-          <p className="text-[10px] text-gray-400 dark:text-white/20 mt-1.5 text-center">
-            Shift+Enter para nueva línea
-          </p>
+
+          {/* Upload status */}
+          {uploadStatus !== "idle" && (
+            <div className={`mt-1.5 flex items-center gap-1.5 px-1 ${
+              uploadStatus === "error"
+                ? "text-red-500 dark:text-red-400"
+                : uploadStatus === "done"
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-gray-400 dark:text-white/30"
+            }`}>
+              {uploadStatus === "uploading" && (
+                <svg className="animate-spin w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeLinecap="round" />
+                </svg>
+              )}
+              {uploadStatus === "done" && <Check size={11} className="flex-shrink-0" />}
+              {uploadStatus === "error" && <AlertTriangle size={11} className="flex-shrink-0" />}
+              <span className="text-[10px] truncate max-w-[260px]">
+                {uploadStatus === "uploading" && `Subiendo ${uploadFileName}…`}
+                {uploadStatus === "done" && `${uploadFileName} subido — se vectorizará en breve.`}
+                {uploadStatus === "error" && `Error al subir ${uploadFileName}.`}
+              </span>
+            </div>
+          )}
+
+          {uploadStatus === "idle" && (
+            <p className="text-[10px] text-gray-400 dark:text-white/20 mt-1.5 text-center">
+              Shift+Enter para nueva línea
+            </p>
+          )}
         </div>
       </div>
   );

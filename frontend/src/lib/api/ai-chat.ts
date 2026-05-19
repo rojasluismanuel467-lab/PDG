@@ -226,6 +226,34 @@ export const aiChatApi = {
     });
   },
 
+  async uploadFile(
+    projectId: string,
+    artifactCode: string,
+    sessionId: string,
+    file: File,
+  ): Promise<{
+    id: string;
+    original_name: string;
+    mime_type: string;
+    size_bytes: number;
+    status: string;
+    phase: string;
+  }> {
+    const base = getApiBaseUrl();
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(
+      `${base}/projects/${projectId}/ai/chat/${artifactCode}/sessions/${sessionId}/upload`,
+      {
+        method: "POST",
+        headers: { Authorization: getAuthHeader() },
+        body: form,
+      },
+    );
+    if (!res.ok) await throwApiError(res);
+    return res.json();
+  },
+
   async checkCoherence(
     projectId: string,
     artifactCode: string,
